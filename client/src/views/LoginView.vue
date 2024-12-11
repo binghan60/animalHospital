@@ -13,12 +13,12 @@ export default {
     },
     async login() {
       const { username, password } = this
-      if (!username || password) {
+      if (!username || !password) {
         this.$toast.error('請輸入帳號密碼')
         return
       }
       try {
-        const response = await fetch(`http://localhost:3000/user/login`, {
+        const response = await fetch(`https://animal-hospital-8shy.vercel.app/user/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
