@@ -42,9 +42,10 @@ export default {
           alert(registerResponse.message)
           return
         }
-        // TODO
-        // 成功的畫面呈現
-        alert(registerResponse.message)
+        this.$toast.success(registerResponse.message)
+        setTimeout(() => {
+          this.$router.push('./login')
+        }, '1500')
       } catch (error) {
         alert('伺服器忙碌中，請稍後再試。')
         console.error('register', error)
