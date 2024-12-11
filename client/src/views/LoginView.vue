@@ -30,6 +30,7 @@ export default {
           return
         }
         this.$toast(loginResponse.message)
+        this.$router.push('/')
         document.cookie = `animalHospitalToken=${loginResponse.token}; expires=${new Date(loginResponse.expired)}`
       } catch (error) {
         alert('伺服器忙碌中，請稍後再試。')
