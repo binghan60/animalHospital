@@ -13,6 +13,10 @@ export default {
     },
     async login() {
       const { username, password } = this
+      if (!username || password) {
+        this.$toast.error('請輸入帳號密碼')
+        return
+      }
       try {
         const response = await fetch(`http://localhost:3000/user/login`, {
           method: 'POST',
@@ -26,14 +30,14 @@ export default {
         }
         const loginResponse = await response.json()
         if (!loginResponse.isSuccess) {
-          alert(loginResponse.message)
+          this.$toast.error(loginResponse.message)
           return
         }
         this.$toast(loginResponse.message)
         this.$router.push('/')
         document.cookie = `animalHospitalToken=${loginResponse.token}; expires=${new Date(loginResponse.expired)}`
       } catch (error) {
-        alert('伺服器忙碌中，請稍後再試。')
+        this.$toast.error('伺服器忙碌中，請稍後再試。')
         console.error('login', error)
         throw error
       }

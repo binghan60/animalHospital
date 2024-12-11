@@ -18,11 +18,11 @@ export default {
     },
     async register() {
       if (!this.password || !this.password) {
-        alert('請輸入密碼')
+        this.$toast.error('請輸入密碼')
         return
       }
       if (this.password !== this.confirmPassword) {
-        alert('密碼與確認密碼不一致')
+        this.$toast.error('密碼與確認密碼不一致')
         return
       }
       const { username, password } = this
@@ -39,7 +39,7 @@ export default {
         }
         const registerResponse = await response.json()
         if (!registerResponse.isSuccess) {
-          alert(registerResponse.message)
+          this.$toast.error(registerResponse.message)
           return
         }
         this.$toast.success(registerResponse.message)
@@ -47,7 +47,7 @@ export default {
           this.$router.push('./login')
         }, '1500')
       } catch (error) {
-        alert('伺服器忙碌中，請稍後再試。')
+        this.$toast.error('伺服器忙碌中，請稍後再試。')
         console.error('register', error)
         throw error
       }
