@@ -1,12 +1,16 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import animalRouter from './routes/animal.js';
-import weightRouter from './routes/weight.js';
-import bloodSugarRouter from './routes/bloodSugar.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
+
+const app = express();
+app.use(bodyParser.json());
+app.use(cors());
+app.get('/', (req, res) => {
+    res.send('AnimalHospital Server');
+});
 mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
@@ -16,15 +20,6 @@ mongoose
         console.log('資料庫連線失敗');
         console.log(err.message);
     });
-const app = express();
-app.get('/api', (req, res) => {
-    res.send('Hello, API!');
-});
-app.use(bodyParser.json());
-app.use(cors());
-app.use('/animal', animalRouter);
-app.use('/weight', weightRouter);
-app.use('/bloodSugar', bloodSugarRouter);
 
 const PORT = 3000;
 app.listen(PORT, () => {
