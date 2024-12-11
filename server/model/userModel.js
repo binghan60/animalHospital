@@ -15,12 +15,15 @@ const userSchema = new mongoose.Schema(
             type: String,
             unique: true,
             sparse: true,
+            default: '',
         },
         nickname: {
             type: String,
+            default: '',
         },
         title: {
             type: String,
+            default: '',
         },
         isActive: {
             type: Boolean,
