@@ -7,21 +7,20 @@ const userSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
-        email: {
-            type: String,
-            unique: true,
-        },
         password: {
             type: String,
             required: true,
         },
-        firstName: {
+        email: {
             type: String,
-            required: true,
+            unique: true,
+            sparse: true,
         },
-        lastName: {
+        nickname: {
             type: String,
-            required: true,
+        },
+        title: {
+            type: String,
         },
         isActive: {
             type: Boolean,
