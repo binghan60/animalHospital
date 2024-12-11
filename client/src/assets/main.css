@@ -2,5 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 body {
-    @apply bg-blue-100; /* 使用 Tailwind 的背景色類別 */
-  }
+  @apply bg-blue-100; 
+}
