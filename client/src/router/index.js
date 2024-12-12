@@ -8,18 +8,18 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('../views/HomeView.vue'),
-      children: [{ path: 'animallist', component: () => import('../views/AnimalListView.vue') }],
+      children: [{ path: '/animallist', component: () => import('@/views/AnimalListView.vue') }],
       meta: { requiresAuth: true },
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/LoginView.vue'),
+      component: () => import('@/views/LoginView.vue'),
     },
     {
       path: '/register',
       name: 'register',
-      component: () => import('../views/RegisterView.vue'),
+      component: () => import('@/views/RegisterView.vue'),
     },
     // {
     // path: '/about',

@@ -1,4 +1,5 @@
 <script>
+import { RouterView } from 'vue-router'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 
 export default {
@@ -6,11 +7,15 @@ export default {
     return {}
   },
   components: {
-    NavbarComponent, // 正確的組件名稱
+    NavbarComponent,
+    RouterView, // 正確的組件名稱
   },
 }
 </script>
 
 <template>
-  <NavbarComponent></NavbarComponent>
+  <div>
+    <NavbarComponent></NavbarComponent>
+    <RouterView></RouterView>
+  </div>
 </template>
