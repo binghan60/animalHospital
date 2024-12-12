@@ -8,7 +8,7 @@ export default {
   },
   components: {
     NavbarComponent,
-    RouterView, // 正確的組件名稱
+    RouterView,
   },
 }
 </script>
