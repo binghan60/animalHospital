@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import authStore from '@/stores/auth.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,6 +9,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/login',
@@ -29,5 +31,13 @@ const router = createRouter({
     // },
   ],
 })
-
+// 進每個路由都會經過 路由守衛
+router.beforeEach((to, from, next) => {
+  const store = authStore()
+  if (to.meta.requiresAuth && !store.user.isLogin) {
+    next('/login') // 如果未登入，導回登入頁
+  } else {
+    next()
+  }
+})
 export default router
