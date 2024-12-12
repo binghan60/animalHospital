@@ -34,8 +34,8 @@ export default {
           return
         }
         this.auth(loginResponse)
-        this.$toast(loginResponse.message)
-        this.$router.push('/')
+        this.$toast.success(loginResponse.message)
+        this.$router.push('/animallist')
         document.cookie = `animalHospitalToken=${loginResponse.token}; expires=${new Date(loginResponse.expired)}`
       } catch (error) {
         this.$toast.error('伺服器忙碌中，請稍後再試。')
