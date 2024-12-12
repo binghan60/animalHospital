@@ -38,7 +38,7 @@ export default {
         })
         const registerResponse = await response.json()
         if (!response.ok) {
-          this.$toast.success(registerResponse.message)
+          this.$toast.error(registerResponse.message)
           return
         }
 

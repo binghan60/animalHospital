@@ -30,7 +30,7 @@ export default {
         })
         const loginResponse = await response.json()
         if (!response.ok) {
-          this.$toast.success(loginResponse.message)
+          this.$toast.error(loginResponse.message)
           return
         }
         this.auth(loginResponse)
