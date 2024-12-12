@@ -9,5 +9,8 @@ export default defineStore('authStore', {
       this.user = user
       this.user.isLogin = true
     },
+    clearAuth() {
+      this.user = {}
+    },
   },
 })
