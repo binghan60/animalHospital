@@ -1,4 +1,7 @@
 <script>
+import { mapState, mapActions } from 'pinia'
+import apiStore from '@/stores/api.js'
+import authStore from '@/stores/auth.js'
 export default {
   data() {
     return {
@@ -12,27 +15,25 @@ export default {
       this.showPassword = !this.showPassword
     },
     async login() {
-      const { username, password } = this
+      const { username, password, apipath } = this
       if (!username || !password) {
         this.$toast.error('請輸入帳號密碼')
         return
       }
       try {
-        const response = await fetch(`https://animal-hospital-8shy.vercel.app/user/login`, {
+        const response = await fetch(`${apipath}/user/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ username, password }),
         })
-        if (!response.ok) {
-          throw new Error(`Request failed with status: ${response.status}`)
-        }
         const loginResponse = await response.json()
-        if (!loginResponse.isSuccess) {
-          this.$toast.error(loginResponse.message)
+        if (!response.ok) {
+          this.$toast.success(loginResponse.message)
           return
         }
+        this.auth(loginResponse)
         this.$toast(loginResponse.message)
         this.$router.push('/')
         document.cookie = `animalHospitalToken=${loginResponse.token}; expires=${new Date(loginResponse.expired)}`
@@ -46,6 +47,10 @@ export default {
       this.username = 'admin'
       this.password = 'admin'
     },
+    ...mapActions(authStore, ['auth']),
+  },
+  computed: {
+    ...mapState(apiStore, ['apipath']),
   },
 }
 </script>

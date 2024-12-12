@@ -1,4 +1,6 @@
 <script>
+import { mapState } from 'pinia'
+import apiStore from '@/stores/api.js'
 export default {
   data() {
     return {
@@ -25,33 +27,34 @@ export default {
         this.$toast.error('密碼與確認密碼不一致')
         return
       }
-      const { username, password } = this
+      const { username, password, apipath } = this
       try {
-        const response = await fetch(`https://animal-hospital-8shy.vercel.app/user/register`, {
+        const response = await fetch(`${apipath}/user/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ username, password }),
         })
-        if (!response.ok) {
-          throw new Error(`Request failed with status: ${response.status}`)
-        }
         const registerResponse = await response.json()
-        if (!registerResponse.isSuccess) {
-          this.$toast.error(registerResponse.message)
+        if (!response.ok) {
+          this.$toast.success(registerResponse.message)
           return
         }
-        this.$toast.success(registerResponse.message)
+
+        this.$toast.success(registerResponse.message + ', 1秒後自動跳轉登入頁')
         setTimeout(() => {
-          this.$router.push('./login')
-        }, '1500')
+          this.$router.push('/login')
+        }, '1000')
       } catch (error) {
         this.$toast.error('伺服器忙碌中，請稍後再試。')
         console.error('register', error)
         throw error
       }
     },
+  },
+  computed: {
+    ...mapState(apiStore, ['apipath']),
   },
 }
 </script>
