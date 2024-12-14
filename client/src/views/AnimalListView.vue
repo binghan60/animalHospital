@@ -202,7 +202,7 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
-              <select id="gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="createForm.gender">
+              <select id="gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.gender">
                 <option value="male">男生</option>
                 <option value="female">女生</option>
               </select>
@@ -213,12 +213,12 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="birthday" class="w-1/3 text-left text-primary-700">生日</label>
-              <input id="birthday" ref="birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="createForm.birthday" @click="$refs.admissionDate.showPicker()" />
+              <input id="birthday" ref="birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.birthday" @click="$refs.admissionDate.showPicker()" />
             </div>
             <div class="flex items-center">
               <label class="w-1/3 text-left text-primary-700">是否結紮</label>
               <div class="flex justify-around w-full">
-                <select id="neutered" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="createForm.sterilized">
+                <select id="neutered" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.sterilized">
                   <option value="true">已結紮</option>
                   <option value="false">未結紮</option>
                 </select>
@@ -226,7 +226,7 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="createForm.breed" />
+              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.breed" />
             </div>
 
             <div class="flex items-center">
@@ -254,7 +254,7 @@ export default {
             <div class="flex items-center">
               <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
               <div class="flex items-center justify-between w-full gap-2">
-                <label class="min-w-[70px] rounded-lg">
+                <label class="min-w-[70px] h-full rounded-lg">
                   <input type="radio" name="radioButton" value="cat" class="hidden peer" v-model="createForm.type" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
                 </label>
@@ -267,24 +267,24 @@ export default {
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
                 </label>
                 <label class="rounded-l" v-if="createForm.type == ''">
-                  <input type="text" placeholder="其他" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="createForm.type" />
+                  <input type="text" placeholder="其他" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.type" />
                 </label>
               </div>
             </div>
 
             <div class="flex items-center">
               <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
             <div class="flex items-center">
               <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>
-              <input ref="admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" @click="$refs.admissionDate.showPicker()" />
+              <input ref="admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @click="$refs.admissionDate.showPicker()" />
             </div>
           </div>
         </div>
         <div class="flex justify-between">
           <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="iscreateFormOpen = false">取消</button>
-          <button class="w-1/3 px-6 py-2 text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-400">確定</button>
+          <button class="w-1/3 px-6 py-2 text-white transition-all rounded-lg shadow-md bg-primary-500 hover:bg-primary-400">確定</button>
         </div>
       </div>
     </div>
