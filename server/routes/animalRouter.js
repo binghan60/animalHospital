@@ -8,17 +8,20 @@ router.get('/', (req, res) => {
 });
 
 router.post('/create', async (req, res) => {
+    const { userId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
     try {
         const newAnimal = new Animal({
-            //以req.body的資料new一個User
-            name: req.body.name,
-            birthday: req.body.birthday,
-            bloodType: req.body.bloodType,
-            variety: req.body.variety,
-            type: req.body.type,
-            gender: req.body.gender,
-            weight: req.body.weight,
-            ligation: req.body.ligation,
+            userId,
+            name,
+            gender,
+            weight,
+            birthday,
+            sterilized,
+            breed,
+            bloodType,
+            type,
+            insulinBrand,
+            admissionDate,
         });
         const animal = await newAnimal.save(); //保存至資料庫
         res.send({ animal });
