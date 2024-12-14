@@ -1,6 +1,6 @@
 <script>
 import { mapState } from 'pinia'
-import apiStore from '@/stores/api.js'
+import apiStore from '@/stores/api'
 export default {
   data() {
     return {
