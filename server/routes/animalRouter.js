@@ -8,13 +8,19 @@ router.get('/', (req, res) => {
     res.send({ message: '動物路由' });
 });
 router.get('/:userId', async (req, res) => {
+    const { searchKeyword } = req.query;
     try {
         const userId = req.params.userId;
-        const animal = await Animal.find({ userId });
+        let animal;
+        if (searchKeyword) {
+            animal = await Animal.find({ userId, name: { $regex: searchKeyword, $options: 'i' } });
+        } else {
+            animal = await Animal.find({ userId });
+        }
         if (animal.length > 0) {
             res.send(animal);
         } else {
-            res.status(404).send({ message: '找不到動物' });
+            res.status(404).send({ message: '找不到符合條件的動物，請檢查搜尋條件' });
         }
     } catch (error) {
         console.error(error);
