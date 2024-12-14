@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapActions } from 'pinia'
-import apiStore from '@/stores/api.js'
-import authStore from '@/stores/auth.js'
+import apiStore from '@/stores/api'
+import authStore from '@/stores/auth'
 export default {
   data() {
     return {
