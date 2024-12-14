@@ -2,7 +2,22 @@ import { defineStore } from 'pinia'
 
 export default defineStore('authStore', {
   state: () => ({
-    user: {},
+    user: {
+      __v: '',
+      _id: '',
+      username: '',
+      title: '',
+      nickname: '',
+      email: '',
+      message: '',
+      admin: '',
+      isLogin: false,
+      isActive: '',
+      token: '',
+      expired: '',
+      createdAt: '',
+      updatedAt: '',
+    },
   }),
   actions: {
     auth(user) {
