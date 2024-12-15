@@ -8,7 +8,15 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('../views/HomeView.vue'),
-      children: [{ path: '/animallist', component: () => import('@/views/AnimalListView.vue') }],
+      children: [
+        { path: 'animallist', component: () => import('@/views/AnimalListView.vue') },
+        {
+          path: 'animal/:id',
+          name: 'animal-detail',
+          component: () => import('@/views/AnimalDetailView.vue'),
+          props: true,
+        },
+      ],
       meta: { requiresAuth: true },
     },
     {
