@@ -16,7 +16,7 @@ export default {
         bloodType: '',
         type: ' ',
         insulinBrand: '',
-        admissionDate: new Date('2024-12-08').toISOString().slice(0, 10),
+        admissionDate: new Date().toISOString().slice(0, 10),
       },
       iscreateFormOpen: false,
       otherField: true,
@@ -68,6 +68,7 @@ export default {
           return
         }
         this.animalList = animalList
+        console.log(animalList)
       } catch (error) {
         this.$toast.error('伺服器忙碌中，請稍後再試。')
         throw error
@@ -228,7 +229,7 @@ export default {
               </td>
               <td class="p-4 border-b border-primary-50">
                 <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[animal.weight.length - 1].value }} 公斤</p>
+                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0].value }} 公斤</p>
                 </div>
               </td>
               <td class="p-4 border-b border-primary-50">
