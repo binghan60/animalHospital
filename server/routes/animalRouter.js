@@ -7,6 +7,21 @@ const router = express.Router();
 router.get('/', (req, res) => {
     res.send({ message: '動物路由' });
 });
+
+router.get('/detail/:animalId', async (req, res) => {
+    try {
+        const { animalId } = req.params;
+        console.log(animalId);
+        const animal = await Animal.findById(animalId);
+        if (animal) {
+            res.send({ animal });
+        }
+        res.status(404).send({ message: '找不到符合條件的動物，請檢查搜尋條件' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '伺服器錯誤' });
+    }
+});
 router.get('/:userId', async (req, res) => {
     const { searchKeyword } = req.query;
     try {
