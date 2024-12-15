@@ -32,7 +32,7 @@ export default {
 <template>
   <nav class="mb-10 bg-primary-400">
     <div class="flex items-center justify-between p-2 mx-auto text-lg text-white max-w-7xl">
-      <a @click="chagnePage('/')">
+      <a @click="chagnePage('/animallist')">
         <div class="text-2xl font-bold cursor-pointer">
           LOGO
           <!-- <img class="w-auto h-full" src="/img/logo.png" alt="Logo" /> -->
