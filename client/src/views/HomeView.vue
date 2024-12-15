@@ -16,6 +16,8 @@ export default {
 <template>
   <div>
     <NavbarComponent></NavbarComponent>
-    <RouterView></RouterView>
+    <div class="p-4 mx-auto max-w-7xl lg:p-2">
+      <RouterView></RouterView>
+    </div>
   </div>
 </template>
