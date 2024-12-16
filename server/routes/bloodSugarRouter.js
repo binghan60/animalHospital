@@ -16,7 +16,7 @@ router.get('/diary', async (req, res) => {
         const startDate = new Date(`${year}-${month}-01`);
         const endDate = new Date(`${year}-${month}-${dayInMonth}`);
         const data = await BloodSugar.find({
-            userId: animalId,
+            animalId,
             date: { $gte: startDate, $lte: endDate },
         }).sort({ date: 1 });
         return res.status(200).json(data);
