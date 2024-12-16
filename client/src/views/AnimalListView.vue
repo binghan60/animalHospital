@@ -313,19 +313,19 @@ export default {
               <label class="w-1/3 text-left text-primary-700">血型</label>
               <div class="flex justify-between w-full">
                 <label class="rounded-lg">
-                  <input type="radio" name="radioButton" value="A" class="hidden peer" v-model="createForm.bloodType" />
+                  <input type="radio" name="bloodType" value="A" class="hidden peer" v-model="createForm.bloodType" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 lg:px-4 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="radioButton" value="B" class="hidden peer" v-model="createForm.bloodType" />
+                  <input type="radio" name="bloodType" value="B" class="hidden peer" v-model="createForm.bloodType" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="radioButton" value="AB" class="hidden peer" v-model="createForm.bloodType" />
+                  <input type="radio" name="bloodType" value="AB" class="hidden peer" v-model="createForm.bloodType" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="radioButton" value="O" class="hidden peer" v-model="createForm.bloodType" />
+                  <input type="radio" name="bloodType" value="O" class="hidden peer" v-model="createForm.bloodType" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-o"></i> 型</span>
                 </label>
               </div>
@@ -335,15 +335,15 @@ export default {
               <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
               <div class="flex items-center justify-between w-full gap-2">
                 <label class="min-w-[70px] h-full rounded-lg">
-                  <input type="radio" name="radioButton" value="cat" class="hidden peer" v-model="createForm.type" />
+                  <input type="radio" name="type" value="cat" class="hidden peer" v-model="createForm.type" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
                 </label>
                 <label class="min-w-[70px] rounded-l">
-                  <input type="radio" name="radioButton" value="dog" class="hidden peer" v-model="createForm.type" />
+                  <input type="radio" name="type" value="dog" class="hidden peer" v-model="createForm.type" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-dog"></i> 狗狗 </span>
                 </label>
                 <label class="min-w-[48px] rounded-l">
-                  <input type="radio" name="radioButton" value="other" class="hidden peer" v-model="createForm.type" />
+                  <input type="radio" name="type" value="other" class="hidden peer" v-model="createForm.type" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
                 </label>
                 <!-- <label class="rounded-l">
