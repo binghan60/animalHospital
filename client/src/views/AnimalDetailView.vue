@@ -6,6 +6,7 @@ export default {
   components: { Mychart },
   data() {
     return {
+      diaryBloodSugar: [],
       animalId: this.$route.params.id,
       animalInfo: {},
       chartData: {
@@ -22,7 +23,6 @@ export default {
           },
         ],
       },
-      plugins: [],
       chartOptions: {
         responsive: true,
         plugins: {
@@ -47,6 +47,16 @@ export default {
         },
       },
       chartType: 'line',
+      today: this.getToday(),
+      currentDate: this.getToday(),
+      calendar: [],
+      insulinOption: [
+        { value: '', text: '請選擇劑量' },
+        { value: 0, text: '0 小格' },
+        { value: 0.5, text: '0.5 小格' },
+        { value: 1, text: '1 小格' },
+        { value: 1.5, text: '1.5 小格' },
+      ],
     }
   },
   methods: {
@@ -63,11 +73,59 @@ export default {
         this.animalInfo = data
         this.chartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.chartData.datasets[0].data = data.weight.map(x => x.value)
-        console.log(this.chartData.labels)
-        console.log(this.chartData.datasets[0].data)
       } catch (error) {
         console.error(error.message)
         this.$toast.error('伺服器錯誤')
+      }
+    },
+    async getDiaryBloodSugar() {
+      try {
+        const response = await fetch(`${this.apipath}/bloodSugar/diary?animalId=${this.animalId}&year=${this.currentDate.year}&month=${this.currentDate.month}&dayInMonth=${this.currentDate.dayInMonth}`, {
+          method: 'GET',
+        })
+        if (!response.ok) {
+          this.$toast.error(response.message)
+          return
+        }
+        const data = await response.json()
+        this.diaryBloodSugar = data
+        return data
+      } catch (error) {
+        console.error(error.message)
+        this.$toast.error('伺服器錯誤')
+      }
+    },
+    async createDiaryBloodSugar(date, morningBloodSugar, morningInsulin, eveningBloodSugar, eveningInsulin, notes) {
+      try {
+        const response = await fetch(`${this.apipath}/bloodSugar/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            animalId: this.animalId,
+            date,
+            morning: {
+              bloodSugar: morningBloodSugar,
+              insulin: morningInsulin,
+            },
+            evening: {
+              bloodSugar: eveningBloodSugar,
+              insulin: eveningInsulin,
+            },
+            notes,
+          }),
+        })
+        const createResponse = await response.json()
+        if (!response.ok) {
+          this.$toast.error(createResponse.message)
+          return
+        }
+        this.$toast.success('新增成功')
+      } catch (error) {
+        this.$toast.error('伺服器忙碌中，請稍後再試。')
+        console.error('login', error)
+        throw error
       }
     },
     convertBirthdayToAge(dateString) {
@@ -81,10 +139,111 @@ export default {
       }
       return { years, months }
     },
+    getToday() {
+      const date = new Date()
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1
+      return {
+        year,
+        month,
+        day: date.getDate(),
+        dayInMonth: new Date(year, month, 0).getDate(),
+      }
+    },
+    prevMonth() {
+      this.currentDate.month -= 1
+      if (this.currentDate.month < 1) {
+        this.currentDate.month = 12
+        this.currentDate.year -= 1
+      }
+    },
+    nextMonth() {
+      this.currentDate.month += 1
+      if (this.currentDate.month > 12) {
+        this.currentDate.month = 1
+        this.currentDate.year += 1
+      }
+    },
+    edit(index, timeOfDay, recordType) {
+      this.calendar[index][timeOfDay][recordType].isEditing = true
+      this.$nextTick(() => {
+        const refName = `${timeOfDay}${recordType.charAt(0).toUpperCase() + recordType.slice(1)}`
+        if (this.$refs[refName]) {
+          this.$refs[refName][0].focus()
+        }
+      })
+    },
+    async blur(index, timeOfDay, recordType) {
+      const response = await this.createDiaryBloodSugar(this.calendar[index].date, this.calendar[index].morning.bloodSugar.value, this.calendar[index].morning.insulin.value, this.calendar[index].evening.bloodSugar.value, this.calendar[index].evening.insulin.value, '')
+      console.log(response)
+      this.calendar[index][timeOfDay][recordType].isEditing = false
+    },
   },
   computed: {
     ...mapState(apiStore, ['apipath']),
   },
+  watch: {
+    'currentDate.month': {
+      handler(newValue) {
+        const { currentDate } = this
+        const days = Array.from({ length: currentDate.dayInMonth }, (v, i) => {
+          const date = `${currentDate.year}-${newValue}-${String(i + 1).padStart(2, '0')}`
+          return {
+            year: currentDate.year,
+            month: newValue,
+            day: i + 1,
+            date,
+            morning: { bloodSugar: { value: '', isEditing: false }, insulin: { value: '', isEditing: false } },
+            evening: { bloodSugar: { value: '', isEditing: false }, insulin: { value: '', isEditing: false } },
+          }
+        })
+        const fetchDiaryData = async () => {
+          const diaryData = await this.getDiaryBloodSugar()
+          const mergedDays = days.map(day => {
+            const diaryEntry = diaryData.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
+            if (diaryEntry) {
+              return Object.assign({}, day, {
+                morning: {
+                  bloodSugar: {
+                    value: diaryEntry.morning.bloodSugar,
+                    isEditing: false,
+                  },
+                  insulin: {
+                    value: diaryEntry.morning.insulin,
+                    isEditing: false,
+                  },
+                },
+                evening: {
+                  bloodSugar: {
+                    value: diaryEntry.evening.bloodSugar,
+                    isEditing: false,
+                  },
+                  insulin: {
+                    value: diaryEntry.evening.insulin,
+                    isEditing: false,
+                  },
+                },
+              })
+            }
+            return day
+          })
+          const firstDay = new Date(currentDate.year, newValue - 1, 1).getDay()
+          const spaceDay = firstDay === 0 ? 6 : firstDay - 1
+          const blankDays = Array.from({ length: spaceDay }, () => ({ date: null })) //補前空格
+          const allDays = [...blankDays, ...mergedDays]
+          const totalCells = 42
+          for (let i = allDays.length; i < totalCells; i++) {
+            allDays.push({ date: null })
+          } //補後空格
+          this.calendar = allDays
+          console.log(allDays)
+        }
+        fetchDiaryData()
+      },
+      immediate: true,
+    },
+  },
+
   async mounted() {
     await this.getAnimalInfo()
   },
@@ -129,11 +288,11 @@ export default {
     <!-- 日曆 -->
     <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
       <h1 class="py-3 text-2xl font-bold text-center text-blue-600 select-none">
-        <button class="text-blue-500 hover:text-blue-700">
+        <button class="text-blue-500 hover:text-blue-700" @click="prevMonth">
           <i class="text-3xl fa-solid fa-caret-left"></i>
         </button>
-        <span class="px-4">2024 年 12 月 血糖表</span>
-        <button id="nextMonth" class="text-blue-500 hover:text-blue-700">
+        <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
+        <button id="nextMonth" class="text-blue-500 hover:text-blue-700" @click="nextMonth">
           <i class="text-3xl fa-solid fa-caret-right"></i>
         </button>
       </h1>
@@ -148,27 +307,36 @@ export default {
         <div>日</div>
       </div>
       <div class="grid grid-cols-2 gap-1 mt-2 lg:grid-cols-7">
-        <div class="p-2 m-1 rounded-md"></div>
-        <div class="p-2 m-1 rounded-md"></div>
-        <div class="p-2 m-1 rounded-md"></div>
-        <div class="p-2 m-1 rounded-md"></div>
-        <div class="p-2 m-1 rounded-md"></div>
-        <div class="p-2 m-1 rounded-md"></div>
-        <div id="calendar2024-12-01" class="p-2 m-1 text-blue-900 bg-blue-100 rounded-md cursor-pointer hover:bg-blue-300">
-          <div class="text-xl font-bold text-center">1</div>
-          <!-- 早上 -->
-          <div class="p-2 mb-2 bg-orange-100 rounded-md hover:bg-orange-200">
-            <div class="font-semibold text-center text-orange-500"><i class="fa-regular fa-sun"></i></div>
-            <div data-type="morningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none editable" onclick="cellClick(event,2024,12,1)"><i class="fa-solid fa-droplet w-[14px]"></i> : <span class="text-green-500">121</span> mg/dl</div>
-            <div data-type="morningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none editable" onclick="cellClick(event,2024,12,1)"><i class="fa-solid fa-syringe"></i> : 0小格</div>
+        <template v-for="(day, index) in calendar">
+          <div v-if="day.day" :key="day.isoDate" class="p-2 m-1 text-blue-900 bg-blue-100 rounded-md cursor-pointer hover:bg-blue-300">
+            <div class="font-bold text-center">{{ day.month }}/{{ day.day }}</div>
+            <!-- 早上 -->
+            <div class="p-2 mb-2 bg-orange-100 rounded-md hover:bg-orange-200">
+              <div class="font-semibold text-center text-orange-500"><i class="fa-regular fa-sun"></i></div>
+              <div v-if="!calendar[index].morning.bloodSugar.isEditing" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'morning', 'bloodSugar')">
+                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar.value ? calendar[index].morning.bloodSugar.value : '---' }}</span>
+              </div>
+              <input v-else type="tel" v-model="calendar[index].morning.bloodSugar.value" ref="morningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'morning', 'bloodSugar')" />
+              <div v-if="!calendar[index].morning.insulin.isEditing" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'morning', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin.value || calendar[index].morning.insulin.value === 0 ? calendar[index].morning.insulin.value + ' 小格' : '---' }}</div>
+              <select v-else v-model="calendar[index].morning.insulin.value" ref="morningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'morning', 'insulin')">
+                <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].morning.insulin.value === option.value">{{ option.text }}</option>
+              </select>
+            </div>
+            <!-- 晚上 -->
+            <div class="p-2 bg-purple-100 rounded-md hover:bg-purple-200">
+              <div class="font-semibold text-center text-purple-500"><i class="fa-regular fa-moon"></i></div>
+              <div v-if="!calendar[index].evening.bloodSugar.isEditing" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'evening', 'bloodSugar')">
+                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].evening.bloodSugar.value ? calendar[index].evening.bloodSugar.value : '---' }}</span>
+              </div>
+              <input v-else type="tel" v-model="calendar[index].evening.bloodSugar.value" ref="eveningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'evening', 'bloodSugar')" />
+              <div v-if="!calendar[index].evening.insulin.isEditing" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'evening', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin.value || calendar[index].evening.insulin.value === 0 ? calendar[index].evening.insulin.value + ' 小格' : '---' }}</div>
+              <select v-else ref="eveningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'evening', 'insulin')">
+                <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].evening.insulin.value === option.value">{{ option.text }}</option>
+              </select>
+            </div>
           </div>
-          <!-- 晚上 -->
-          <div class="p-2 bg-purple-100 rounded-md hover:bg-purple-200">
-            <div class="font-semibold text-center text-purple-500"><i class="fa-regular fa-moon"></i></div>
-            <div data-type="eveningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none editable" onclick="cellClick(event,2024,12,1)"><i class="fa-solid fa-droplet w-[14px]"></i> : <span class="text-green-500">125</span> mg/dl</div>
-            <div data-type="eveningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none editable" onclick="cellClick(event,2024,12,1)"><i class="fa-solid fa-syringe"></i> : 1.5小格</div>
-          </div>
-        </div>
+          <div v-else :key="index" class="p-2 m-1 rounded-md"></div>
+        </template>
       </div>
     </div>
     <div>
