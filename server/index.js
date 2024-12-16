@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/userRouter.js';
 import animalRouter from './routes/animalRouter.js';
+import bloodSugarRouter from './routes/bloodSugarRouter.js';
 
 dotenv.config();
 const app = express();
@@ -12,6 +13,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use('/user', userRouter);
 app.use('/animal', animalRouter);
+app.use('/bloodSugar', bloodSugarRouter);
 app.get('/', (req, res) => {
     res.send('AnimalHospital Server');
 });
