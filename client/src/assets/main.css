@@ -13,3 +13,23 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: none;
 }
+.lazyLoading {
+  pointer-events: none;
+  background: #f0f0f0;
+  min-height: 1em;
+  display: inline-block;
+  animation: loading 2s infinite ease-in-out;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-color: #f0f0f0;
+  }
+  50% {
+    background-color: #d0d0d0;
+  }
+  100% {
+    background-color: #f0f0f0;
+  }
+}
