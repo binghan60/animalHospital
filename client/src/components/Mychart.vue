@@ -1,20 +1,18 @@
 <template>
   <div>
-    <div ref="chartContainer">
-      <canvas ref="chartCanvas"></canvas>
-    </div>
+    <LineChart :data="chartData" :options="chartOptions" />
   </div>
 </template>
-
 <script>
-import { Chart } from 'chart.js'
+import { Line } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from 'chart.js'
-
-Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Title, Tooltip, Legend, ChartDataLabels)
-
+ChartJS.register(LineElement, CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, ChartDataLabels)
 export default {
   name: 'ChartComponent',
+  components: {
+    LineChart: Line,
+  },
   props: {
     chartData: {
       type: Object,
@@ -24,47 +22,25 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    chartType: {
-      type: String,
-      required: true,
-    },
   },
-  data() {
-    return {
-      chartInstance: null,
-    }
+  watch: {
+    chartData: 'updateChart',
+    chartOptions: 'updateChart',
   },
   methods: {
-    createChart() {
-      this.$refs.chartContainer.innerHTML = ''
-      const newCanvas = document.createElement('canvas')
-      this.$refs.chartContainer.appendChild(newCanvas)
-      this.chartInstance = new Chart(newCanvas, {
-        type: this.chartType,
-        data: this.chartData,
-        plugins: [ChartDataLabels],
-        options: this.chartOptions,
-      })
+    updateChart() {
+      if (this.$refs.chartRef) {
+        this.$refs.chartRef.chart.update()
+      }
     },
-  },
-  mounted() {
-    this.$nextTick(() => {
-      this.createChart()
-    })
-  },
-  beforeUnmount() {
-    if (this.chartInstance) {
-      this.chartInstance.destroy()
-      this.chartInstance = null
-    }
   },
 }
 </script>
+
 <style scoped>
 canvas {
   width: 100%;
-}
-canvas {
   height: 100%;
 }
+
 </style>
