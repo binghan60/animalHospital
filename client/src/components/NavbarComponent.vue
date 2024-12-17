@@ -30,7 +30,7 @@ export default {
 </script>
 
 <template>
-  <nav class="mb-10 bg-primary-400">
+  <nav class="mb-0 lg:mb-8 bg-primary-400">
     <div class="flex items-center justify-between p-2 mx-auto text-lg text-white max-w-7xl">
       <a @click="chagnePage('/')">
         <div class="text-2xl font-bold cursor-pointer">
