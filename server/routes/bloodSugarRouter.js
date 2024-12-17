@@ -82,16 +82,16 @@ router.post('/create', async (req, res) => {
     }
 });
 router.get('/getCurve', async (req, res) => {
-    const { userId, year, month } = req.query;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: 'Invalid userId' });
+    const { animalId, year, month } = req.query;
+    if (!mongoose.Types.ObjectId.isValid(animalId)) {
+        return res.status(400).json({ message: 'Invalid animalId' });
     }
     try {
         const dayInMonth = new Date(year, month, 0).getDate();
         const startDate = new Date(`${year}-${month}-01`);
         const endDate = new Date(`${year}-${month}-${dayInMonth}`);
         const data = await BloodSugarCurve.find({
-            userId,
+            animalId,
             date: { $gte: startDate, $lte: endDate },
         }).sort({ date: 1 });
         return res.status(201).send(data);
@@ -105,13 +105,13 @@ router.get('/getCurve', async (req, res) => {
 });
 router.post('/createCurve', async (req, res) => {
     try {
-        const { userId, date, records } = req.body;
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid userId' });
+        const { animalId, date, records } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            return res.status(400).json({ message: 'Invalid animalId' });
         }
         const targetDate = new Date(date);
         const existingRecord = await BloodSugarCurve.findOne({
-            userId,
+            animalId,
             date: { $gte: targetDate, $lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000) },
         });
         if (existingRecord) {
@@ -121,7 +121,7 @@ router.post('/createCurve', async (req, res) => {
         } else {
             //沒資料
             const newBloodSugarCurve = new BloodSugarCurve({
-                userId,
+                animalId,
                 date: targetDate,
                 records,
             });
