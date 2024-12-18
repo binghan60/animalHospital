@@ -41,6 +41,9 @@ export default {
   },
   mounted() {
     this.autoLogin()
+    //axios自動帶token
+    // const token = document.cookie.replace(/(?:(?:^|.*;\s*)Token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    // axios.defaults.headers.common.Authorization = token;
   },
 }
 </script>
