@@ -1,13 +1,11 @@
 <template>
-  <div>
-    <LineChart :data="chartData" :options="chartOptions" />
-  </div>
+  <LineChart :data="chartData" :options="chartOptions" />
 </template>
 <script>
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-ChartJS.register(LineElement, CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, ChartDataLabels)
+ChartJS.register(CategoryScale, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, ChartDataLabels)
 export default {
   name: 'ChartComponent',
   components: {
@@ -23,24 +21,5 @@ export default {
       default: () => ({}),
     },
   },
-  watch: {
-    chartData: 'updateChart',
-    chartOptions: 'updateChart',
-  },
-  methods: {
-    updateChart() {
-      if (this.$refs.chartRef) {
-        this.$refs.chartRef.chart.update()
-      }
-    },
-  },
 }
 </script>
-
-<style scoped>
-canvas {
-  width: 100%;
-  height: 100%;
-}
-
-</style>
