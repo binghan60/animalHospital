@@ -10,9 +10,40 @@ export default {
       showPassword: false,
     }
   },
+  mounted() {
+    // 檢查 cookie JWT token
+    const jwtToken = document.cookie.split('; ').find(row => row.startsWith('animalHospitalToken='))
+    if (jwtToken) {
+      const token = jwtToken.split('=')[1]
+      this.autoLogin(token)
+    }
+  },
   methods: {
     togglePassword() {
       this.showPassword = !this.showPassword
+    },
+    async autoLogin(token) {
+      try {
+        const response = await fetch(`${this.apipath}/user/login`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        const loginResponse = await response.json()
+
+        if (!response.ok) {
+          this.$toast.error(loginResponse.message)
+          return
+        }
+        this.auth(loginResponse)
+        this.$toast.success(loginResponse.message)
+        this.$router.push('/animallist')
+      } catch (error) {
+        this.$toast.error('Token驗證失敗，請重新登入。')
+        console.error('autoLogin', error)
+      }
     },
     async login() {
       const { username, password, apipath } = this
