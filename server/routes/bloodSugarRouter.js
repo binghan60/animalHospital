@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 const router = express.Router();
 router.get('/diary', async (req, res) => {
     const { animalId, year, month, dayInMonth } = req.query;
-    console.log(animalId);
     if (!mongoose.Types.ObjectId.isValid(animalId)) {
         return res.status(400).send({ error: 'Invalid animal ID' });
     }
