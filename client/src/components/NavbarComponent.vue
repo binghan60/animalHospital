@@ -17,7 +17,7 @@ export default {
     },
     logOut() {
       this.clearAuth()
-      this.$router.push('/')
+      this.$router.push('/login')
       this.$toast.success('登出成功')
     },
     ...mapActions(authStore, ['clearAuth']),
