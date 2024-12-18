@@ -61,6 +61,9 @@ export default {
       try {
         const response = await fetch(`${this.apipath}/animal/${this.user._id}?searchKeyword=${this.searchKeyword}`, {
           method: 'GET',
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
         })
         const animalList = await response.json()
         if (!response.ok) {
@@ -98,7 +101,7 @@ export default {
   },
   computed: {
     ...mapState(apiStore, ['apipath']),
-    ...mapState(authStore, ['user']),
+    ...mapState(authStore, ['user', 'token']),
   },
   async mounted() {
     await this.getUserAnimal()
