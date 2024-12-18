@@ -7,26 +7,28 @@ export default {
   data() {
     return {
       animal: { Id: this.$route.params.id, Info: {}, diaryBloodSugar: [] },
-      chartData: {
+      weightChartData: {
         labels: [],
         datasets: [
           {
             label: '體重',
             data: [],
-            borderColor: 'rgb(147, 197, 253)',
-            backgroundColor: 'rgba(147, 197, 253, 0.6)',
-            tension: 0,
-            pointRadius: 8,
-            pointHoverRadius: 15,
+            borderColor: 'rgb(147 197 253)', // blue300
+            backgroundColor: 'rgb(219 234 254)', // blue100
+            pointRadius: 6,
+            pointHoverRadius: 10,
           },
         ],
       },
+
       chartOptions: {
+        fill: true,
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
-            text: `體重走勢圖`,
+            text: '體重走勢圖',
           },
           legend: {
             display: false,
@@ -34,17 +36,18 @@ export default {
           },
           datalabels: {
             display: true,
-            color: '#0080FF',
+            color: '#3b82f6', // blue500
             font: {
               weight: 'bold',
-              size: 16,
+              size: 14,
             },
+            anchor: 'center',
             align: 'top',
             formatter: value => value.toFixed(1),
           },
         },
       },
-      chartType: 'line',
+      sugarCurveChart: [],
       today: new Date(),
       currentDate: this.getToday(),
       calendar: Array.from({ length: 42 }, () => ({ loading: true })),
@@ -56,7 +59,7 @@ export default {
         { value: 1.5, text: '1.5 小格' },
       ],
       window: {
-        quick: { value: { bloodSugar: '', insulin: '' }, toggle: false, loading: false },
+        quick: { value: { bloodSugar: '', insulin: null }, toggle: false, loading: false },
         weight: { value: '', date: new Date().toISOString().split('T')[0], toggle: false, loading: false },
         sugarCurve: {
           fields: [{ time: '', value: '' }],
@@ -69,6 +72,7 @@ export default {
   },
   methods: {
     async updateCalendar() {
+      // this.calendar.forEach(x => (x.loading = true))
       const { currentDate } = this
       const days = Array.from({ length: currentDate.dayInMonth }, (v, i) => {
         const date = `${currentDate.year}-${currentDate.month}-${String(i + 1).padStart(2, '0')}`
@@ -79,6 +83,7 @@ export default {
           date,
           morning: { bloodSugar: { value: '', isEditing: false, pending: false }, insulin: { value: '', isEditing: false, pending: false } },
           evening: { bloodSugar: { value: '', isEditing: false, pending: false }, insulin: { value: '', isEditing: false, pending: false } },
+          // loading: false,
         }
       })
       const diaryData = await this.getDiaryBloodSugar()
@@ -113,15 +118,19 @@ export default {
 
       const firstDay = new Date(currentDate.year, currentDate.month - 1, 1).getDay()
       const spaceDay = firstDay === 0 ? 6 : firstDay - 1
-      const blankDays = Array.from({ length: spaceDay }, () => ({ date: null })) //補前空格
+      const blankDays = Array.from({ length: spaceDay }, () => ({ date: null }))
       const allDays = [...blankDays, ...mergedDays]
-      const totalCells = 42
+      let totalCells = 42
+      const backBlank = totalCells - allDays.length
+      if (backBlank >= 7) {
+        totalCells -= 7
+      }
+      console.log(totalCells - allDays.length)
       for (let i = allDays.length; i < totalCells; i++) {
         allDays.push({ date: null })
-      } //補後空格
-
+      }
       this.calendar = allDays
-      console.log(allDays)
+      await this.updateSugarCurveChart()
     },
     async getAnimalInfo() {
       try {
@@ -134,8 +143,8 @@ export default {
         }
         const data = await response.json()
         this.animal.Info = data
-        this.chartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
-        this.chartData.datasets[0].data = data.weight.map(x => x.value)
+        this.weightChartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChartData.datasets[0].data = data.weight.map(x => x.value)
       } catch (error) {
         console.error(error.message)
         this.$toast.error('伺服器錯誤')
@@ -194,7 +203,6 @@ export default {
     },
     async createQuick() {
       const { value } = this.window.quick
-      console.log(value)
       if (!value.bloodSugar || !value.insulin) {
         this.$toast.error('請輸入完整資訊')
         return
@@ -235,7 +243,10 @@ export default {
           this.$toast.error(createResponse.message || '新增失敗')
           return
         }
-        this.$toast.success('新增體重成功')
+        console.log(createResponse)
+        this.weightChartData.labels = createResponse.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChartData.datasets[0].data = createResponse.weight.map(x => x.value)
+        this.$toast.success(createResponse.message)
         this.window.weight.toggle = false
       } catch (error) {
         this.$toast.error('伺服器忙碌中，請稍後再試。')
@@ -252,8 +263,6 @@ export default {
         date,
         records: fields,
       }
-      console.log(payload)
-
       this.window.sugarCurve.loading = true
       try {
         const response = await fetch(`${this.apipath}/bloodSugar/createCurve`, {
@@ -267,6 +276,7 @@ export default {
           return
         }
         this.$toast.success('新增血糖曲線成功')
+        await this.updateSugarCurveChart()
         this.window.sugarCurve.toggle = false
       } catch (error) {
         this.$toast.error('伺服器忙碌中，請稍後再試。')
@@ -317,6 +327,7 @@ export default {
         const refName = `${timeOfDay}${recordType.charAt(0).toUpperCase() + recordType.slice(1)}`
         if (this.$refs[refName]) {
           this.$refs[refName][0].focus()
+          this.$refs[refName][0].click()
         }
       })
     },
@@ -332,6 +343,78 @@ export default {
       event.preventDefault() // 阻止默認行為
       this.$refs[`${period}${type.charAt(0).toUpperCase() + type.slice(1)}`].blur() // 直接觸發失焦
     },
+    bloodColor(value) {
+      if (value == 0 || value === null) {
+        return 'bg-white'
+      } else if (value <= 250) {
+        return 'bg-green-100'
+      } else if (value <= 399) {
+        return 'bg-yellow-100'
+      } else {
+        return 'bg-red-100' // 危險
+      }
+    },
+    async updateSugarCurveChart() {
+      try {
+        const response = await fetch(`${this.apipath}/bloodSugar/getCurve?animalId=${this.animal.Id}&year=${this.currentDate.year}&month=${this.currentDate.month}`)
+        const getSugarCurveResponse = await response.json()
+        if (!response.ok) {
+          this.$toast.error(getSugarCurveResponse.message)
+          return
+        }
+        const sugarCurveObject = getSugarCurveResponse.data.map(x => {
+          return {
+            chartData: {
+              labels: x.records.map(y => y.time),
+              datasets: [
+                {
+                  label: '血糖',
+                  data: x.records.map(y => y.value),
+                  borderColor: 'rgb(147 197 253)', // blue300
+                  backgroundColor: 'rgb(219 234 254)', // blue100
+                  pointRadius: 6,
+                  pointHoverRadius: 10,
+                },
+              ],
+            },
+            chartOption: {
+              fill: true,
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  font: {
+                    size: 20,
+                    weight: 'bold',
+                  },
+                  display: true,
+                  text: `${new Date(x.date).toISOString().split('T')[0]}血糖曲線`,
+                  padding: {
+                    bottom: 30,
+                  },
+                },
+                legend: {
+                  display: false,
+                },
+                datalabels: {
+                  display: true,
+                  color: '#3b82f6', // blue500
+                  font: {
+                    weight: 'bold',
+                    size: 14,
+                  },
+                  anchor: 'center',
+                  align: 'top',
+                },
+              },
+            },
+          }
+        })
+        this.sugarCurveChart = sugarCurveObject
+      } catch (error) {
+        console.error(error)
+      }
+    },
   },
   computed: {
     ...mapState(apiStore, ['apipath']),
@@ -341,64 +424,64 @@ export default {
       handler() {
         this.updateCalendar()
       },
-      immediate: true,
     },
   },
 
   async mounted() {
     await this.getAnimalInfo()
+    await this.updateCalendar()
   },
 }
 </script>
 
 <template>
   <div>
-    <div class="grid md:grid-cols-3 gap-4 lg:h-[350px]">
+    <div class="grid gap-4 md:grid-cols-3">
       <div class="h-full overflow-hidden bg-white rounded-lg shadow-lg">
         <!-- <img class="object-cover w-full h-full" src="image/avatar.png" alt="" /> -->
       </div>
-      <div class="rounded-lg overflow-hidden shadow-md bg-white p-2 lg:p-4 border border-gray-200 h-full min-h-[300px]">
-        <div id="profileCard" class="w-full h-full">
-          <h5 class="mb-3 text-lg font-semibold text-blue-500">基本資料</h5>
+      <div class="rounded-lg overflow-hidden shadow-md bg-white p-4 lg:p-6 border border-gray-200 h-full min-h-[300px]">
+        <div class="w-full h-full">
+          <h5 class="mb-3 text-lg font-semibold text-primary-900">基本資料</h5>
           <ul class="grid grid-cols-3 list-none gap-x-4 gap-y-3">
-            <li class="text-sm font-medium text-gray-600">姓名：</li>
+            <li class="text-sm font-medium text-primary-900">姓名：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.name }}</li>
-            <li class="text-sm font-medium text-gray-600">種類：</li>
+            <li class="text-sm font-medium text-primary-900">種類：</li>
             <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.type === 'dog' ? `<i class='fa-solid fa-dog'></i>` : `<i class='fa-solid fa-cat'></i>`"></li>
-            <li class="text-sm font-medium text-gray-600">生日：</li>
+            <li class="text-sm font-medium text-primary-900">生日：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
-            <li class="text-sm font-medium text-gray-600">性別：</li>
-            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-blue-600 fa-solid fa-mars'></i>` : `<i class='text-blue-600 fa-solid fa-venus'></i>`"></li>
-            <li class="text-sm font-medium text-gray-600">血型：</li>
+            <li class="text-sm font-medium text-primary-900">性別：</li>
+            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars'></i>` : `<i class='text-pink-600 fa-solid fa-venus'></i>`"></li>
+            <li class="text-sm font-medium text-primary-900">血型：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.bloodType }} 型</li>
-            <li class="text-sm font-medium text-gray-600">體重：</li>
+            <li class="text-sm font-medium text-primary-900">體重：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.weight ? animal.Info.weight[animal.Info.weight.length - 1].value : '' }} 公斤</li>
-            <li class="text-sm font-medium text-gray-600">品種：</li>
+            <li class="text-sm font-medium text-primary-900">品種：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.breed }}</li>
-            <li class="text-sm font-medium text-gray-600">結紮：</li>
-            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.sterilized ? `<i class='text-green-500 fa-solid fa-check'></i>` : `<i class='text-red-500 fa-solid fa-x'></i>`"></li>
-            <li class="text-sm font-medium text-gray-600">胰島素品牌：</li>
+            <li class="text-sm font-medium text-primary-900">結紮：</li>
+            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.sterilized ? `<i class='text-green-500 fa-solid fa-check'></i>` : `<i class='text-red-600 fa-solid fa-x'></i>`"></li>
+            <li class="text-sm font-medium text-primary-900">胰島素品牌：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.insulinBrand }}</li>
           </ul>
         </div>
       </div>
-      <div class="grid-cols-1 rounded-lg overflow-hidden shadow-lg bg-white p-2 lg:p-4 h-full min-h-[300px]">
-        <Mychart v-if="chartData && chartData.labels.length > 0" :chartType="chartType" :chartData="chartData" :chartOptions="chartOptions"></Mychart>
+      <div class="grid-cols-1 rounded-lg overflow-hidden shadow-lg bg-white p-4 lg:p-6 h-full min-h-[300px]">
+        <Mychart :chartData="weightChartData" :chartOptions="chartOptions"></Mychart>
       </div>
     </div>
     <!-- 日曆 -->
     <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
-      <h1 class="py-3 text-2xl font-bold text-center text-blue-600 select-none">
-        <button class="text-blue-500 hover:text-blue-700" @click="prevMonth">
+      <h1 class="py-3 text-2xl font-bold text-center select-none text-primary-900">
+        <button class="text-primary-600 hover:text-primary-700" @click="prevMonth">
           <i class="text-3xl fa-solid fa-caret-left"></i>
         </button>
         <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
-        <button id="nextMonth" class="text-blue-500 hover:text-blue-700" @click="nextMonth">
+        <button class="text-primary-600 hover:text-primary-700" @click="nextMonth">
           <i class="text-3xl fa-solid fa-caret-right"></i>
         </button>
       </h1>
       <!-- 日曆格子 -->
-      <div class="hidden grid-cols-7 gap-1 text-2xl font-semibold text-center text-blue-700 lg:grid">
+      <div class="hidden grid-cols-7 gap-1 text-2xl font-semibold text-center text-primary-900 lg:grid">
         <div>一</div>
         <div>二</div>
         <div>三</div>
@@ -409,55 +492,57 @@ export default {
       </div>
       <div class="grid grid-cols-2 gap-1 mt-2 lg:grid-cols-7">
         <template v-for="(day, index) in calendar">
-          <div v-if="day.day" :key="day.isoDate" class="p-2 m-1 text-blue-900 bg-blue-100 rounded-md cursor-pointer hover:bg-blue-300">
-            <div class="font-bold text-center">{{ day.month }}/{{ day.day }}</div>
+          <div v-if="day.day" :key="day.isoDate" class="p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900">
+            <div class="font-bold text-center">{{ day.month }} / {{ day.day }}</div>
             <!-- 早上 -->
-            <div class="p-2 mb-2 bg-orange-100 rounded-md hover:bg-orange-200">
-              <div class="font-semibold text-center text-orange-500"><i class="fa-regular fa-sun"></i></div>
-              <div v-if="!calendar[index].morning.bloodSugar.isEditing" :class="{ lazyLoading: calendar[index].morning.bloodSugar.pending }" :style="{ pointerEvents: calendar[index].morning.bloodSugar.pending ? 'none' : 'auto' }" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'morning', 'bloodSugar')">
+            <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
+              <div class="font-semibold text-center text-primary-900"><i class="fa-regular fa-sun"></i></div>
+              <div v-if="!calendar[index].morning.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.bloodSugar.pending }, bloodColor(calendar[index].morning.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].morning.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'bloodSugar')">
                 <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar.value ? calendar[index].morning.bloodSugar.value : '---' }}</span>
               </div>
               <input v-else type="number" v-model="calendar[index].morning.bloodSugar.value" ref="morningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'morning', 'bloodSugar')" @keydown.enter="blur(index, 'morning', 'bloodSugar')" />
-              <div v-if="!calendar[index].morning.insulin.isEditing" :class="{ lazyLoading: calendar[index].morning.insulin.pending }" :style="{ pointerEvents: calendar[index].morning.insulin.pending ? 'none' : 'auto' }" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'morning', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin.value || calendar[index].morning.insulin.value === 0 ? calendar[index].morning.insulin.value + ' 小格' : '---' }}</div>
+              <div v-if="!calendar[index].morning.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.insulin.pending }]" :style="{ pointerEvents: calendar[index].morning.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin.value || calendar[index].morning.insulin.value === 0 ? calendar[index].morning.insulin.value + ' 小格' : '---' }}</div>
               <select v-else v-model="calendar[index].morning.insulin.value" ref="morningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'morning', 'insulin')" @keydown.enter="blur(index, 'morning', 'insulin')">
                 <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].morning.insulin.value === option.value">{{ option.text }}</option>
               </select>
             </div>
             <!-- 晚上 -->
-            <div class="p-2 bg-purple-100 rounded-md hover:bg-purple-200">
-              <div class="font-semibold text-center text-purple-500"><i class="fa-regular fa-moon"></i></div>
-              <div v-if="!calendar[index].evening.bloodSugar.isEditing" :class="{ lazyLoading: calendar[index].evening.bloodSugar.pending }" :style="{ pointerEvents: calendar[index].evening.bloodSugar.pending ? 'none' : 'auto' }" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'evening', 'bloodSugar')">
-                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].evening.bloodSugar.value ? calendar[index].evening.bloodSugar.value : '---' }}</span>
+            <div class="p-2 rounded-md bg-primary-100 hover:bg-primary-300">
+              <div class="font-bold text-center text-primary-900"><i class="fa-regular fa-moon"></i></div>
+              <div v-if="!calendar[index].evening.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.bloodSugar.pending }, bloodColor(calendar[index].evening.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].evening.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'bloodSugar')">
+                <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar.value ? calendar[index].evening.bloodSugar.value : '---' }}</span>
               </div>
               <input v-else type="number" v-model="calendar[index].evening.bloodSugar.value" ref="eveningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'evening', 'bloodSugar')" @keydown.enter="blur(index, 'evening', 'bloodSugar')" />
-              <div v-if="!calendar[index].evening.insulin.isEditing" :class="{ lazyLoading: calendar[index].evening.insulin.pending }" :style="{ pointerEvents: calendar[index].evening.insulin.pending ? 'none' : 'auto' }" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @click="edit(index, 'evening', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin.value || calendar[index].evening.insulin.value === 0 ? calendar[index].evening.insulin.value + ' 小格' : '---' }}</div>
+              <div v-if="!calendar[index].evening.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.insulin.pending }]" :style="{ pointerEvents: calendar[index].evening.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin.value || calendar[index].evening.insulin.value === 0 ? calendar[index].evening.insulin.value + ' 小格' : '---' }}</div>
               <select v-else v-model="calendar[index].evening.insulin.value" ref="eveningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'evening', 'insulin')" @keydown.enter="blur(index, 'evening', 'insulin')">
                 <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].evening.insulin.value === option.value">{{ option.text }}</option>
               </select>
             </div>
           </div>
-          <div v-else :key="index" class="p-2 m-1 rounded-md h-[264px] hidden lg:grid" :class="{ lazyLoading: day.loading }"></div>
+          <div v-else :key="index" :class="['p-2 m-1 rounded-md h-[264px] hidden lg:grid', { lazyLoading: day.loading }]"></div>
         </template>
       </div>
     </div>
     <div>
-      <div class="lazyLoading rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full"></div>
+      <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full" v-for="chart in sugarCurveChart" :key="chart.date">
+        <Mychart :chartData="chart.chartData" :chartOptions="chart.chartOption"></Mychart>
+      </div>
     </div>
     <!-- 快速紀錄 -->
     <div v-if="window.quick.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[80%] max-w-2xl">
-        <h2 class="mb-2 text-xl font-semibold text-gray-800">快速記錄</h2>
-        <div class="mb-6 space-y-4">
-          <div class="grid items-center grid-cols-2 gap-4 p-2 border rounded-md shadow-md">
-            <input v-model="window.quick.value.bloodSugar" placeholder="請輸入血糖值" type="tel" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" autocomplete="off" />
-            <select v-model="window.quick.value.insulin" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+        <h2 class="mb-2 text-xl font-bold text-gray-800">快速記錄</h2>
+        <div class="mb-6">
+          <div class="grid items-center grid-cols-2 gap-4 p-2 rounded-md shadow-md">
+            <input v-model="window.quick.value.bloodSugar" placeholder="請輸入血糖值" type="tel" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+            <select v-model="window.quick.value.insulin" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300">
               <option v-for="option in insulinOption" :value="option.value" :key="option.value">{{ option.text }}</option>
             </select>
           </div>
         </div>
         <div class="flex justify-between">
           <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.quick.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-400', { lazyLoading: window.quick.loading }]" @click="createQuick">確定</button>
+          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.quick.loading }]" @click="createQuick">確定</button>
         </div>
       </div>
     </div>
@@ -467,13 +552,13 @@ export default {
         <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
         <div class="mb-6 space-y-4">
           <div class="grid grid-cols-[2fr_1fr] lg:grid-cols-2 gap-4 items-center border p-2 rounded-md shadow-md">
-            <input v-model="window.weight.date" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
-            <input v-model="window.weight.value" type="number" placeholder="輸入體重" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" autocomplete="off" />
+            <input ref="weightDate" v-model="window.weight.date" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" @focus="$refs.weightDate.showPicker()" />
+            <input v-model="window.weight.value" type="number" placeholder="輸入體重" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
           </div>
         </div>
         <div class="flex justify-between">
           <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.weight.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-400', { lazyLoading: window.weight.loading }]" @click="createWeight">確定</button>
+          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.weight.loading }]" @click="createWeight">確定</button>
         </div>
       </div>
     </div>
@@ -483,21 +568,21 @@ export default {
         <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
         <fieldset class="grid items-center grid-cols-1 gap-4 p-2 mb-5 border rounded-md shadow-md">
           <legend><h2>日期</h2></legend>
-          <input type="date" class="block w-full p-1 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" v-model="window.sugarCurve.date" />
+          <input ref="sugarCurveDate" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" v-model="window.sugarCurve.date" @focus="$refs.sugarCurveDate.showPicker()" />
         </fieldset>
         <div class="mb-6 space-y-4" v-for="(field, index) in window.sugarCurve.fields" :key="index">
           <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
-            <input v-model="field.time" type="time" name="sugarCurveTime" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" autocomplete="off" />
-            <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300" autocomplete="off" />
+            <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+            <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <button class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="window.sugarCurve.fields.splice(index, 1)">X</button>
           </div>
         </div>
         <div class="flex justify-center mb-6">
           <button class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.sugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
         </div>
-        <div id="sugarCurveBtn" class="flex justify-between">
+        <div class="flex justify-between">
           <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.sugarCurve.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-400', { lazyLoading: window.sugarCurve.loading }]" @click="createSugarCurve">確定</button>
+          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.sugarCurve.loading }]" @click="createSugarCurve">確定</button>
         </div>
       </div>
     </div>
