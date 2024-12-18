@@ -93,8 +93,10 @@ router.get('/getCurve', async (req, res) => {
         const data = await BloodSugarCurve.find({
             animalId,
             date: { $gte: startDate, $lte: endDate },
-        }).sort({ date: 1 });
-        return res.status(201).send(data);
+        })
+            .sort({ date: 1 })
+            .lean();
+        return res.status(201).send({ data: data.map((x) => ({ date: x.date, records: x.records })) });
     } catch (error) {
         console.error('Error creating or updating blood sugar record:', error);
         if (error.name === 'ValidationError') {
