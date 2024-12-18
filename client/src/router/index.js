@@ -41,9 +41,9 @@ const router = createRouter({
 })
 // 進每個路由都會經過 路由守衛
 router.beforeEach((to, from, next) => {
-  const store = authStore()
-  if (to.meta.requiresAuth && !store.user.isLogin) {
-    next('/login') // 如果未登入，導回登入頁
+  if (to.meta.requiresAuth && !authStore.user.isLogin) {
+    authStore.setRedirectPath(to.fullPath)
+    next('/login')
   } else {
     next()
   }
