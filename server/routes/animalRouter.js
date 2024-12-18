@@ -89,7 +89,7 @@ router.post('/createWeight', async (req, res) => {
         animal.weight.push({ date: new Date(date), value });
         animal.weight.sort((a, b) => new Date(a.date) - new Date(b.date));
         const updatedAnimal = await animal.save();
-        res.send({ message: '新增成功', animal: updatedAnimal });
+        res.send({ message: '新增成功', animal: updatedAnimal.weight });
     } catch (error) {
         console.error('新增體重時發生錯誤:', error);
         res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
