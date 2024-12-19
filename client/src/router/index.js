@@ -43,7 +43,7 @@ router.beforeEach((to, from, next) => {
   const store = authStore()
   if (to.meta.requiresAuth && !store.user.isLogin) {
     store.setRedirectPath(to.fullPath)
-    next('/login') // 如果未登入，導回登入頁
+    next('/login')
   } else {
     next()
   }

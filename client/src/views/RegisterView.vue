@@ -71,7 +71,7 @@ export default {
         <div class="mb-4">
           <label for="password" class="text-primary-900">密碼</label>
           <div class="relative flex items-center mt-2">
-            <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" />
+            <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="togglePassword">
               <i v-if="!showPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>
@@ -81,7 +81,7 @@ export default {
         <div class="mb-4">
           <label for="confirmPassword" class="text-primary-900">確認密碼</label>
           <div class="relative flex items-center mt-2">
-            <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" />
+            <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="toggleConfirmPassword">
               <i v-if="!showConfirmPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>

@@ -29,6 +29,7 @@ export default defineStore('authStore', {
     clearAuth() {
       this.user = {}
       this.redirectPath = null
+      document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     },
     setRedirectPath(path) {
       this.redirectPath = path
