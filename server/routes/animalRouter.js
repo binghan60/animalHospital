@@ -69,11 +69,46 @@ router.post('/create', async (req, res) => {
             insulinBrand,
             admissionDate,
         });
-        const animal = await newAnimal.save(); //保存至資料庫
+        const animal = await newAnimal.save();
         res.send({ animal });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.errors });
+    }
+});
+router.put('/edit', async (req, res) => {
+    const { animalId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
+    if (!animalId) {
+        return res.status(400).send({ message: '缺少動物 ID' });
+    }
+    try {
+        const animal = await Animal.findById(animalId);
+        if (!animal) {
+            return res.status(404).send({ message: '找不到指定的動物資料' });
+        }
+        animal.name = name || animal.name;
+        animal.gender = gender || animal.gender;
+        animal.birthday = birthday || animal.birthday;
+        animal.sterilized = sterilized || animal.sterilized;
+        animal.breed = breed || animal.breed;
+        animal.bloodType = bloodType || animal.bloodType;
+        animal.type = type || animal.type;
+        animal.insulinBrand = insulinBrand || animal.insulinBrand;
+        animal.admissionDate = admissionDate || animal.admissionDate;
+        if (animal.weight.length > 0) {
+            //體重有資料就改最後一筆，日期改為今天
+            const today = new Date().toISOString().split('T')[0];
+            const lastWeightEntry = animal.weight[animal.weight.length - 1];
+            lastWeightEntry.value = weight;
+            lastWeightEntry.date = today;
+        } else {
+            animal.weight = [{ value: weight.value, date: today }];
+        }
+        await animal.save();
+        res.send({ animal });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: '更新發生錯誤' });
     }
 });
 
