@@ -1,7 +1,6 @@
 <script>
-import apiStore from '@/stores/api'
-import { mapState } from 'pinia'
 import Mychart from '@/components/Mychart.vue'
+import axios from 'axios'
 export default {
   components: { Mychart },
   data() {
@@ -134,71 +133,54 @@ export default {
     },
     async getAnimalInfo() {
       try {
-        const response = await fetch(`${this.apipath}/animal/detail/${this.animal.Id}`, {
-          method: 'GET',
-        })
-        if (!response.ok) {
-          this.$toast.error(response.message)
-          return
-        }
-        const data = await response.json()
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
         this.animal.Info = data
         this.weightChartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.weightChartData.datasets[0].data = data.weight.map(x => x.value)
       } catch (error) {
-        console.error(error.message)
-        this.$toast.error('伺服器錯誤')
+        this.$toast.error(error.response.data.message)
       }
     },
     async getDiaryBloodSugar() {
       try {
-        const response = await fetch(`${this.apipath}/bloodSugar/diary?animalId=${this.animal.Id}&year=${this.currentDate.year}&month=${this.currentDate.month}&dayInMonth=${this.currentDate.dayInMonth}`, {
-          method: 'GET',
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
+          params: {
+            animalId: this.animal.Id,
+            year: this.currentDate.year,
+            month: this.currentDate.month,
+            dayInMonth: this.currentDate.dayInMonth,
+          },
         })
-        if (!response.ok) {
-          this.$toast.error(response.message)
-          return
-        }
-        const data = await response.json()
         this.animal.diaryBloodSugar = data
         return data
       } catch (error) {
-        console.error(error.message)
-        this.$toast.error('伺服器錯誤')
+        this.$toast.error(error.response.data.message)
       }
     },
     async createDiaryBloodSugar(date, morningBloodSugar, morningInsulin, eveningBloodSugar, eveningInsulin, notes) {
       try {
-        const response = await fetch(`${this.apipath}/bloodSugar/create`, {
-          method: 'POST',
+        const payload = {
+          animalId: this.animal.Id,
+          date,
+          morning: {
+            bloodSugar: morningBloodSugar,
+            insulin: morningInsulin,
+          },
+          evening: {
+            bloodSugar: eveningBloodSugar,
+            insulin: eveningInsulin,
+          },
+          notes,
+        }
+        await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/create`, payload, {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            animalId: this.animal.Id,
-            date,
-            morning: {
-              bloodSugar: morningBloodSugar,
-              insulin: morningInsulin,
-            },
-            evening: {
-              bloodSugar: eveningBloodSugar,
-              insulin: eveningInsulin,
-            },
-            notes,
-          }),
         })
-        const createResponse = await response.json()
-        if (!response.ok) {
-          this.$toast.error(createResponse.message)
-          return
-        }
         this.$toast.success('新增成功')
         await this.updateCalendar()
-        return createResponse
       } catch (error) {
-        console.error(error)
-        this.$toast.error('伺服器錯誤。')
+        this.$toast.error(error.response.data.message)
       }
     },
     async createQuick() {
@@ -233,24 +215,16 @@ export default {
       }
       this.window.weight.loading = true
       try {
-        const response = await fetch(`${this.apipath}/animal/createWeight`, {
-          method: 'POST',
+        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/animal/createWeight`, payload, {
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
         })
-        const createResponse = await response.json()
-        if (!response.ok) {
-          this.$toast.error(createResponse.message || '新增失敗')
-          return
-        }
-        console.log(createResponse)
-        this.weightChartData.labels = createResponse.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
-        this.weightChartData.datasets[0].data = createResponse.weight.map(x => x.value)
-        this.$toast.success(createResponse.message)
+        this.weightChartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChartData.datasets[0].data = data.weight.map(x => x.value)
+        this.$toast.success(data.message)
         this.window.weight.toggle = false
+        this.window.weight.value = ''
       } catch (error) {
-        this.$toast.error('伺服器忙碌中，請稍後再試。')
-        console.error('createWeight error:', error)
+        this.$toast.error(error.response.data.message)
       } finally {
         this.window.weight.loading = false // 確保重置 loading 狀態
       }
@@ -265,22 +239,15 @@ export default {
       }
       this.window.sugarCurve.loading = true
       try {
-        const response = await fetch(`${this.apipath}/bloodSugar/createCurve`, {
-          method: 'POST',
+        await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/createCurve`, payload, {
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
         })
-        const createResponse = await response.json()
-        if (!response.ok) {
-          this.$toast.error(createResponse.message || '新增失敗')
-          return
-        }
         this.$toast.success('新增血糖曲線成功')
         await this.updateSugarCurveChart()
         this.window.sugarCurve.toggle = false
+        this.window.sugarCurve.fields = [{ time: '', value: '' }]
       } catch (error) {
-        this.$toast.error('伺服器忙碌中，請稍後再試。')
-        console.error('sugarCurve error:', error)
+        this.$toast.error(error.response.data.message)
       } finally {
         this.window.sugarCurve.loading = false
       }
@@ -356,13 +323,14 @@ export default {
     },
     async updateSugarCurveChart() {
       try {
-        const response = await fetch(`${this.apipath}/bloodSugar/getCurve?animalId=${this.animal.Id}&year=${this.currentDate.year}&month=${this.currentDate.month}`)
-        const getSugarCurveResponse = await response.json()
-        if (!response.ok) {
-          this.$toast.error(getSugarCurveResponse.message)
-          return
-        }
-        const sugarCurveObject = getSugarCurveResponse.data.map(x => {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
+          params: {
+            animalId: this.animal.Id,
+            year: this.currentDate.year,
+            month: this.currentDate.month,
+          },
+        })
+        const sugarCurveObject = data.data.map(x => {
           return {
             chartData: {
               labels: x.records.map(y => y.time),
@@ -412,12 +380,9 @@ export default {
         })
         this.sugarCurveChart = sugarCurveObject
       } catch (error) {
-        console.error(error)
+        this.$toast.error(error.response.data.message)
       }
     },
-  },
-  computed: {
-    ...mapState(apiStore, ['apipath']),
   },
   watch: {
     'currentDate.month': {
@@ -426,14 +391,12 @@ export default {
       },
     },
   },
-
   async mounted() {
     await this.getAnimalInfo()
     await this.updateCalendar()
   },
 }
 </script>
-
 <template>
   <div>
     <div class="grid gap-4 md:grid-cols-3">

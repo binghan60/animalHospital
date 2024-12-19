@@ -1,7 +1,7 @@
 <script>
-import apiStore from '@/stores/api'
 import authStore from '@/stores/auth'
 import { mapState } from 'pinia'
+import axios from 'axios'
 export default {
   data() {
     return {
@@ -25,56 +25,42 @@ export default {
   },
   methods: {
     async creatNewAnimal() {
+      const payload = {
+        userId: this.user._id,
+        name: this.createForm.name,
+        gender: this.createForm.gender,
+        weight: [{ date: new Date('2024-12-08').toISOString().slice(0, 10), value: this.createForm.weight }],
+        birthday: this.createForm.birthday,
+        sterilized: this.createForm.sterilized,
+        breed: this.createForm.breed,
+        bloodType: this.createForm.bloodType,
+        type: this.createForm.type,
+        insulinBrand: this.createForm.insulinBrand,
+        admissionDate: this.createForm.admissionDate,
+      }
       try {
-        const response = await fetch(`${this.apipath}/animal/create`, {
-          method: 'POST',
+        await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, payload, {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            userId: this.user._id,
-            name: this.createForm.name,
-            gender: this.createForm.gender,
-            weight: [{ date: new Date('2024-12-08').toISOString().slice(0, 10), value: this.createForm.weight }],
-            birthday: this.createForm.birthday,
-            sterilized: this.createForm.sterilized,
-            breed: this.createForm.breed,
-            bloodType: this.createForm.bloodType,
-            type: this.createForm.type,
-            insulinBrand: this.createForm.insulinBrand,
-            admissionDate: this.createForm.admissionDate,
-          }),
         })
-        if (!response.ok) {
-          this.$toast.error(response.message)
-          return
-        }
         this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.iscreateFormOpen = false
       } catch (error) {
-        this.$toast.error('伺服器忙碌中，請稍後再試。')
-        throw error
+        this.$toast.error(error.response.data.message)
       }
     },
     async getUserAnimal() {
       try {
-        const response = await fetch(`${this.apipath}/animal/${this.user._id}?searchKeyword=${this.searchKeyword}`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${this.token}`,
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`, {
+          params: {
+            searchKeyword: this.searchKeyword,
           },
         })
-        const animalList = await response.json()
-        if (!response.ok) {
-          this.$toast.error(animalList.message)
-          return
-        }
-        this.animalList = animalList
-        console.log(animalList)
+        this.animalList = data
       } catch (error) {
-        this.$toast.error('伺服器忙碌中，請稍後再試。')
-        throw error
+        this.$toast.error(error.response.data.message)
       }
     },
     convertBirthdayToAge(dateString) {
@@ -100,7 +86,6 @@ export default {
     },
   },
   computed: {
-    ...mapState(apiStore, ['apipath']),
     ...mapState(authStore, ['user', 'token']),
   },
   async mounted() {
@@ -281,7 +266,7 @@ export default {
           <div class="space-y-4">
             <div class="flex items-center">
               <label for="name" class="w-1/3 text-left text-primary-700">姓名</label>
-              <input id="name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.name" />
+              <input id="name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.name" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
@@ -309,7 +294,7 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.breed" />
+              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.breed" autocomplete="off" />
             </div>
 
             <div class="flex items-center">
@@ -357,7 +342,7 @@ export default {
 
             <div class="flex items-center">
               <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.insulinBrand" />
+              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.insulinBrand" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>

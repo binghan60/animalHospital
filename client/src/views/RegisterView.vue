@@ -1,60 +1,46 @@
 <script>
-import { mapState } from 'pinia'
-import apiStore from '@/stores/api'
+import axios from 'axios'
 export default {
   data() {
     return {
-      username: '',
-      password: '',
-      confirmPassword: '',
-      showPassword: false,
-      showConfirmPassword: false,
+      registerForm: {
+        username: '',
+        password: '',
+        confirmPassword: '',
+        showPassword: false,
+        showConfirmPassword: false,
+      },
     }
   },
   methods: {
-    togglePassword() {
-      this.showPassword = !this.showPassword
-    },
-    toggleConfirmPassword() {
-      this.showConfirmPassword = !this.showConfirmPassword
-    },
     async register() {
-      if (!this.password || !this.password) {
+      if (!this.registerForm.password || !this.registerForm.password) {
         this.$toast.error('請輸入密碼')
         return
       }
-      if (this.password !== this.confirmPassword) {
+      if (this.registerForm.password !== this.registerForm.confirmPassword) {
         this.$toast.error('密碼與確認密碼不一致')
         return
       }
-      const { username, password, apipath } = this
       try {
-        const response = await fetch(`${apipath}/user/register`, {
-          method: 'POST',
+        const { username, password } = this.registerForm
+        const payload = {
+          username,
+          password,
+        }
+        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/user/register`, payload, {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username, password }),
         })
-        const registerResponse = await response.json()
-        if (!response.ok) {
-          this.$toast.error(registerResponse.message)
-          return
-        }
-
-        this.$toast.success(registerResponse.message + ', 1秒後自動跳轉登入頁')
+        this.$toast.success(data.message + ', 1秒後自動跳轉登入頁')
         setTimeout(() => {
           this.$router.push('/login')
         }, '1000')
       } catch (error) {
-        this.$toast.error('伺服器忙碌中，請稍後再試。')
-        console.error('register', error)
-        throw error
+        this.$toast.error(error.response.data.message)
       }
     },
-  },
-  computed: {
-    ...mapState(apiStore, ['apipath']),
   },
 }
 </script>
@@ -66,14 +52,14 @@ export default {
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
           <label for="username" class="text-primary-900">帳號</label>
-          <input type="text" id="username" v-model="username" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
+          <input type="text" id="username" v-model="registerForm.username" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
         </div>
         <div class="mb-4">
           <label for="password" class="text-primary-900">密碼</label>
           <div class="relative flex items-center mt-2">
-            <input :type="showPassword ? 'text' : 'password'" id="password" v-model="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
-            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="togglePassword">
-              <i v-if="!showPassword" class="fa-solid fa-eye-slash"></i>
+            <input :type="registerForm.showPassword ? 'text' : 'password'" id="password" v-model="registerForm.password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
+            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showPassword = !registerForm.showPassword">
+              <i v-if="!registerForm.showPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>
             </button>
           </div>
@@ -81,9 +67,9 @@ export default {
         <div class="mb-4">
           <label for="confirmPassword" class="text-primary-900">確認密碼</label>
           <div class="relative flex items-center mt-2">
-            <input :type="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
-            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="toggleConfirmPassword">
-              <i v-if="!showConfirmPassword" class="fa-solid fa-eye-slash"></i>
+            <input :type="registerForm.showConfirmPassword ? 'text' : 'password'" id="confirmPassword" v-model="registerForm.confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
+            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showConfirmPassword = !registerForm.showConfirmPassword">
+              <i v-if="!registerForm.showConfirmPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>
             </button>
           </div>
