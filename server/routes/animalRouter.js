@@ -51,6 +51,10 @@ router.get('/:userId', async (req, res) => {
 
 router.post('/create', async (req, res) => {
     const { userId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
+    if (!name.trim()) {
+        res.status(501).send({ message: '缺少參數' });
+        return;
+    }
     try {
         const newAnimal = new Animal({
             userId,
@@ -68,6 +72,7 @@ router.post('/create', async (req, res) => {
         const animal = await newAnimal.save(); //保存至資料庫
         res.send({ animal });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.errors });
     }
 });
