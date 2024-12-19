@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authStore from '@/stores/auth.js'
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -41,9 +40,10 @@ const router = createRouter({
 })
 // 進每個路由都會經過 路由守衛
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !authStore.user.isLogin) {
-    authStore.setRedirectPath(to.fullPath)
-    next('/login')
+  const store = authStore()
+  if (to.meta.requiresAuth && !store.user.isLogin) {
+    store.setRedirectPath(to.fullPath)
+    next('/login') // 如果未登入，導回登入頁
   } else {
     next()
   }
