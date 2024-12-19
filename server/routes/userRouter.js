@@ -34,7 +34,8 @@ router.post('/register', async (req, res) => {
 });
 router.post('/login', async (req, res) => {
     try {
-        const token = req.headers['authorization']?.split(' ')[1];
+        const authorization = req.headers.authorization;
+        const token = authorization?.slice(7, authorization.length);
         if (token) {
             jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
                 if (err) {
@@ -42,7 +43,7 @@ router.post('/login', async (req, res) => {
                 }
                 const user = await User.findById(decoded.userId);
                 if (!user) {
-                    return res.status(400).json({ message: '密碼錯誤' });
+                    return res.status(400).json({ message: 'User not found' });
                 }
                 if (!user.isActive) {
                     return res.status(400).json({ message: '帳號已停用' });
@@ -52,13 +53,14 @@ router.post('/login', async (req, res) => {
                 return res.status(200).json({ ...response, message: '登入成功', token });
             });
         } else {
+            // 如果沒有token，就用帳號密碼
             const { username, password } = req.body;
             if (!username || !password) {
                 return res.status(400).json({ message: '參數不足' });
             }
             const user = await User.findOne({ username });
             if (!user) {
-                return res.status(400).send({ message: '密碼錯誤' });
+                return res.status(400).send({ message: '查無帳號' });
             }
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {

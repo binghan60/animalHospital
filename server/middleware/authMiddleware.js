@@ -1,19 +1,20 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
-const SECRET_KEY = process.env.SECRET_KEY;
 // 驗證 JWT
 export default function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ message: 'Token missing or invalid' });
+    const authorization = req.headers.authorization;
+    if (authorization) {
+        const token = authorization.slice(7, authorization.length); //抓取token部分  Bearer XXXXXX
+        jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
+            if (err) {
+                res.status(401).send({ message: '金鑰無效' });
+            } else {
+                req.user = decode;
+                next();
+            }
+        });
+    } else {
+        res.status(401).send({ message: '沒有金鑰' });
     }
-    jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Token is not valid' });
-        }
-        req.user = user;
-        next();
-    });
 }

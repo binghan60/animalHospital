@@ -18,6 +18,8 @@ export default defineStore('authStore', {
       createdAt: '',
       updatedAt: '',
     },
+    redirectPath: null,
+    token: '',
   }),
   actions: {
     auth(user) {
@@ -26,6 +28,16 @@ export default defineStore('authStore', {
     },
     clearAuth() {
       this.user = {}
+      this.redirectPath = null
+    },
+    setRedirectPath(path) {
+      this.redirectPath = path
+    },
+    clearRedirectPath() {
+      this.redirectPath = null
+    },
+    setToken(token) {
+      this.token = token
     },
   },
 })

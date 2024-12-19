@@ -14,7 +14,6 @@ router.get('/detail/:animalId', async (req, res) => {
         const animalInfo = await Animal.findById(animalId);
         if (animalInfo) {
             res.send(animalInfo);
-            console.log(animalInfo);
             return;
         }
         res.status(404).send({ message: '找不到符合條件的動物，請檢查搜尋條件' });
