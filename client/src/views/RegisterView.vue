@@ -64,16 +64,16 @@ export default {
   <div class="flex items-center justify-center min-h-screen p-6">
     <div class="w-full h-full max-w-sm min-w-[330px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8">
       <h2 class="mb-6 text-2xl font-bold text-center text-primary-hfs900">註冊</h2>
-      <VForm @submit="onSubmit">
+      <VForm @submit="register">
         <div class="mb-4">
           <label for="username" class="text-primary-900">帳號</label>
-          <VField id="username" v-model="registerForm.username" type="text" name="username" rules="required|length:6,20" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
+          <VField id="username" v-model="registerForm.username" type="text" name="username" rules="required|length:4,20" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
           <ErrorMessage class="mt-1 text-sm text-red-600" name="username" />
         </div>
         <div class="mb-4">
           <label for="password" class="text-primary-900">密碼</label>
           <div class="relative flex items-center mt-2">
-            <VField id="password" v-model="registerForm.password" :type="registerForm.showPassword ? 'text' : 'password'" rules="required|length:6,20" name="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
+            <VField id="password" v-model="registerForm.password" :type="registerForm.showPassword ? 'text' : 'password'" rules="required|length:4,20" name="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showPassword = !registerForm.showPassword">
               <i v-if="!registerForm.showPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>
@@ -84,7 +84,7 @@ export default {
         <div class="mb-4">
           <label for="confirmPassword" class="text-primary-900">確認密碼</label>
           <div class="relative flex items-center mt-2">
-            <VField id="confirmPassword" v-model="registerForm.confirmPassword" :type="registerForm.showConfirmPassword ? 'text' : 'password'" rules="required|length:6,20|confirmed:@password" name="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
+            <VField id="confirmPassword" v-model="registerForm.confirmPassword" :type="registerForm.showConfirmPassword ? 'text' : 'password'" rules="required|length:4,20|confirmed:@password" name="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showConfirmPassword = !registerForm.showConfirmPassword">
               <i v-if="!registerForm.showConfirmPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>
