@@ -2,7 +2,13 @@
 import authStore from '@/stores/auth'
 import { mapState } from 'pinia'
 import axios from 'axios'
+import { Field, Form, ErrorMessage } from 'vee-validate'
 export default {
+  components: {
+    VField: Field,
+    VForm: Form,
+    ErrorMessage,
+  },
   data() {
     return {
       animalList: [],
@@ -62,6 +68,18 @@ export default {
         this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.createFormToggle = false
+        this.createForm = {
+          name: '',
+          gender: 'male',
+          weight: '',
+          birthday: '',
+          sterilized: false,
+          breed: '',
+          bloodType: '',
+          type: '',
+          insulinBrand: '',
+          admissionDate: new Date().toISOString().slice(0, 10),
+        }
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
@@ -275,49 +293,58 @@ export default {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="animal in showData" :key="animal._id" class="hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex items-center gap-3">
-                  <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+            <template v-if="showData.length > 0">
+              <tr v-for="animal in showData" :key="animal._id" class="hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex items-center gap-3">
+                    <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                    <div class="flex flex-col">
+                      <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars' : 'text-pink-600 fa-solid fa-venus'"></i> {{ animal.name }}</p>
+                      <p v-if="animal.birthday" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
                   <div class="flex flex-col">
-                    <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars' : 'text-pink-600 fa-solid fa-venus'"></i> {{ animal.name }}</p>
-                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0].value ? animal.weight[0].value + ' 公斤' : '' }}</p>
                   </div>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0].value }} 公斤</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.bloodType }} 型</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.breed }}</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="w-max">
-                  <div :class="[animal.sterilized ? 'text-green-900' : 'text-red-900', animal.sterilized ? 'bg-green-500/20' : 'bg-red-500/20']" class="relative grid items-center px-2 py-1 font-sans text-xs font-bold uppercase rounded-md select-none whitespace-nowrap">
-                    <span>{{ animal.sterilized ? '是' : '否' }}</span>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex flex-col">
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.bloodType ? animal.bloodType + ' 型' : '' }}</p>
                   </div>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ new Date(animal.admissionDate).toISOString().slice(0, 10) }}</p>
-              </td>
-              <td class="text-center border-b border-primary-50" @click="editToggle($event, animal._id)">
-                <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                  <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                    <i class="text-xl text-primary-900 fa-solid fa-pen-to-square"></i>
-                  </span>
-                </button>
-              </td>
-            </tr>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex flex-col">
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.breed }}</p>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="w-max">
+                    <div :class="[animal.sterilized ? 'text-green-900' : 'text-red-900', animal.sterilized ? 'bg-green-500/20' : 'bg-red-500/20']" class="relative grid items-center px-2 py-1 font-sans text-xs font-bold uppercase rounded-md select-none whitespace-nowrap">
+                      <span>{{ animal.sterilized ? '是' : '否' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ new Date(animal.admissionDate).toISOString().slice(0, 10) }}</p>
+                </td>
+                <td class="text-center border-b border-primary-50" @click="editToggle($event, animal._id)">
+                  <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                    <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+                      <i class="text-xl text-primary-900 fa-solid fa-pen-to-square"></i>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+            </template>
+            <template v-else>
+              <tr>
+                <td class="h-[20px] text-center" colspan="7">
+                  <img class="w-full max-h-[800px] object-cover" src="/public/image/empty.jpg" alt="" />
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -330,197 +357,144 @@ export default {
       </div>
     </div>
     <div v-if="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="bg-primary-50 p-4 lg:p-8 rounded-xl text-center w-[100%] max-w-2xl">
-        <h2 class="mb-4 text-xl font-semibold text-primary-900">新增動物資料</h2>
-        <div class="mb-6">
+      <div class="w-full max-w-xl bg-primary-50 rounded-xl">
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8 scrollbar" @submit="creatNewAnimal">
+          <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">新增動物資料</h2>
           <div class="space-y-4">
-            <div class="flex items-center">
-              <label for="name" class="w-1/3 text-left text-primary-700">姓名</label>
-              <input id="name" v-model="createForm.name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="name" class="text-lg text-left text-primary-700">姓名</label>
+              <VField id="name" v-model="createForm.name" name="name" type="text" rules="required" placeholder="姓名" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+              <ErrorMessage class="col-span-3 mt-1 text-sm text-center text-red-600" name="name" />
             </div>
-            <div class="flex items-center">
-              <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
-              <select id="gender" v-model="createForm.gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
+            <div class="grid items-center grid-cols-3">
+              <label for="gender" class="text-left text-primary-700">性別</label>
+              <select id="gender" v-model="createForm.gender" name="gender" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="male">男生</option>
                 <option value="female">女生</option>
               </select>
             </div>
-            <div class="flex items-center">
-              <label for="weight" class="w-1/3 text-left text-primary-700">體重 (kg)</label>
-              <input id="weight" v-model="createForm.weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+            <div class="grid items-center grid-cols-3">
+              <label for="weight" class="text-left text-primary-700">體重 (kg)</label>
+              <VField id="weight" v-model="createForm.weight" name="weight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
-            <div class="flex items-center">
-              <label for="birthday" class="w-1/3 text-left text-primary-700">生日</label>
-              <input id="birthday" ref="birthday" v-model="createForm.birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" />
+            <div class="grid items-center grid-cols-3">
+              <label for="birthday" class="text-left text-primary-700">生日</label>
+              <VField id="birthday" v-model="createForm.birthday" name="birthday" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
-            <div class="flex items-center">
-              <label class="w-1/3 text-left text-primary-700">是否結紮</label>
-              <div class="flex justify-around w-full">
-                <select id="neutered" v-model="createForm.sterilized" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
-                  <option value="true">已結紮</option>
-                  <option value="false">未結紮</option>
-                </select>
-              </div>
+            <div class="grid items-center grid-cols-3">
+              <label for="neutered" class="text-left text-primary-700">是否結紮</label>
+              <select id="neutered" v-model="createForm.sterilized" name="neutered" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300">
+                <option value="true">已結紮</option>
+                <option value="false">未結紮</option>
+              </select>
             </div>
-            <div class="flex items-center">
-              <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" v-model="createForm.breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="breed" class="text-left text-primary-700">品種</label>
+              <VField id="breed" v-model="createForm.breed" name="breed" type="text" placeholder="品種" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
-
-            <div class="flex items-center">
-              <label class="w-1/3 text-left text-primary-700">血型</label>
-              <div class="flex justify-between w-full">
-                <label class="rounded-lg">
-                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="A" class="hidden peer" />
-                  <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 lg:px-4 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="B" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-b"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="AB" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i><i class="fa-solid fa-b"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="O" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-o"></i> 型</span>
+            <div class="grid items-center grid-cols-3 h-[34px]">
+              <label class="text-left text-primary-700">血型</label>
+              <div class="flex justify-between col-span-2">
+                <label v-for="bloodType in ['A', 'B', 'AB', 'O']" :key="bloodType" class="rounded-lg">
+                  <VField v-model="createForm.bloodType" type="radio" :value="bloodType" name="bloodType" class="hidden peer" />
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">{{ bloodType }}型</span>
                 </label>
               </div>
             </div>
-
-            <div class="flex items-center">
-              <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
-              <div class="flex items-center justify-between w-full gap-2">
-                <label class="min-w-[70px] h-full rounded-lg">
-                  <input v-model="createForm.type" type="radio" name="type" value="cat" class="hidden peer" />
-                  <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
+            <div class="grid items-center grid-cols-3 h-[34px]">
+              <label class="text-left text-primary-700">種類</label>
+              <div class="flex justify-between col-span-2 gap-2">
+                <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
+                  <VField v-model="createForm.type" type="radio" :value="type" name="type" class="hidden peer" />
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
-                <label class="min-w-[70px] rounded-l">
-                  <input v-model="createForm.type" type="radio" name="type" value="dog" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-dog"></i> 狗狗 </span>
-                </label>
-                <label class="min-w-[48px] rounded-l">
-                  <input v-model="createForm.type" type="radio" name="type" value="other" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
-                </label>
-                <!-- <label class="rounded-l">
-                  <input type="text" placeholder="其他" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
-                </label> -->
               </div>
             </div>
-
-            <div class="flex items-center">
-              <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" v-model="createForm.insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="insulinBrand" class="text-left text-primary-700">胰島素品牌</label>
+              <VField id="insulinBrand" v-model="createForm.insulinBrand" name="insulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
-            <div class="flex items-center">
-              <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>
-              <input ref="admissionDate" v-model="createForm.admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" />
+            <div class="grid items-center grid-cols-3">
+              <label for="admissionDate" class="text-left text-primary-700">入院日期</label>
+              <VField id="admissionDate" v-model="createForm.admissionDate" name="admissionDate" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
           </div>
-        </div>
-        <div class="flex justify-between">
-          <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="createFormToggle = false">取消</button>
-          <button class="w-1/3 px-6 py-2 text-white transition-all rounded-lg shadow-md bg-primary-500 hover:bg-primary-400" @click="creatNewAnimal">確定</button>
-        </div>
+          <div class="flex justify-between mt-4 lg:mt-6">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="createFormToggle = false">取消</button>
+            <button type="submit" class="w-1/3 px-6 py-2 text-white transition-all rounded-lg shadow-md bg-primary-500 hover:bg-primary-400">確定</button>
+          </div>
+        </VForm>
       </div>
     </div>
+    <!-- //編輯 -->
     <div v-if="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="bg-primary-50 p-4 lg:p-8 rounded-xl text-center w-[100%] max-w-2xl">
-        <h2 class="mb-4 text-xl font-semibold text-primary-900">修改動物資料</h2>
-        <div class="mb-6">
+      <div class="w-full max-w-xl bg-primary-50 rounded-xl">
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8 scrollbar" @submit="editAnimal">
+          <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>
           <div class="space-y-4">
-            <div class="flex items-center">
-              <label for="name" class="w-1/3 text-left text-primary-700">姓名</label>
-              <input id="name" v-model="editForm.name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editName" class="text-lg text-left text-primary-700">姓名</label>
+              <VField id="editName" v-model="editForm.name" name="editName" type="text" rules="required" placeholder="姓名" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+              <ErrorMessage class="col-span-3 mt-1 text-sm text-center text-red-600" name="editName" />
             </div>
-            <div class="flex items-center">
-              <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
-              <select id="gender" v-model="editForm.gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
+            <div class="grid items-center grid-cols-3">
+              <label for="editGender" class="text-left text-primary-700">性別</label>
+              <select id="editGender" v-model="editForm.gender" name="editGender" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="male">男生</option>
                 <option value="female">女生</option>
               </select>
             </div>
-            <div class="flex items-center">
-              <label for="weight" class="w-1/3 text-left text-primary-700">體重 (kg)</label>
-              <input id="weight" v-model="editForm.weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editWeight" class="text-left text-primary-700">體重 (kg)</label>
+              <VField id="editWeight" v-model="editForm.weight" name="editWeight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
-            <div class="flex items-center">
-              <label for="birthday" class="w-1/3 text-left text-primary-700">生日</label>
-              <input id="birthday" ref="birthday" v-model="editForm.birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editBirthday" class="text-left text-primary-700">生日</label>
+              <VField id="editBirthday" v-model="editForm.birthday" name="editBirthday" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
-            <div class="flex items-center">
-              <label class="w-1/3 text-left text-primary-700">是否結紮</label>
-              <div class="flex justify-around w-full">
-                <select id="neutered" v-model="editForm.sterilized" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
-                  <option value="true">已結紮</option>
-                  <option value="false">未結紮</option>
-                </select>
-              </div>
+            <div class="grid items-center grid-cols-3">
+              <label for="editNeutered" class="text-left text-primary-700">是否結紮</label>
+              <select id="editNeutered" v-model="editForm.sterilized" name="editNeutered" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300">
+                <option value="true">已結紮</option>
+                <option value="false">未結紮</option>
+              </select>
             </div>
-            <div class="flex items-center">
-              <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" v-model="editForm.breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editBreed" class="text-left text-primary-700">品種</label>
+              <VField id="editBreed" v-model="editForm.breed" name="editBreed" type="text" placeholder="品種" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
-
-            <div class="flex items-center">
-              <label class="w-1/3 text-left text-primary-700">血型</label>
-              <div class="flex justify-between w-full">
-                <label class="rounded-lg">
-                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="A" class="hidden peer" />
-                  <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 lg:px-4 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="B" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-b"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="AB" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i><i class="fa-solid fa-b"></i> 型</span>
-                </label>
-                <label class="rounded-l">
-                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="O" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-o"></i> 型</span>
+            <div class="grid items-center grid-cols-3 h-[34px]">
+              <label class="text-left text-primary-700">血型</label>
+              <div class="flex justify-between col-span-2">
+                <label v-for="bloodType in ['A', 'B', 'AB', 'O']" :key="bloodType" class="rounded-lg">
+                  <VField v-model="editForm.bloodType" type="radio" :value="bloodType" name="editBloodType" class="hidden peer" />
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">{{ bloodType }}型</span>
                 </label>
               </div>
             </div>
-
-            <div class="flex items-center">
-              <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
-              <div class="flex items-center justify-between w-full gap-2">
-                <label class="min-w-[70px] h-full rounded-lg">
-                  <input v-model="editForm.type" type="radio" name="editType" value="cat" class="hidden peer" />
-                  <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
+            <div class="grid items-center grid-cols-3 h-[34px]">
+              <label class="text-left text-primary-700">種類</label>
+              <div class="flex justify-between col-span-2 gap-2">
+                <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
+                  <VField v-model="editForm.type" type="radio" :value="type" name="editType" class="hidden peer" />
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
-                <label class="min-w-[70px] rounded-l">
-                  <input v-model="editForm.type" type="radio" name="editType" value="dog" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-dog"></i> 狗狗 </span>
-                </label>
-                <label class="min-w-[48px] rounded-l">
-                  <input v-model="editForm.type" type="radio" name="editType" value="other" class="hidden peer" />
-                  <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
-                </label>
-                <!-- <label class="rounded-l">
-                  <input type="text" placeholder="其他" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
-                </label> -->
               </div>
             </div>
-
-            <div class="flex items-center">
-              <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" v-model="editForm.insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editInsulinBrand" class="text-left text-primary-700">胰島素品牌</label>
+              <VField id="editInsulinBrand" v-model="editForm.insulinBrand" name="editInsulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
-            <div class="flex items-center">
-              <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>
-              <input ref="admissionDate" v-model="editForm.admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" />
+            <div class="grid items-center grid-cols-3">
+              <label for="editAdmissionDate" class="text-left text-primary-700">入院日期</label>
+              <VField id="editAdmissionDate" v-model="editForm.admissionDate" name="editAdmissionDate" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
           </div>
-        </div>
-        <div class="flex justify-between">
-          <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="editFormToggle = false">取消</button>
-          <button class="w-1/3 px-6 py-2 text-white transition-all rounded-lg shadow-md bg-primary-500 hover:bg-primary-400" @click="editAnimal">確定</button>
-        </div>
+          <div class="flex justify-between mt-4 lg:mt-6">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="editFormToggle = false">取消</button>
+            <button type="submit" class="w-1/3 px-6 py-2 text-white transition-all rounded-lg shadow-md bg-primary-500 hover:bg-primary-400">確定</button>
+          </div>
+        </VForm>
       </div>
     </div>
   </div>
