@@ -34,27 +34,8 @@ router.post('/register', async (req, res) => {
 });
 router.post('/login', async (req, res) => {
     try {
-        const authorization = req.headers.authorization;
-        const token = authorization?.slice(7, authorization.length);
-        if (token) {
-            jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-                if (err) {
-                    return res.status(403).json({ message: '登入失敗' });
-                }
-                const user = await User.findById(decoded.userId);
-                if (!user) {
-                    return res.status(400).json({ message: '登入失敗' });
-                }
-                if (!user.isActive) {
-                    return res.status(400).json({ message: '登入失敗' });
-                }
-                const response = user.toObject();
-                delete response.password;
-                return res.status(200).json({ ...response, message: '登入成功', token });
-            });
-        } else {
-            // 如果沒有token，就用帳號密碼
-            const { username, password } = req.body;
+        const { username, password } = req.body;
+        if (username || username?.length || password || password?.length) {
             if (!username || !password) {
                 return res.status(400).json({ message: '登入失敗' });
             }
@@ -78,6 +59,26 @@ router.post('/login', async (req, res) => {
             const response = user.toObject();
             delete response.password;
             return res.status(200).json({ ...response, message: '登入成功', token, expired });
+        }
+        const authorization = req.headers.authorization;
+        const token = authorization?.slice(7, authorization?.length);
+
+        if (!username && !password && token) {
+            jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+                if (err) {
+                    return res.status(403).json({ message: '登入失敗' });
+                }
+                const user = await User.findById(decoded.userId);
+                if (!user) {
+                    return res.status(400).json({ message: '登入失敗' });
+                }
+                if (!user.isActive) {
+                    return res.status(400).json({ message: '登入失敗' });
+                }
+                const response = user.toObject();
+                delete response.password;
+                return res.status(200).json({ ...response, message: '登入成功', token });
+            });
         }
     } catch (error) {
         console.error(error);
