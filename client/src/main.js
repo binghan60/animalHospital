@@ -9,7 +9,7 @@ import { defineRule } from 'vee-validate'
 
 defineRule('required', value => {
   if (!value || !value.length) {
-    return '此欄位為必填'
+    return '此欄位為必填，請輸入資料'
   }
   return true
 })
@@ -19,10 +19,10 @@ defineRule('length', (value, [min, max]) => {
   }
   const numericValue = value.length
   if (numericValue < min) {
-    return `請輸入長度至少 ${min} 個字`
+    return `請輸入至少 ${min} 個字`
   }
   if (numericValue > max) {
-    return `請輸入長度低於 ${max} 個字`
+    return `請輸入不超過 ${max} 個字`
   }
   return true
 })
@@ -30,8 +30,9 @@ defineRule('confirmed', (value, [target]) => {
   if (value === target) {
     return true
   }
-  return '密碼與確認密碼不同'
+  return '密碼與確認密碼不一致，請重新確認'
 })
+
 const options = {
   position: 'bottom-center',
   timeout: 1500,
