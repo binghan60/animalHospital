@@ -8,7 +8,6 @@ import 'vue-toastification/dist/index.css'
 import { defineRule } from 'vee-validate'
 
 defineRule('required', value => {
-  console.log(value.toString().length)
   if (!value.toString() || !value.toString().length) {
     return '此欄位為必填，請輸入資料'
   }
@@ -16,7 +15,6 @@ defineRule('required', value => {
 })
 defineRule('length', (value, [min, max]) => {
   if (!value || !value.length) {
-    console.log('合格')
     return true
   }
   const numericValue = value.length
