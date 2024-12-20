@@ -437,11 +437,11 @@ export default {
     <!-- 日曆 -->
     <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
       <h1 class="py-3 text-2xl font-bold text-center select-none text-primary-900">
-        <button class="text-primary-600 hover:text-primary-700" @click="prevMonth">
+        <button type="button" class="text-primary-600 hover:text-primary-700" @click="prevMonth">
           <i class="text-3xl fa-solid fa-caret-left"></i>
         </button>
         <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
-        <button class="text-primary-600 hover:text-primary-700" @click="nextMonth">
+        <button type="button" class="text-primary-600 hover:text-primary-700" @click="nextMonth">
           <i class="text-3xl fa-solid fa-caret-right"></i>
         </button>
       </h1>
@@ -551,7 +551,7 @@ export default {
           </div>
         </div>
         <div class="flex justify-center mb-6">
-          <button class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.sugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
+          <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.sugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
         </div>
         <div class="flex justify-between">
           <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.sugarCurve.toggle = false">取消</button>
@@ -560,13 +560,13 @@ export default {
       </div>
     </div>
     <div class="fixed z-10 space-y-4 right-6 bottom-6">
-      <button class="flex items-center justify-center text-black bg-green-400 rounded-full shadow-md w-14 h-14" @click="window.quick.toggle = true">
+      <button type="button" class="flex items-center justify-center text-black bg-green-400 rounded-full shadow-md w-14 h-14" @click="window.quick.toggle = true">
         <i class="fa-solid fa-plus"></i>
       </button>
-      <button class="flex items-center justify-center text-black bg-yellow-200 rounded-full shadow-md w-14 h-14" @click="window.weight.toggle = true">
+      <button type="button" class="flex items-center justify-center text-black bg-yellow-200 rounded-full shadow-md w-14 h-14" @click="window.weight.toggle = true">
         <i class="fa-solid fa-weight-scale"></i>
       </button>
-      <button class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md w-14 h-14" @click="window.sugarCurve.toggle = true">
+      <button type="button" class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md w-14 h-14" @click="window.sugarCurve.toggle = true">
         <i class="fa-solid fa-chart-line"></i>
       </button>
     </div>
