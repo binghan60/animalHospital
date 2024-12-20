@@ -54,12 +54,12 @@ export default {
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
           <label for="username" class="text-primary-900">帳號</label>
-          <input type="text" id="username" v-model="loginFrom.username" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
+          <input id="username" v-model="loginFrom.username" type="text" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
         </div>
         <div class="mb-4">
           <label for="password" class="text-primary-900">密碼</label>
           <div class="relative flex items-center mt-2">
-            <input :type="loginFrom.showPassword ? 'text' : 'password'" id="password" v-model="loginFrom.password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
+            <input id="password" v-model="loginFrom.password" :type="loginFrom.showPassword ? 'text' : 'password'" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="togglePassword">
               <i v-if="!loginFrom.showPassword" class="fa-solid fa-eye-slash"></i>
               <i v-else class="fa-solid fa-eye text-primary-600"></i>

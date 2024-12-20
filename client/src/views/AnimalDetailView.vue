@@ -463,9 +463,9 @@ export default {
               <div v-if="!calendar[index].morning.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.bloodSugar.pending }, bloodColor(calendar[index].morning.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].morning.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'bloodSugar')">
                 <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar.value ? calendar[index].morning.bloodSugar.value : '---' }}</span>
               </div>
-              <input v-else type="number" v-model="calendar[index].morning.bloodSugar.value" ref="morningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'morning', 'bloodSugar')" @keydown.enter="blur(index, 'morning', 'bloodSugar')" />
+              <input v-else ref="morningBloodSugar" v-model="calendar[index].morning.bloodSugar.value" type="number" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'morning', 'bloodSugar')" @keydown.enter="blur(index, 'morning', 'bloodSugar')" />
               <div v-if="!calendar[index].morning.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.insulin.pending }]" :style="{ pointerEvents: calendar[index].morning.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin.value || calendar[index].morning.insulin.value === 0 ? calendar[index].morning.insulin.value + ' 小格' : '---' }}</div>
-              <select v-else v-model="calendar[index].morning.insulin.value" ref="morningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'morning', 'insulin')" @keydown.enter="blur(index, 'morning', 'insulin')">
+              <select v-else ref="morningInsulin" v-model="calendar[index].morning.insulin.value" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'morning', 'insulin')" @keydown.enter="blur(index, 'morning', 'insulin')">
                 <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].morning.insulin.value === option.value">{{ option.text }}</option>
               </select>
             </div>
@@ -475,9 +475,9 @@ export default {
               <div v-if="!calendar[index].evening.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.bloodSugar.pending }, bloodColor(calendar[index].evening.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].evening.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'bloodSugar')">
                 <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar.value ? calendar[index].evening.bloodSugar.value : '---' }}</span>
               </div>
-              <input v-else type="number" v-model="calendar[index].evening.bloodSugar.value" ref="eveningBloodSugar" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'evening', 'bloodSugar')" @keydown.enter="blur(index, 'evening', 'bloodSugar')" />
+              <input v-else ref="eveningBloodSugar" v-model="calendar[index].evening.bloodSugar.value" type="number" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'evening', 'bloodSugar')" @keydown.enter="blur(index, 'evening', 'bloodSugar')" />
               <div v-if="!calendar[index].evening.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.insulin.pending }]" :style="{ pointerEvents: calendar[index].evening.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin.value || calendar[index].evening.insulin.value === 0 ? calendar[index].evening.insulin.value + ' 小格' : '---' }}</div>
-              <select v-else v-model="calendar[index].evening.insulin.value" ref="eveningInsulin" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'evening', 'insulin')" @keydown.enter="blur(index, 'evening', 'insulin')">
+              <select v-else ref="eveningInsulin" v-model="calendar[index].evening.insulin.value" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'evening', 'insulin')" @keydown.enter="blur(index, 'evening', 'insulin')">
                 <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].evening.insulin.value === option.value">{{ option.text }}</option>
               </select>
             </div>
@@ -487,7 +487,7 @@ export default {
       </div>
     </div>
     <div>
-      <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full" v-for="chart in sugarCurveChart" :key="chart.date">
+      <div v-for="chart in sugarCurveChart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full">
         <Mychart :chartData="chart.chartData" :chartOptions="chart.chartOption"></Mychart>
       </div>
     </div>
@@ -499,7 +499,7 @@ export default {
           <div class="grid items-center grid-cols-2 gap-4 p-2 rounded-md shadow-md">
             <input v-model="window.quick.value.bloodSugar" placeholder="請輸入血糖值" type="tel" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <select v-model="window.quick.value.insulin" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300">
-              <option v-for="option in insulinOption" :value="option.value" :key="option.value">{{ option.text }}</option>
+              <option v-for="option in insulinOption" :key="option.value" :value="option.value">{{ option.text }}</option>
             </select>
           </div>
         </div>
@@ -531,9 +531,9 @@ export default {
         <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
         <fieldset class="grid items-center grid-cols-1 gap-4 p-2 mb-5 border rounded-md shadow-md">
           <legend><h2>日期</h2></legend>
-          <input ref="sugarCurveDate" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" v-model="window.sugarCurve.date" @focus="$refs.sugarCurveDate.showPicker()" />
+          <input ref="sugarCurveDate" v-model="window.sugarCurve.date" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" @focus="$refs.sugarCurveDate.showPicker()" />
         </fieldset>
-        <div class="mb-6 space-y-4" v-for="(field, index) in window.sugarCurve.fields" :key="index">
+        <div v-for="(field, index) in window.sugarCurve.fields" :key="index" class="mb-6 space-y-4">
           <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
             <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />

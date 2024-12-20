@@ -177,7 +177,7 @@ export default {
           </div>
           <div class="flex flex-col gap-2 shrink-0 sm:flex-row">
             <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="handleViewAll">清空搜尋條件</button>
-            <button @click="createFormToggle = true" class="flex select-none items-center gap-3 rounded-lg bg-primary-600 py-2 px-4 text-center text-xs font-bold text-white shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-primary-600/20 focus:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+            <button class="flex select-none items-center gap-3 rounded-lg bg-primary-600 py-2 px-4 text-center text-xs font-bold text-white shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-primary-600/20 focus:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="createFormToggle = true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" stroke-width="2" class="w-4 h-4">
                 <path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM19.75 7.5a.75.75 0 00-1.5 0v2.25H16a.75.75 0 000 1.5h2.25v2.25a.75.75 0 001.5 0v-2.25H22a.75.75 0 000-1.5h-2.25V7.5z"></path>
               </svg>
@@ -211,7 +211,7 @@ export default {
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
                 </svg>
               </div>
-              <input class="peer h-full w-full rounded-[7px] border border-primary-200 border-t-transparent bg-transparent px-3 py-2.5 !pr-9 font-sans text-sm font-normal text-primary-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-primary-200 placeholder-shown:border-t-primary-200 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-primary-50" placeholder=" " v-model="searchKeyword" @blur="handleSearchBlur" />
+              <input v-model="searchKeyword" class="peer h-full w-full rounded-[7px] border border-primary-200 border-t-transparent bg-transparent px-3 py-2.5 !pr-9 font-sans text-sm font-normal text-primary-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-primary-200 placeholder-shown:border-t-primary-200 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-primary-50" placeholder=" " @blur="handleSearchBlur" />
               <label class="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none !overflow-visible truncate text-[11px] font-normal leading-tight text-gray-500 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-primary-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-primary-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-primary-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:!border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:!border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-primary-500">搜尋 </label>
             </div>
           </div>
@@ -275,7 +275,7 @@ export default {
             </tr>
           </thead>
           <tbody>
-            <tr class="hover:bg-primary-100" v-for="animal in showData" :key="animal._id" @click="this.$router.push(`/animal/${animal._id}`)">
+            <tr v-for="animal in showData" :key="animal._id" class="hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
               <td class="p-4 border-b border-primary-50">
                 <div class="flex items-center gap-3">
                   <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
@@ -336,27 +336,27 @@ export default {
           <div class="space-y-4">
             <div class="flex items-center">
               <label for="name" class="w-1/3 text-left text-primary-700">姓名</label>
-              <input id="name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.name" autocomplete="off" />
+              <input id="name" v-model="createForm.name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
-              <select id="gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.gender">
+              <select id="gender" v-model="createForm.gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="male">男生</option>
                 <option value="female">女生</option>
               </select>
             </div>
             <div class="flex items-center">
               <label for="weight" class="w-1/3 text-left text-primary-700">體重 (kg)</label>
-              <input id="weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.weight" />
+              <input id="weight" v-model="createForm.weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
             <div class="flex items-center">
               <label for="birthday" class="w-1/3 text-left text-primary-700">生日</label>
-              <input id="birthday" ref="birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" v-model="createForm.birthday" />
+              <input id="birthday" ref="birthday" v-model="createForm.birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" />
             </div>
             <div class="flex items-center">
               <label class="w-1/3 text-left text-primary-700">是否結紮</label>
               <div class="flex justify-around w-full">
-                <select id="neutered" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.sterilized">
+                <select id="neutered" v-model="createForm.sterilized" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
                   <option value="true">已結紮</option>
                   <option value="false">未結紮</option>
                 </select>
@@ -364,26 +364,26 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.breed" autocomplete="off" />
+              <input id="breed" v-model="createForm.breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
 
             <div class="flex items-center">
               <label class="w-1/3 text-left text-primary-700">血型</label>
               <div class="flex justify-between w-full">
                 <label class="rounded-lg">
-                  <input type="radio" name="bloodType" value="A" class="hidden peer" v-model="createForm.bloodType" />
+                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="A" class="hidden peer" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 lg:px-4 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="bloodType" value="B" class="hidden peer" v-model="createForm.bloodType" />
+                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="B" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="bloodType" value="AB" class="hidden peer" v-model="createForm.bloodType" />
+                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="AB" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="bloodType" value="O" class="hidden peer" v-model="createForm.bloodType" />
+                  <input v-model="createForm.bloodType" type="radio" name="bloodType" value="O" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-o"></i> 型</span>
                 </label>
               </div>
@@ -393,15 +393,15 @@ export default {
               <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
               <div class="flex items-center justify-between w-full gap-2">
                 <label class="min-w-[70px] h-full rounded-lg">
-                  <input type="radio" name="type" value="cat" class="hidden peer" v-model="createForm.type" />
+                  <input v-model="createForm.type" type="radio" name="type" value="cat" class="hidden peer" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
                 </label>
                 <label class="min-w-[70px] rounded-l">
-                  <input type="radio" name="type" value="dog" class="hidden peer" v-model="createForm.type" />
+                  <input v-model="createForm.type" type="radio" name="type" value="dog" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-dog"></i> 狗狗 </span>
                 </label>
                 <label class="min-w-[48px] rounded-l">
-                  <input type="radio" name="type" value="other" class="hidden peer" v-model="createForm.type" />
+                  <input v-model="createForm.type" type="radio" name="type" value="other" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
                 </label>
                 <!-- <label class="rounded-l">
@@ -412,11 +412,11 @@ export default {
 
             <div class="flex items-center">
               <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="createForm.insulinBrand" autocomplete="off" />
+              <input id="insulinBrand" v-model="createForm.insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>
-              <input ref="admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" v-model="createForm.admissionDate" />
+              <input ref="admissionDate" v-model="createForm.admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" />
             </div>
           </div>
         </div>
@@ -433,27 +433,27 @@ export default {
           <div class="space-y-4">
             <div class="flex items-center">
               <label for="name" class="w-1/3 text-left text-primary-700">姓名</label>
-              <input id="name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.name" autocomplete="off" />
+              <input id="name" v-model="editForm.name" type="text" placeholder="姓名" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="gender" class="w-1/3 text-left text-primary-700">性別</label>
-              <select id="gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.gender">
+              <select id="gender" v-model="editForm.gender" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="male">男生</option>
                 <option value="female">女生</option>
               </select>
             </div>
             <div class="flex items-center">
               <label for="weight" class="w-1/3 text-left text-primary-700">體重 (kg)</label>
-              <input id="weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.weight" />
+              <input id="weight" v-model="editForm.weight" type="number" placeholder="體重 (kg)" class="w-full p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
             <div class="flex items-center">
               <label for="birthday" class="w-1/3 text-left text-primary-700">生日</label>
-              <input id="birthday" ref="birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" v-model="editForm.birthday" />
+              <input id="birthday" ref="birthday" v-model="editForm.birthday" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.birthday.showPicker()" />
             </div>
             <div class="flex items-center">
               <label class="w-1/3 text-left text-primary-700">是否結紮</label>
               <div class="flex justify-around w-full">
-                <select id="neutered" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.sterilized">
+                <select id="neutered" v-model="editForm.sterilized" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300">
                   <option value="true">已結紮</option>
                   <option value="false">未結紮</option>
                 </select>
@@ -461,26 +461,26 @@ export default {
             </div>
             <div class="flex items-center">
               <label for="breed" class="w-1/3 text-left text-primary-700">品種</label>
-              <input id="breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.breed" autocomplete="off" />
+              <input id="breed" v-model="editForm.breed" type="text" placeholder="品種" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
 
             <div class="flex items-center">
               <label class="w-1/3 text-left text-primary-700">血型</label>
               <div class="flex justify-between w-full">
                 <label class="rounded-lg">
-                  <input type="radio" name="editBloodType" value="A" class="hidden peer" v-model="editForm.bloodType" />
+                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="A" class="hidden peer" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 lg:px-4 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="editBloodType" value="B" class="hidden peer" v-model="editForm.bloodType" />
+                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="B" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="editBloodType" value="AB" class="hidden peer" v-model="editForm.bloodType" />
+                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="AB" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-a"></i><i class="fa-solid fa-b"></i> 型</span>
                 </label>
                 <label class="rounded-l">
-                  <input type="radio" name="editBloodType" value="O" class="hidden peer" v-model="editForm.bloodType" />
+                  <input v-model="editForm.bloodType" type="radio" name="editBloodType" value="O" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-o"></i> 型</span>
                 </label>
               </div>
@@ -490,15 +490,15 @@ export default {
               <label for="species" class="w-1/3 text-left text-primary-700">種類</label>
               <div class="flex items-center justify-between w-full gap-2">
                 <label class="min-w-[70px] h-full rounded-lg">
-                  <input type="radio" name="editType" value="cat" class="hidden peer" v-model="editForm.type" />
+                  <input v-model="editForm.type" type="radio" name="editType" value="cat" class="hidden peer" />
                   <span class="px-2 py-2 rounded-lg shadow-md cursor-pointer bg-primary-100 text-primary-800 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-cat"></i> 貓貓 </span>
                 </label>
                 <label class="min-w-[70px] rounded-l">
-                  <input type="radio" name="editType" value="dog" class="hidden peer" v-model="editForm.type" />
+                  <input v-model="editForm.type" type="radio" name="editType" value="dog" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"><i class="fa-solid fa-dog"></i> 狗狗 </span>
                 </label>
                 <label class="min-w-[48px] rounded-l">
-                  <input type="radio" name="editType" value="other" class="hidden peer" v-model="editForm.type" />
+                  <input v-model="editForm.type" type="radio" name="editType" value="other" class="hidden peer" />
                   <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-2 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white">其他 </span>
                 </label>
                 <!-- <label class="rounded-l">
@@ -509,11 +509,11 @@ export default {
 
             <div class="flex items-center">
               <label for="insulinBrand" class="w-1/3 text-left text-primary-700">胰島素品牌</label>
-              <input id="insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" v-model="editForm.insulinBrand" autocomplete="off" />
+              <input id="insulinBrand" v-model="editForm.insulinBrand" type="text" placeholder="胰島素品牌" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="flex items-center">
               <label for="admissionDate" class="w-1/3 text-left text-primary-700">入院日期</label>
-              <input ref="admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" v-model="editForm.admissionDate" />
+              <input ref="admissionDate" v-model="editForm.admissionDate" type="date" class="block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-300" @focus="$refs.admissionDate.showPicker()" />
             </div>
           </div>
         </div>
