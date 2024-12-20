@@ -1,8 +1,9 @@
 <script>
 import Mychart from '@/components/Mychart.vue'
 import axios from 'axios'
+import { Field, Form, ErrorMessage } from 'vee-validate'
 export default {
-  components: { Mychart },
+  components: { Mychart, VField: Field, VForm: Form, ErrorMessage },
   data() {
     return {
       animal: { Id: this.$route.params.id, Info: {}, diaryBloodSugar: [] },
@@ -184,6 +185,7 @@ export default {
       }
     },
     async createQuick() {
+      console.log('A')
       const { value } = this.window.quick
       if (!value.bloodSugar || !value.insulin) {
         this.$toast.error('請輸入完整資訊')
@@ -494,40 +496,48 @@ export default {
     <!-- 快速紀錄 -->
     <div v-if="window.quick.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
-        <h2 class="mb-2 text-xl font-bold text-gray-800">快速記錄</h2>
-        <div class="mb-6">
+        <VForm @submit="createQuick">
+          <h2 class="mb-2 text-xl font-bold text-gray-800">快速記錄</h2>
           <div class="grid items-center grid-cols-2 gap-4 p-2 rounded-md shadow-md">
-            <input v-model="window.quick.value.bloodSugar" placeholder="請輸入血糖值" type="tel" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+            <VField v-model="window.quick.value.bloodSugar" name="quickBloodSugar" rules="required" placeholder="請輸入血糖值" type="tel" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <select v-model="window.quick.value.insulin" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300">
-              <option v-for="option in insulinOption" :key="option.value" :value="option.value">{{ option.text }}</option>
+              <option v-for="option in insulinOption" :key="option.value" :value="option.value" :disabled="option.value === null">{{ option.text }}</option>
             </select>
           </div>
-        </div>
-        <div class="flex justify-between">
-          <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.quick.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.quick.loading }]" @click="createQuick">確定</button>
-        </div>
+          <ErrorMessage class="mt-1 text-sm text-red-600" name="quickBloodSugar" />
+          <div class="flex justify-between mt-4">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.quick.toggle = false">取消</button>
+            <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.quick.loading }]">確定</button>
+          </div>
+        </VForm>
       </div>
     </div>
     <!-- 體重視窗 -->
     <div v-if="window.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[80%] max-w-2xl">
-        <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
-        <div class="mb-6 space-y-4">
-          <div class="grid grid-cols-[2fr_1fr] lg:grid-cols-2 gap-4 items-center border p-2 rounded-md shadow-md">
-            <input ref="weightDate" v-model="window.weight.date" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" @focus="$refs.weightDate.showPicker()" />
-            <input v-model="window.weight.value" type="number" placeholder="輸入體重" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+        <VForm @submit="createWeight">
+          <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
+          <div class="grid grid-cols-[1fr_1fr] lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
+            <VField v-model="window.weight.date" name="weightDate" rules="required" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
+            <VField v-model="window.weight.value" name="weightValue" rules="required" type="number" placeholder="輸入體重" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+            <div>
+              <ErrorMessage class="text-sm text-red-600" name="weightDate" />
+            </div>
+            <div>
+              <ErrorMessage class="text-sm text-red-600" name="weightValue" />
+            </div>
           </div>
-        </div>
-        <div class="flex justify-between">
-          <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.weight.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.weight.loading }]" @click="createWeight">確定</button>
-        </div>
+
+          <div class="flex justify-between mt-4">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.weight.toggle = false">取消</button>
+            <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.weight.loading }]">確定</button>
+          </div>
+        </VForm>
       </div>
     </div>
     <!-- 血糖曲線視窗 -->
     <div v-if="window.sugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[80%] max-w-2xl">
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
         <fieldset class="grid items-center grid-cols-1 gap-4 p-2 mb-5 border rounded-md shadow-md">
           <legend><h2>日期</h2></legend>
@@ -537,15 +547,15 @@ export default {
           <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
             <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
-            <button class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="window.sugarCurve.fields.splice(index, 1)">X</button>
+            <button type="button" class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="window.sugarCurve.fields.splice(index, 1)">X</button>
           </div>
         </div>
         <div class="flex justify-center mb-6">
           <button class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.sugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
         </div>
         <div class="flex justify-between">
-          <button class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.sugarCurve.toggle = false">取消</button>
-          <button :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.sugarCurve.loading }]" @click="createSugarCurve">確定</button>
+          <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.sugarCurve.toggle = false">取消</button>
+          <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.sugarCurve.loading }]" @click="createSugarCurve">確定</button>
         </div>
       </div>
     </div>
