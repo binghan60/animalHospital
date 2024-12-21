@@ -58,7 +58,6 @@ router.post('/login', async (req, res) => {
                 if (err) {
                     return res.status(400).json({ message: '登入失敗' });
                 }
-                console.log(decoded);
                 const hospital = await Hospital.findById(decoded._id).lean();
                 delete hospital.password;
                 if (!hospital) {
