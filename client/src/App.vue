@@ -10,12 +10,11 @@ export default {
   },
   methods: {
     async autoLogin() {
-      const cookies = document.cookie.split('; ')
-      const tokenCookie = cookies.find(row => row.startsWith('animalHospitalToken='))
-      const token = tokenCookie ? tokenCookie.split('=')[1] : null
+      const token = this.getCookieValue('animalHospitalToken')
+      const role = this.getCookieValue('animalHospitalRole')
       if (token) {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_PATH}/user/login`,
+          `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
           {},
           {
             headers: {
@@ -30,6 +29,16 @@ export default {
         this.clearRedirectPath()
         axios.defaults.headers.common.Authorization = `Bearer ${token}`
       }
+    },
+    getCookieValue(name) {
+      const cookies = document.cookie.split('; ')
+      for (const cookie of cookies) {
+        const [key, value] = cookie.split('=')
+        if (key === name) {
+          return decodeURIComponent(value)
+        }
+      }
+      return null
     },
     ...mapActions(authStore, ['auth', 'clearRedirectPath', 'setToken']),
   },
