@@ -34,8 +34,7 @@ export default {
     <div class="flex items-center justify-between p-2 mx-auto text-lg text-white max-w-7xl">
       <a @click="chagnePage('/animallist')">
         <div class="text-2xl font-bold cursor-pointer">
-          LOGO
-          <!-- <img class="w-auto h-full" src="/img/logo.png" alt="Logo" /> -->
+          <img class="w-full h-full lg:max-w-[50px] max-w-[35px]" src="/image/logo.svg" alt="Logo" />
         </div>
       </a>
       <div class="cursor-pointer lg:hidden" @click="toggleMenu"><span class="text-2xl">☰</span></div>
