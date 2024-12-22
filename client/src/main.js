@@ -8,7 +8,7 @@ import 'vue-toastification/dist/index.css'
 import { defineRule } from 'vee-validate'
 
 defineRule('required', value => {
-  if (!value.toString() || !value.toString().length) {
+  if (!value?.toString() || !value?.toString().length) {
     return '此欄位為必填，請輸入資料'
   }
   return true
@@ -32,7 +32,6 @@ defineRule('confirmed', (value, [target]) => {
   }
   return '密碼與確認密碼不一致，請重新確認'
 })
-
 const options = {
   position: 'bottom-center',
   timeout: 1500,
@@ -48,13 +47,10 @@ const options = {
   rtl: false,
   transition: 'Vue-Toastification__fade',
 }
-
 const app = createApp(App)
 const pinia = createPinia()
-
 app.use(pinia)
 app.use(router)
 app.use(Toast, options)
-
 app.config.globalProperties.$toast = useToast() // 全域註冊 this.$toast 方法
 app.mount('#app')
