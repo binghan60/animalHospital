@@ -4,10 +4,35 @@ import mongoose from 'mongoose';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.send({ message: '動物路由' });
+router.post('/create', async (req, res) => {
+    const { hospitalId, userId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate, sharedWith } = req.body;
+    if (!name.trim()) {
+        res.status(501).send({ message: '缺少參數' });
+        return;
+    }
+    try {
+        const newAnimal = new Animal({
+            hospitalId,
+            userId,
+            name,
+            gender,
+            weight,
+            birthday,
+            sterilized,
+            breed,
+            bloodType,
+            type,
+            insulinBrand,
+            admissionDate,
+            sharedWith,
+        });
+        const animal = await newAnimal.save();
+        res.send({ animal });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.errors });
+    }
 });
-
 router.get('/detail/:animalId', async (req, res) => {
     try {
         const { animalId } = req.params;
@@ -22,58 +47,19 @@ router.get('/detail/:animalId', async (req, res) => {
         res.status(500).json({ message: '伺服器錯誤' });
     }
 });
-router.get('/:userId', async (req, res) => {
-    const { searchKeyword } = req.query;
+router.get('/:hospitalId', async (req, res) => {
     try {
-        const userId = req.params.userId;
-        let animals;
-
-        if (searchKeyword) {
-            animals = await Animal.find({ userId, name: { $regex: searchKeyword, $options: 'i' } });
-        } else {
-            animals = await Animal.find({ userId });
-        }
+        const hospitalId = req.params.hospitalId;
+        const animals = await Animal.find({ hospitalId }).lean();
         animals.forEach((animal) => {
             if (animal.weight && animal.weight.length > 0) {
-                animal.weight = animal.weight[animal.weight.length - 1];
+                animal.weight = [animal.weight[animal.weight.length - 1]];
             }
         });
-        if (animals.length > 0) {
-            res.send(animals);
-        } else {
-            res.status(404).send({ message: '找不到符合條件的動物，請檢查搜尋條件' });
-        }
+        return res.status(200).send(animals);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: '伺服器錯誤' });
-    }
-});
-
-router.post('/create', async (req, res) => {
-    const { userId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
-    if (!name.trim()) {
-        res.status(501).send({ message: '缺少參數' });
-        return;
-    }
-    try {
-        const newAnimal = new Animal({
-            userId,
-            name,
-            gender,
-            weight,
-            birthday,
-            sterilized,
-            breed,
-            bloodType,
-            type,
-            insulinBrand,
-            admissionDate,
-        });
-        const animal = await newAnimal.save();
-        res.send({ animal });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.errors });
+        return res.status(500).json({ message: '伺服器錯誤' });
     }
 });
 router.put('/edit', async (req, res) => {
@@ -99,7 +85,7 @@ router.put('/edit', async (req, res) => {
             //體重有資料就改最後一筆，日期改為今天
             const today = new Date().toISOString().split('T')[0];
             const lastWeightEntry = animal.weight[animal.weight.length - 1];
-            lastWeightEntry.value = weight;
+            lastWeightEntry.value = weight[0].value;
             lastWeightEntry.date = today;
         } else {
             animal.weight = [{ value: weight.value, date: today }];
@@ -111,7 +97,6 @@ router.put('/edit', async (req, res) => {
         res.status(500).json({ message: '更新發生錯誤' });
     }
 });
-
 router.post('/createWeight', async (req, res) => {
     try {
         const { animalId, date, value } = req.body;
