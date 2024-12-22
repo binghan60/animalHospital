@@ -15,7 +15,7 @@ export default {
       createForm: {
         name: '',
         gender: 'male',
-        weight: '',
+        weight: [{ date: new Date().toISOString().slice(0, 10), value: 0 }],
         birthday: '',
         sterilized: false,
         breed: '',
@@ -23,12 +23,13 @@ export default {
         type: '',
         insulinBrand: '',
         admissionDate: new Date().toISOString().slice(0, 10),
+        sharedWith: [],
       },
       editForm: {
         animalId: '',
         name: '',
         gender: 'male',
-        weight: '',
+        weight: [{ date: new Date().toISOString().slice(0, 10), value: 0 }],
         birthday: '',
         sterilized: false,
         breed: '',
@@ -36,28 +37,29 @@ export default {
         type: '',
         insulinBrand: '',
         admissionDate: new Date().toISOString().slice(0, 10),
+        sharedWith: [],
       },
       createFormToggle: false,
       editFormToggle: false,
       otherField: true,
       searchKeyword: '',
-      filterType: 'all',
+      filterType: '',
     }
   },
   methods: {
+    async getUserAnimal() {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
+        this.animalList = data
+        console.log(data)
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
+    },
     async creatNewAnimal() {
       const payload = {
-        userId: this.user._id,
-        name: this.createForm.name,
-        gender: this.createForm.gender,
-        weight: [{ date: new Date('2024-12-08').toISOString().slice(0, 10), value: this.createForm.weight }],
-        birthday: this.createForm.birthday,
-        sterilized: this.createForm.sterilized,
-        breed: this.createForm.breed,
-        bloodType: this.createForm.bloodType,
-        type: this.createForm.type,
-        insulinBrand: this.createForm.insulinBrand,
-        admissionDate: this.createForm.admissionDate,
+        hospitalId: this.user._id,
+        ...this.createForm,
       }
       try {
         await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, payload, {
@@ -65,13 +67,14 @@ export default {
             'Content-Type': 'application/json',
           },
         })
+        console.log(payload)
         this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.createFormToggle = false
         this.createForm = {
           name: '',
           gender: 'male',
-          weight: '',
+          weight: [{ date: new Date().toISOString().slice(0, 10), value: 0 }],
           birthday: '',
           sterilized: false,
           breed: '',
@@ -79,6 +82,7 @@ export default {
           type: '',
           insulinBrand: '',
           admissionDate: new Date().toISOString().slice(0, 10),
+          sharedWith: [],
         }
       } catch (error) {
         this.$toast.error(error.response.data.message)
@@ -102,16 +106,12 @@ export default {
     editToggle(event, animalId) {
       event.stopPropagation()
       const animal = this.animalList.find(x => x._id === animalId)
-      if (!animal) {
-        this.$toast.error('發生錯誤')
-        return
-      }
       const { _id, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = animal
       this.editForm = {
         animalId: _id,
         name,
         gender,
-        weight: weight?.[0]?.value || '',
+        weight: [{ date: new Date().toISOString().slice(0, 10), value: weight[0].value }],
         birthday: new Date(birthday).toISOString().split('T')[0],
         sterilized,
         breed,
@@ -119,20 +119,9 @@ export default {
         type,
         insulinBrand,
         admissionDate: new Date(admissionDate).toISOString().slice(0, 10),
+        sharedWith: [],
       }
       this.editFormToggle = true
-    },
-    async getUserAnimal() {
-      try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`, {
-          params: {
-            searchKeyword: this.searchKeyword,
-          },
-        })
-        this.animalList = data
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      }
     },
     convertBirthdayToAge(dateString) {
       const today = new Date()
@@ -144,16 +133,6 @@ export default {
         months += 12
       }
       return { years, months }
-    },
-    async handleSearchBlur() {
-      if (this.searchKeyword.trim() === '') {
-        return
-      }
-      await this.getUserAnimal()
-    },
-    async handleViewAll() {
-      this.searchKeyword = ''
-      await this.getUserAnimal()
     },
     animalIcon(type) {
       if (type == 'dog') {
@@ -168,15 +147,16 @@ export default {
   computed: {
     ...mapState(authStore, ['user', 'token']),
     showData() {
-      if (this.filterType == 'all') {
-        return this.animalList
-      }
-      return this.animalList.filter(x => x.type === this.filterType)
+      return this.animalList.filter(x => {
+        const matchesName = x.name?.toLowerCase().includes(this.searchKeyword?.toLowerCase() || '')
+        const matchesType = this.filterType === '' || x.type === this.filterType
+        return matchesName && matchesType
+      })
     },
   },
   async mounted() {
     await this.getUserAnimal()
-    // TODO 表單驗證
+    // TODO
     // 照片上傳
     // API按鈕防呆
     // 出院住院紀錄
@@ -194,7 +174,7 @@ export default {
             <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700"></p>
           </div>
           <div class="flex flex-col gap-2 shrink-0 sm:flex-row">
-            <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="handleViewAll">清空搜尋條件</button>
+            <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="((this.searchKeyword = ''), (this.filterType = ''))">清空搜尋條件</button>
             <button class="flex select-none items-center gap-3 rounded-lg bg-primary-600 py-2 px-4 text-center text-xs font-bold text-white shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-primary-600/20 focus:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="createFormToggle = true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" stroke-width="2" class="w-4 h-4">
                 <path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM19.75 7.5a.75.75 0 00-1.5 0v2.25H16a.75.75 0 000 1.5h2.25v2.25a.75.75 0 001.5 0v-2.25H22a.75.75 0 000-1.5h-2.25V7.5z"></path>
@@ -207,17 +187,17 @@ export default {
           <div class="w-full md:w-max">
             <nav>
               <ul role="tablist" class="relative flex flex-row p-1 min-w-[300px] rounded-lg bg-primary-100 bg-opacity-60">
-                <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'all'">
+                <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = ''">
                   <div class="z-10">All</div>
-                  <div v-if="filterType == 'all'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-if="filterType === ''" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'dog'">
                   <div class="z-10"><i class="fa-solid fa-dog"></i></div>
-                  <div v-if="filterType == 'dog'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-if="filterType === 'dog'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'cat'">
                   <div class="z-10"><i class="fa-solid fa-cat"></i></div>
-                  <div v-if="filterType == 'cat'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-if="filterType === 'cat'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
               </ul>
             </nav>
@@ -229,7 +209,7 @@ export default {
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
                 </svg>
               </div>
-              <input v-model="searchKeyword" class="peer h-full w-full rounded-[7px] border border-primary-200 border-t-transparent bg-transparent px-3 py-2.5 !pr-9 font-sans text-sm font-normal text-primary-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-primary-200 placeholder-shown:border-t-primary-200 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-primary-50" placeholder=" " @blur="handleSearchBlur" />
+              <input v-model="searchKeyword" class="peer h-full w-full rounded-[7px] border border-primary-200 border-t-transparent bg-transparent px-3 py-2.5 !pr-9 font-sans text-sm font-normal text-primary-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-primary-200 placeholder-shown:border-t-primary-200 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-primary-50" placeholder=" " />
               <label class="before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none !overflow-visible truncate text-[11px] font-normal leading-tight text-gray-500 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-primary-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-primary-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-primary-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-gray-900 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:!border-gray-900 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:!border-gray-900 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-primary-500">搜尋 </label>
             </div>
           </div>
@@ -306,7 +286,7 @@ export default {
                 </td>
                 <td class="p-4 border-b border-primary-50">
                   <div class="flex flex-col">
-                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0].value ? animal.weight[0].value + ' 公斤' : '' }}</p>
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0]?.value ? animal.weight[0]?.value + ' 公斤' : '' }}</p>
                   </div>
                 </td>
                 <td class="p-4 border-b border-primary-50">
@@ -341,7 +321,7 @@ export default {
             <template v-else>
               <tr>
                 <td class="h-[20px] text-center" colspan="7">
-                  <img class="w-full max-h-[800px] object-cover" src="/public/image/empty.jpg" alt="" />
+                  <img class="w-full max-h-[800px] object-cover" src="/image/empty.jpg" alt="" />
                 </td>
               </tr>
             </template>
@@ -375,7 +355,7 @@ export default {
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="weight" class="text-left text-primary-700">體重 (kg)</label>
-              <VField id="weight" v-model="createForm.weight" name="weight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              <VField id="weight" v-model="createForm.weight[0].value" name="weight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="birthday" class="text-left text-primary-700">生日</label>
@@ -446,7 +426,7 @@ export default {
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="editWeight" class="text-left text-primary-700">體重 (kg)</label>
-              <VField id="editWeight" v-model="editForm.weight" name="editWeight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              <VField id="editWeight" v-model="editForm.weight[0].value" name="editWeight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="editBirthday" class="text-left text-primary-700">生日</label>
