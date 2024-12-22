@@ -14,7 +14,7 @@ export default defineStore('authStore', {
       isLogin: false,
       isActive: '',
       token: '',
-      expired: '',
+      expiresAt: '',
       createdAt: '',
       updatedAt: '',
     },

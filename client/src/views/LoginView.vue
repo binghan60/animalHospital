@@ -12,7 +12,7 @@ export default {
   data() {
     return {
       loginFrom: {
-        username: '',
+        account: '',
         password: '',
         showPassword: false,
       },
@@ -23,17 +23,18 @@ export default {
       this.loginFrom.showPassword = !this.loginFrom.showPassword
     },
     async login() {
-      const { username, password } = this.loginFrom
+      const { account, password } = this.loginFrom
       try {
-        const payload = { username, password }
-        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/user/login`, payload, {
+        const payload = { account, password }
+        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/hospital/login`, payload, {
           headers: {
             'Content-Type': 'application/json',
           },
         })
         this.auth(data)
         this.$toast.success(data.message)
-        document.cookie = `animalHospitalToken=${data.token}; expires=${new Date(data.expired)}`
+        document.cookie = `animalHospitalToken=${data.token}; expires=${new Date(data.expiresAt)}`
+        document.cookie = `animalHospitalRole=${data.role}; expires=${new Date(data.expiresAt)}`
         axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
         this.$router.push('/animallist')
       } catch (error) {
@@ -41,8 +42,8 @@ export default {
       }
     },
     quicklogin() {
-      this.loginFrom.username = 'admin'
-      this.loginFrom.password = 'admin'
+      this.loginFrom.account = 'admin'
+      this.loginFrom.password = 'Hank!0688'
       console.log('A')
     },
     ...mapActions(authStore, ['auth']),
@@ -56,9 +57,9 @@ export default {
       <h2 class="mb-6 text-2xl font-bold text-center text-primary-900">動物健康管理系統</h2>
       <VForm @submit="login">
         <div class="mb-4">
-          <label for="username" class="text-primary-900">帳號</label>
-          <VField id="username" v-model="loginFrom.username" name="username" rules="required|length:4,20" type="text" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
-          <ErrorMessage class="mt-1 text-sm text-red-600" name="username" />
+          <label for="account" class="text-primary-900">帳號</label>
+          <VField id="account" v-model="loginFrom.account" name="account" rules="required|length:4,20" type="text" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
+          <ErrorMessage class="mt-1 text-sm text-red-600" name="account" />
         </div>
         <div class="mb-4">
           <label for="password" class="text-primary-900">密碼</label>
