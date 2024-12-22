@@ -2,28 +2,9 @@
 
 const bloodSugarCurveSchema = new mongoose.Schema(
     {
-        animalId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Animal',
-            required: true,
-            index: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        records: [
-            {
-                time: {
-                    type: String,
-                    required: true,
-                },
-                value: {
-                    type: Number,
-                    required: true,
-                },
-            },
-        ],
+        animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true, index: true },
+        date: { type: Date, required: true },
+        records: [{ time: { type: String, required: true }, value: { type: Number, required: true } }],
     },
     { timestamps: true }
 );

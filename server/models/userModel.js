@@ -2,37 +2,15 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
     {
-        username: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        password: {
-            type: String,
-            required: true,
-        },
-        email: {
-            type: String,
-            unique: true,
-            sparse: true,
-            default: null,
-        },
-        nickname: {
-            type: String,
-            default: null,
-        },
-        title: {
-            type: String,
-            default: null,
-        },
-        isActive: {
-            type: Boolean,
-            default: true,
-        },
-        admin: {
-            type: Number,
-            default: 0,
-        },
+        avatar: { type: String, default: '' },
+        account: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
+        phone: { type: String, default: '' },
+        address: { type: String, default: '' },
+        email: { type: String, default: '' },
+        name: { type: String, default: '' },
+        isActive: { type: Boolean, default: true },
+        lastLogin: { type: Date, default: '' },
     },
     {
         timestamps: true,

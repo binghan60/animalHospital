@@ -2,19 +2,21 @@ import mongoose from 'mongoose';
 
 const animalSchema = new mongoose.Schema(
     {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+        hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hospital', required: true, index: true },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
         name: { type: String, required: true },
-        gender: { type: String, enum: ['male', 'female', 'other'] },
-        weight: [{ date: { type: Date }, value: { type: Number } }],
-        birthday: { type: Date },
-        sterilized: { type: Boolean },
-        breed: { type: String },
-        bloodType: { type: String, enum: ['A', 'B', 'AB', 'O', ''] },
-        type: { type: String, enum: ['cat', 'dog', 'other', ''] },
-        insulinBrand: { type: String },
-        admissionDate: { type: Date },
+        gender: { type: String, enum: ['male', 'female', 'other', ''], default: '' },
+        weight: [{ date: { type: Date }, value: { type: Number, default: 0 } }],
+        birthday: { type: Date, default: '' },
+        sterilized: { type: Boolean, default: false },
+        breed: { type: String, default: '' },
+        bloodType: { type: String, enum: ['A', 'B', 'AB', 'O', ''], default: '' },
+        type: { type: String, enum: ['cat', 'dog', 'other', ''], default: '' },
+        insulinBrand: { type: String, default: '' },
+        admissionDate: { type: Date, default: Date.now },
+        sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     },
-    { timestamp: true }
+    { timestamps: true }
 );
 const Animal = mongoose.model('Animal', animalSchema);
 export default Animal;
