@@ -185,7 +185,6 @@ export default {
       }
     },
     async createQuick() {
-      console.log('A')
       const { value } = this.window.quick
       if (!value.bloodSugar || !value.insulin) {
         this.$toast.error('請輸入完整資訊')
@@ -414,7 +413,9 @@ export default {
             <li class="text-sm font-medium text-primary-900">種類：</li>
             <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.type === 'dog' ? `<i class='fa-solid fa-dog'></i>` : `<i class='fa-solid fa-cat'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">生日：</li>
-            <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
+            <li v-if="animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
+            <li v-else class="col-span-2 text-sm text-gray-800"></li>
+
             <li class="text-sm font-medium text-primary-900">性別：</li>
             <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars'></i>` : `<i class='text-pink-600 fa-solid fa-venus'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">血型：</li>

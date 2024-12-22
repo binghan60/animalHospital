@@ -274,13 +274,13 @@ export default {
           </thead>
           <tbody>
             <template v-if="showData.length > 0">
-              <tr v-for="animal in showData" :key="animal._id" class="hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
+              <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
                 <td class="p-4 border-b border-primary-50">
                   <div class="flex items-center gap-3">
                     <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                     <div class="flex flex-col">
                       <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars' : 'text-pink-600 fa-solid fa-venus'"></i> {{ animal.name }}</p>
-                      <p v-if="animal.birthday" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                      <p v-if="animal.birthday != '1970-01-01T00:00:00.000Z'" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
                     </div>
                   </div>
                 </td>
