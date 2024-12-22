@@ -38,7 +38,7 @@ export default {
     <div class="flex items-center justify-between p-2 mx-auto text-lg text-white max-w-7xl">
       <RouterLink to="/animallist" @click="isMenuOpen = false">
         <div class="flex items-center text-xl font-bold cursor-pointer">
-          <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/image/logo.svg" alt="Logo" />
+          <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
           <div class="hidden lg:block">
             {{ user.name }}
           </div>
