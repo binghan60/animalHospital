@@ -25,7 +25,7 @@ router.get('/diary', async (req, res) => {
 });
 router.post('/create', async (req, res) => {
     try {
-        const { animalId, date, morning, evening, notes } = req.body;
+        const { animalId, date, records, notes } = req.body;
         if (!mongoose.Types.ObjectId.isValid(animalId)) {
             return res.status(400).json({ message: 'Invalid animalId' });
         }
@@ -34,41 +34,16 @@ router.post('/create', async (req, res) => {
             date: new Date(date),
         });
         if (existingRecord) {
-            let updateFields = {};
-            if (morning.bloodSugar !== undefined && morning.bloodSugar !== '') {
-                updateFields['morning.bloodSugar'] = morning.bloodSugar;
-            }
-            if (morning.insulin !== undefined && morning.insulin !== '') {
-                updateFields['morning.insulin'] = morning.insulin;
-            }
-            if (evening.bloodSugar !== undefined && evening.bloodSugar !== '') {
-                updateFields['evening.bloodSugar'] = evening.bloodSugar;
-            }
-            if (evening.insulin !== undefined && evening.insulin !== '') {
-                updateFields['evening.insulin'] = evening.insulin;
-            }
-            if (notes !== undefined && notes !== '') {
-                updateFields['notes'] = notes;
-            }
-            const updatedRecord = await BloodSugar.findOneAndUpdate({ _id: existingRecord._id }, { $set: updateFields }, { new: true });
+            existingRecord.records = [...existingRecord.records, ...records];
+            existingRecord.notes = notes || existingRecord.notes;
+            const updatedRecord = await existingRecord.save();
             return res.status(200).send(updatedRecord);
         }
         const newBloodSugar = new BloodSugar({
             animalId,
             date: new Date(date),
-            morning: morning
-                ? {
-                      bloodSugar: morning.bloodSugar,
-                      insulin: morning.insulin,
-                  }
-                : undefined,
-            evening: evening
-                ? {
-                      bloodSugar: evening.bloodSugar,
-                      insulin: evening.insulin,
-                  }
-                : undefined,
-            notes: notes || '',
+            records,
+            notes,
         });
         const bloodSugarRecord = await newBloodSugar.save();
         return res.status(201).send(bloodSugarRecord);
