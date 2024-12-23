@@ -51,7 +51,6 @@ export default {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
         this.animalList = data
-        console.log(data)
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
@@ -67,7 +66,6 @@ export default {
             'Content-Type': 'application/json',
           },
         })
-        console.log(payload)
         this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.createFormToggle = false
