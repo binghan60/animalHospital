@@ -4,23 +4,21 @@ import BloodSugarCurve from '../models/bloodSugarCurveModel.js';
 import mongoose from 'mongoose';
 const router = express.Router();
 router.get('/diary', async (req, res) => {
-    const { animalId, year, month, dayInMonth } = req.query;
+    const { animalId, startDate, endDate } = req.query;
     if (!mongoose.Types.ObjectId.isValid(animalId)) {
-        return res.status(400).send({ error: 'Invalid animal ID' });
+        return res.status(400).send({ message: 'Invalid animal ID' });
     }
-    if (!year || !month) {
-        return res.status(400).send({ error: 'Year and month are required' });
+    if (!startDate || !endDate) {
+        return res.status(400).send({ message: 'startDate and endDate are required' });
     }
     try {
-        const startDate = new Date(`${year}-${month}-01`);
-        const endDate = new Date(`${year}-${month}-${dayInMonth}`);
         const data = await BloodSugar.find({
             animalId,
             date: { $gte: startDate, $lte: endDate },
         }).sort({ date: 1 });
         return res.status(200).json(data);
     } catch (error) {
-        return res.status(500).send({ error: 'Server error' });
+        return res.status(500).send({ message: 'Server error' });
     }
 });
 router.post('/create', async (req, res) => {
@@ -56,14 +54,14 @@ router.post('/create', async (req, res) => {
     }
 });
 router.get('/getCurve', async (req, res) => {
-    const { animalId, year, month } = req.query;
+    const { animalId, startDate, endDate } = req.query;
     if (!mongoose.Types.ObjectId.isValid(animalId)) {
         return res.status(400).json({ message: 'Invalid animalId' });
     }
+    if (!startDate || !endDate) {
+        return res.status(400).send({ message: 'startDate and endDate are required' });
+    }
     try {
-        const dayInMonth = new Date(year, month, 0).getDate();
-        const startDate = new Date(`${year}-${month}-01`);
-        const endDate = new Date(`${year}-${month}-${dayInMonth}`);
         const data = await BloodSugarCurve.find({
             animalId,
             date: { $gte: startDate, $lte: endDate },
