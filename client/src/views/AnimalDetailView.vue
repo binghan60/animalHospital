@@ -20,7 +20,6 @@ export default {
           },
         ],
       },
-
       chartOptions: {
         fill: true,
         responsive: true,
@@ -51,6 +50,7 @@ export default {
       today: new Date(),
       currentDate: this.getToday(),
       calendar: Array.from({ length: 42 }, () => ({ loading: true })),
+      calendarDisplay: 'week',
       insulinOption: [
         { value: null, text: '請選擇劑量' },
         { value: 0, text: '0 小格' },
@@ -68,11 +68,29 @@ export default {
           loading: false,
         },
       },
+      showModal: false,
+      weekRange: '',
+      selectedMonth: '',
+      weekData: [],
+      months: [
+        { value: 0, label: '2024年1月' },
+        { value: 1, label: '2024年2月' },
+        { value: 2, label: '2024年3月' },
+        { value: 3, label: '2024年4月' },
+        { value: 4, label: '2024年5月' },
+        { value: 5, label: '2024年6月' },
+        { value: 6, label: '2024年7月' },
+        { value: 7, label: '2024年8月' },
+        { value: 8, label: '2024年9月' },
+        { value: 9, label: '2024年10月' },
+        { value: 10, label: '2024年11月' },
+        { value: 11, label: '2024年12月' },
+      ],
+      weekBloodSugarData: [],
     }
   },
   methods: {
     async updateCalendar() {
-      // this.calendar.forEach(x => (x.loading = true))
       const { currentDate } = this
       const days = Array.from({ length: currentDate.dayInMonth }, (v, i) => {
         const date = `${currentDate.year}-${currentDate.month}-${String(i + 1).padStart(2, '0')}`
@@ -81,9 +99,8 @@ export default {
           month: currentDate.month,
           day: i + 1,
           date,
-          morning: { bloodSugar: { value: '', isEditing: false, pending: false }, insulin: { value: '', isEditing: false, pending: false } },
-          evening: { bloodSugar: { value: '', isEditing: false, pending: false }, insulin: { value: '', isEditing: false, pending: false } },
-          // loading: false,
+          morning: { time: '', bloodSugar: '', insulin: '', notes: '', isEditing: false, pending: false },
+          evening: { time: '', bloodSugar: '', insulin: '', notes: '', isEditing: false, pending: false },
         }
       })
       const diaryData = await this.getDiaryBloodSugar()
@@ -92,24 +109,16 @@ export default {
         if (diaryEntry) {
           return Object.assign({}, day, diaryEntry, {
             morning: {
-              bloodSugar: {
-                value: diaryEntry.morning.bloodSugar,
-                isEditing: false,
-              },
-              insulin: {
-                value: diaryEntry.morning.insulin,
-                isEditing: false,
-              },
+              time: diaryEntry.morning.time,
+              bloodSugar: diaryEntry.morning.bloodSugar,
+              insulin: diaryEntry.morning.insulin,
+              notes: diaryEntry.morning.notes,
             },
             evening: {
-              bloodSugar: {
-                value: diaryEntry.evening.bloodSugar,
-                isEditing: false,
-              },
-              insulin: {
-                value: diaryEntry.evening.insulin,
-                isEditing: false,
-              },
+              time: diaryEntry.evening.time,
+              bloodSugar: diaryEntry.evening.bloodSugar,
+              insulin: diaryEntry.evening.insulin,
+              notes: diaryEntry.evening.notes,
             },
           })
         }
@@ -125,11 +134,11 @@ export default {
       if (backBlank >= 7) {
         totalCells -= 7
       }
-      console.log(totalCells - allDays.length)
       for (let i = allDays.length; i < totalCells; i++) {
         allDays.push({ date: null })
       }
       this.calendar = allDays
+      console.log(allDays)
       await this.updateSugarCurveChart()
     },
     async getAnimalInfo() {
@@ -144,17 +153,19 @@ export default {
     },
     async getDiaryBloodSugar() {
       try {
+        const { year, month, dayInMonth } = this.currentDate
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
           params: {
             animalId: this.animal.Id,
-            year: this.currentDate.year,
-            month: this.currentDate.month,
-            dayInMonth: this.currentDate.dayInMonth,
+            startDate: `${year}-${month}-1`,
+            endDate: `${year}-${month}-${dayInMonth}`,
           },
         })
         this.animal.diaryBloodSugar = data
+        console.log(data)
         return data
       } catch (error) {
+        console.log(error)
         this.$toast.error(error.response.data.message)
       }
     },
@@ -324,11 +335,12 @@ export default {
     },
     async updateSugarCurveChart() {
       try {
+        const { year, month, dayInMonth } = this.currentDate
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
           params: {
             animalId: this.animal.Id,
-            year: this.currentDate.year,
-            month: this.currentDate.month,
+            startDate: `${year}-${month}-1`,
+            endDate: `${year}-${month}-${dayInMonth}`,
           },
         })
         const sugarCurveObject = data.data.map(x => {
@@ -384,6 +396,85 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
+    addTask(day) {
+      this.currentDay = day
+      this.newTask = { time: '', content: '' }
+      this.showModal = true
+    },
+    updateWeekData() {
+      const startOfWeek = this.getStartOfWeek(this.today)
+      startOfWeek.setDate(startOfWeek.getDate() + 1)
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(startOfWeek.getDate() + 6)
+      this.weekRange = `${startOfWeek.toISOString().split('T')[0]} ~ ${endOfWeek.toISOString().split('T')[0]}`
+      this.weekData = this.getWeekData(startOfWeek)
+    },
+    getStartOfWeek(date) {
+      const d = new Date(date)
+      const day = d.getDay()
+      const diff = d.getDate() - (day === 0 ? 6 : day - 1)
+      d.setDate(diff)
+      d.setHours(0, 0, 0, 0)
+      return d
+    },
+    getWeekData(startOfWeek) {
+      const weekData = []
+      const daysOfWeek = ['一', '二', '三', '四', '五', '六', '日']
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek)
+        date.setDate(startOfWeek.getDate() + i)
+        weekData.push({
+          date: date.toISOString().split('T')[0],
+          day: daysOfWeek[i],
+          tasks: [],
+          isToday: date.toISOString().split('T')[0] === new Date().toISOString().split('T')[0],
+        })
+      }
+      return weekData
+    },
+    goToPrevWeek() {
+      this.today.setDate(this.today.getDate() - 7)
+      this.updateWeekData()
+    },
+    goToNextWeek() {
+      this.today.setDate(this.today.getDate() + 7)
+      this.updateWeekData()
+    },
+    goToFirstWeekOfSelectedMonth() {
+      const firstDayOfMonth = new Date(new Date().getFullYear(), this.selectedMonth, 1)
+      const startOfWeek = this.getStartOfWeek(firstDayOfMonth)
+      this.today = startOfWeek
+      this.updateWeekData()
+    },
+    saveTask() {
+      if (this.newTask.time && this.newTask.content) {
+        this.currentDay.tasks.push({ ...this.newTask })
+        this.closeModal()
+      }
+    },
+    closeModal() {
+      this.showModal = false
+      this.currentDay = null
+      this.newTask = { time: '', content: '' }
+    },
+
+    async getWeekBloodSugarData() {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
+        params: {
+          animalId: this.animal.Id,
+          startDate: this.weekData[0].date,
+          endDate: this.weekData[6].date,
+        },
+      })
+      this.weekBloodSugarData = data
+      this.weekData.map(day => {
+        const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
+        if (diaryEntry) {
+          day.tasks = diaryEntry.records
+        }
+        return day
+      })
+    },
   },
   watch: {
     'currentDate.month': {
@@ -391,10 +482,19 @@ export default {
         this.updateCalendar()
       },
     },
+    weekData: {
+      handler() {
+        this.getWeekBloodSugarData()
+        console.log('A')
+      },
+    },
   },
   async mounted() {
     await this.getAnimalInfo()
     await this.updateCalendar()
+    this.updateWeekData()
+    this.selectedMonth = this.today.getMonth()
+    await this.getWeekBloodSugarData()
   },
 }
 </script>
@@ -436,58 +536,114 @@ export default {
       </div>
     </div>
     <!-- 日曆 -->
-    <div class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
-      <h1 class="py-3 text-2xl font-bold text-center select-none text-primary-900">
-        <button type="button" class="text-primary-600 hover:text-primary-700" @click="prevMonth">
-          <i class="text-3xl fa-solid fa-caret-left"></i>
-        </button>
-        <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
-        <button type="button" class="text-primary-600 hover:text-primary-700" @click="nextMonth">
-          <i class="text-3xl fa-solid fa-caret-right"></i>
-        </button>
-      </h1>
-      <!-- 日曆格子 -->
-      <div class="hidden grid-cols-7 gap-1 text-2xl font-semibold text-center text-primary-900 lg:grid">
-        <div>一</div>
-        <div>二</div>
-        <div>三</div>
-        <div>四</div>
-        <div>五</div>
-        <div>六</div>
-        <div>日</div>
+    <div class="rounded-lg shadow-lg bg-white mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
+      <div class="flex justify-center space-x-4">
+        <!-- 日曆按鈕 -->
+        <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
+          <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days"></i> </span>
+        </label>
+        <!-- 月曆按鈕 -->
+        <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
+          <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar"></i> </span>
+        </label>
       </div>
-      <div class="grid grid-cols-2 gap-1 mt-2 lg:grid-cols-7">
+      <!-- xx月血糖表 -->
+
+      <!-- 日曆格子 -->
+      <div v-if="calendarDisplay == 'month'" class="grid grid-cols-2 col-span-7 gap-1 mt-2 lg:grid-cols-7">
+        <div class="flex items-center justify-center col-span-2 py-3 text-2xl font-bold select-none text-primary-900 lg:col-span-7">
+          <button type="button" class="text-primary-600 hover:text-primary-700" @click="prevMonth">
+            <i class="text-4xl fa-solid fa-caret-left"></i>
+          </button>
+          <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
+          <button type="button" class="text-primary-600 hover:text-primary-700" @click="nextMonth">
+            <i class="text-4xl fa-solid fa-caret-right"></i>
+          </button>
+        </div>
+        <div class="hidden grid-cols-7 col-span-7 gap-1 text-2xl font-semibold text-center text-primary-900 lg:grid">
+          <div>一</div>
+          <div>二</div>
+          <div>三</div>
+          <div>四</div>
+          <div>五</div>
+          <div>六</div>
+          <div>日</div>
+        </div>
         <template v-for="(day, index) in calendar">
           <div v-if="day.day" :key="day.isoDate" class="p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900">
-            <div class="font-bold text-center">{{ day.month }} / {{ day.day }}</div>
+            <div class="font-bold text-center">{{ day.month }} / {{ day.day }}{{ day.records?.length > 2 ? '*' : '' }}</div>
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
-              <div class="font-semibold text-center text-primary-900"><i class="fa-regular fa-sun"></i></div>
-              <div v-if="!calendar[index].morning.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.bloodSugar.pending }, bloodColor(calendar[index].morning.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].morning.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'bloodSugar')">
-                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar.value ? calendar[index].morning.bloodSugar.value : '---' }}</span>
+              <div class="text-center text-primary-900"><i class="fa-regular fa-sun"></i> {{ calendar[index].morning.time }}</div>
+              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodColor(calendar[index].morning.bloodSugar)]">
+                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar ? calendar[index].morning.bloodSugar : '---' }}</span>
               </div>
-              <input v-else ref="morningBloodSugar" v-model="calendar[index].morning.bloodSugar.value" type="number" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'morning', 'bloodSugar')" @keydown.enter="blur(index, 'morning', 'bloodSugar')" />
-              <div v-if="!calendar[index].morning.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].morning.insulin.pending }]" :style="{ pointerEvents: calendar[index].morning.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'morning', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin.value || calendar[index].morning.insulin.value === 0 ? calendar[index].morning.insulin.value + ' 小格' : '---' }}</div>
-              <select v-else ref="morningInsulin" v-model="calendar[index].morning.insulin.value" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'morning', 'insulin')" @keydown.enter="blur(index, 'morning', 'insulin')">
-                <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].morning.insulin.value === option.value">{{ option.text }}</option>
-              </select>
+              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin || calendar[index].morning.insulin === 0 ? calendar[index].morning.insulin + ' 小格' : '---' }}</div>
             </div>
             <!-- 晚上 -->
             <div class="p-2 rounded-md bg-primary-100 hover:bg-primary-300">
-              <div class="font-bold text-center text-primary-900"><i class="fa-regular fa-moon"></i></div>
-              <div v-if="!calendar[index].evening.bloodSugar.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.bloodSugar.pending }, bloodColor(calendar[index].evening.bloodSugar.value)]" :style="{ pointerEvents: calendar[index].evening.bloodSugar.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'bloodSugar')">
-                <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar.value ? calendar[index].evening.bloodSugar.value : '---' }}</span>
+              <div class="text-center text-primary-900"><i class="fa-regular fa-moon"></i> {{ calendar[index].evening.time }}</div>
+              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodColor(calendar[index].evening.bloodSugar)]">
+                <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar ? calendar[index].evening.bloodSugar : '---' }}</span>
               </div>
-              <input v-else ref="eveningBloodSugar" v-model="calendar[index].evening.bloodSugar.value" type="number" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" value="" @blur="blur(index, 'evening', 'bloodSugar')" @keydown.enter="blur(index, 'evening', 'bloodSugar')" />
-              <div v-if="!calendar[index].evening.insulin.isEditing" :class="['cursor-pointer w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none', { lazyLoading: calendar[index].evening.insulin.pending }]" :style="{ pointerEvents: calendar[index].evening.insulin.pending ? 'none' : 'auto' }" @click="edit(index, 'evening', 'insulin')"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin.value || calendar[index].evening.insulin.value === 0 ? calendar[index].evening.insulin.value + ' 小格' : '---' }}</div>
-              <select v-else ref="eveningInsulin" v-model="calendar[index].evening.insulin.value" class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none" @blur="blur(index, 'evening', 'insulin')" @keydown.enter="blur(index, 'evening', 'insulin')">
-                <option v-for="option in insulinOption" :key="option.value" :value="option.value" :selected="calendar[index].evening.insulin.value === option.value">{{ option.text }}</option>
-              </select>
+              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none'"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin || calendar[index].evening.insulin === 0 ? calendar[index].evening.insulin + ' 小格' : '---' }}</div>
             </div>
           </div>
           <div v-else :key="index" :class="['p-2 m-1 rounded-md h-[264px] hidden lg:grid', { lazyLoading: day.loading }]"></div>
         </template>
       </div>
+      <template v-else>
+        <div class="mb-4 text-center">
+          <select v-model="selectedMonth" class="px-4 py-2 border rounded-md" @change="goToFirstWeekOfSelectedMonth">
+            <option v-for="month in months" :key="month.value" :value="month.value">
+              {{ month.label }}
+            </option>
+          </select>
+        </div>
+        <div class="flex items-center justify-center gap-4 mb-4">
+          <button class="px-4 py-2 text-white bg-blue-500 rounded-md" @click="goToPrevWeek">前週</button>
+          <div class="text-xl font-bold text-center">本周：{{ weekRange }}</div>
+          <button class="px-4 py-2 text-white bg-blue-500 rounded-md" @click="goToNextWeek">下週</button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-4 p-4 rounded-lg shadow-md bg-gray-50">
+          <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm', day.isToday ? 'bg-blue-100 border-blue-500' : 'bg-white']">
+            <!-- 日期與星期 -->
+            <div class="mb-3 text-sm font-semibold text-center text-gray-700">{{ day.date }} ({{ day.day }})</div>
+            <!-- 新增事項按鈕 -->
+            <button class="w-full px-2 py-2 mb-3 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" @click="addTask(day)">+ 新增事項</button>
+            <!-- 事項清單 -->
+            <ul class="space-y-2">
+              <li v-for="(task, index) in day.tasks" :key="index" class="p-3 text-sm bg-gray-100 border border-gray-300 rounded-lg">
+                <div class="mb-1 text-gray-800">🕒 {{ task.time }}</div>
+                <div class="text-gray-600"><span class="font-semibold">血糖：</span> {{ task.bloodSugar }}</div>
+                <div class="text-gray-600"><span class="font-semibold">胰島素：</span> {{ task.insulin }}</div>
+                <div class="text-gray-600"><span class="font-semibold">備註：</span> {{ task.notes }}</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div class="p-6 bg-white rounded-md shadow-lg w-96">
+            <h3 class="mb-4 text-lg font-semibold">新增事項</h3>
+            <div class="mb-4">
+              <label class="block mb-1 text-sm font-medium">時間</label>
+              <input v-model="newTask.time" type="time" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1 text-sm font-medium">內容</label>
+              <input v-model="newTask.content" type="text" placeholder="輸入事項內容" class="w-full p-2 border rounded" />
+            </div>
+            <div class="flex justify-end gap-4">
+              <button class="px-4 py-2 text-gray-700 bg-gray-300 rounded" @click="closeModal">取消</button>
+              <button class="px-4 py-2 text-white bg-blue-500 rounded" @click="saveTask">儲存</button>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
     <div>
       <div v-for="chart in sugarCurveChart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full">
