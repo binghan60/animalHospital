@@ -6,7 +6,7 @@
             "script": "dev",
             "path": "client",
             "problemMatcher": [],
-            "label": "npm: dev - client",
+            "label": "前端dev",
             "detail": "vite",
             "group": "build",
             "isBackground": true
@@ -16,7 +16,7 @@
             "script": "start",
             "path": "server",
             "problemMatcher": [],
-            "label": "npm: start - server",
+            "label": "後端start",
             "detail": "nodemon index.js",
             "group": {
                 "kind": "build",
