@@ -7,45 +7,48 @@ export default {
   data() {
     return {
       animal: { Id: this.$route.params.id, Info: {}, diaryBloodSugar: [] },
-      weightChartData: {
-        labels: [],
-        datasets: [
-          {
-            label: '體重',
-            data: [],
-            borderColor: 'rgb(147 197 253)', // blue300
-            backgroundColor: 'rgb(219 234 254)', // blue100
-            pointRadius: 6,
-            pointHoverRadius: 10,
-          },
-        ],
-      },
-      chartOptions: {
-        fill: true,
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: '體重走勢圖',
-          },
-          legend: {
-            display: false,
-            position: 'top',
-          },
-          datalabels: {
-            display: true,
-            color: '#3b82f6', // blue500
-            font: {
-              weight: 'bold',
-              size: 14,
+      weightChart: {
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: '體重',
+              data: [],
+              borderColor: 'rgb(147 197 253)', // blue300
+              backgroundColor: 'rgb(219 234 254)', // blue100
+              pointRadius: 6,
+              pointHoverRadius: 10,
             },
-            anchor: 'center',
-            align: 'top',
-            formatter: value => value.toFixed(1),
+          ],
+        },
+        option: {
+          fill: true,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: '體重走勢圖',
+            },
+            legend: {
+              display: false,
+              position: 'top',
+            },
+            datalabels: {
+              display: true,
+              color: '#3b82f6', // blue500
+              font: {
+                weight: 'bold',
+                size: 14,
+              },
+              anchor: 'center',
+              align: 'top',
+              formatter: value => value.toFixed(1),
+            },
           },
         },
       },
+      bloodSugarCurveChart: [],
       sugarCurveChart: [],
       today: new Date(),
       currentDate: this.getToday(),
@@ -87,6 +90,7 @@ export default {
         { value: 11, label: '2024年12月' },
       ],
       weekBloodSugarData: [],
+      newRecord: { date: '', time: '', bloodSugar: '', insulin: '', notes: '' },
     }
   },
   methods: {
@@ -124,7 +128,6 @@ export default {
         }
         return day
       })
-
       const firstDay = new Date(currentDate.year, currentDate.month - 1, 1).getDay()
       const spaceDay = firstDay === 0 ? 6 : firstDay - 1
       const blankDays = Array.from({ length: spaceDay }, () => ({ date: null }))
@@ -145,8 +148,8 @@ export default {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
         this.animal.Info = data
-        this.weightChartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
-        this.weightChartData.datasets[0].data = data.weight.map(x => x.value)
+        this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
@@ -230,8 +233,8 @@ export default {
         const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/animal/createWeight`, payload, {
           headers: { 'Content-Type': 'application/json' },
         })
-        this.weightChartData.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
-        this.weightChartData.datasets[0].data = data.weight.map(x => x.value)
+        this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
         this.$toast.success(data.message)
         this.window.weight.toggle = false
         this.window.weight.value = ''
@@ -398,7 +401,8 @@ export default {
     },
     addTask(day) {
       this.currentDay = day
-      this.newTask = { time: '', content: '' }
+      this.newRecord.date = day.date
+      console.log(this.newRecord)
       this.showModal = true
     },
     updateWeekData() {
@@ -426,10 +430,12 @@ export default {
         weekData.push({
           date: date.toISOString().split('T')[0],
           day: daysOfWeek[i],
-          tasks: [],
+          records: [],
           isToday: date.toISOString().split('T')[0] === new Date().toISOString().split('T')[0],
+          notes: '',
         })
       }
+      console.log(weekData)
       return weekData
     },
     goToPrevWeek() {
@@ -446,16 +452,38 @@ export default {
       this.today = startOfWeek
       this.updateWeekData()
     },
-    saveTask() {
-      if (this.newTask.time && this.newTask.content) {
-        this.currentDay.tasks.push({ ...this.newTask })
+    async saveTask() {
+      try {
+        const payload = {
+          animalId: this.animal.Id,
+          date: this.newRecord.date,
+          records: [
+            {
+              time: this.newRecord.time,
+              bloodSugar: this.newRecord.bloodSugar,
+              insulin: this.newRecord.insulin,
+              notes: this.newRecord.notes,
+            },
+          ],
+          notes: '123',
+        }
+        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/create`, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        this.currentDay.records.push({ ...this.newRecord })
+        this.$toast.success(data.message)
+        await this.getWeekBloodSugarData()
         this.closeModal()
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
       }
     },
     closeModal() {
       this.showModal = false
       this.currentDay = null
-      this.newTask = { time: '', content: '' }
+      this.newRecord = { date: '', time: '', bloodSugar: '', insulin: '', notes: '' }
     },
 
     async getWeekBloodSugarData() {
@@ -470,7 +498,7 @@ export default {
       this.weekData.map(day => {
         const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
         if (diaryEntry) {
-          day.tasks = diaryEntry.records
+          day.records = diaryEntry.records
         }
         return day
       })
@@ -485,7 +513,6 @@ export default {
     weekData: {
       handler() {
         this.getWeekBloodSugarData()
-        console.log('A')
       },
     },
   },
@@ -532,7 +559,7 @@ export default {
         </div>
       </div>
       <div class="grid-cols-1 rounded-lg overflow-hidden shadow-lg bg-white p-4 lg:p-6 h-full min-h-[300px]">
-        <Mychart :chartData="weightChartData" :chartOptions="chartOptions"></Mychart>
+        <Mychart :chartData="weightChart.data" :chartOptions="weightChart.option"></Mychart>
       </div>
     </div>
     <!-- 日曆 -->
@@ -608,19 +635,28 @@ export default {
           <button class="px-4 py-2 text-white bg-blue-500 rounded-md" @click="goToNextWeek">下週</button>
         </div>
 
-        <div class="grid grid-cols-7 gap-4 p-4 rounded-lg shadow-md bg-gray-50">
-          <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm', day.isToday ? 'bg-blue-100 border-blue-500' : 'bg-white']">
+        <div class="grid grid-cols-7 gap-2 p-4 rounded-lg shadow-md bg-gray-50">
+          <div v-for="day in weekData" :key="day.date" :class="['p-2 border rounded-lg shadow-sm', day.isToday ? 'bg-blue-100 border-blue-500' : 'bg-white']">
             <!-- 日期與星期 -->
             <div class="mb-3 text-sm font-semibold text-center text-gray-700">{{ day.date }} ({{ day.day }})</div>
             <!-- 新增事項按鈕 -->
             <button class="w-full px-2 py-2 mb-3 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" @click="addTask(day)">+ 新增事項</button>
             <!-- 事項清單 -->
             <ul class="space-y-2">
-              <li v-for="(task, index) in day.tasks" :key="index" class="p-3 text-sm bg-gray-100 border border-gray-300 rounded-lg">
-                <div class="mb-1 text-gray-800">🕒 {{ task.time }}</div>
-                <div class="text-gray-600"><span class="font-semibold">血糖：</span> {{ task.bloodSugar }}</div>
-                <div class="text-gray-600"><span class="font-semibold">胰島素：</span> {{ task.insulin }}</div>
-                <div class="text-gray-600"><span class="font-semibold">備註：</span> {{ task.notes }}</div>
+              <li v-for="(task, index) in day.records" :key="index" class="p-3 text-sm bg-gray-100 border border-gray-300 rounded-lg">
+                <div class="mb-1 text-center text-gray-800">🕒{{ task.time }}</div>
+                <div v-if="task.bloodSugar" class="text-gray-600">
+                  <i class="fa-solid fa-droplet"></i> :
+                  {{ task.bloodSugar }}
+                </div>
+                <div v-if="task.insulin" class="text-gray-600">
+                  <i class="fa-solid fa-syringe"></i> :
+                  {{ task.insulin }}
+                </div>
+                <div v-if="task.notes" class="text-gray-600">
+                  <i class="fa-regular fa-comment-dots"></i> :
+                  {{ task.notes }}
+                </div>
               </li>
             </ul>
           </div>
@@ -631,11 +667,19 @@ export default {
             <h3 class="mb-4 text-lg font-semibold">新增事項</h3>
             <div class="mb-4">
               <label class="block mb-1 text-sm font-medium">時間</label>
-              <input v-model="newTask.time" type="time" class="w-full p-2 border rounded" />
+              <input v-model="newRecord.time" type="time" class="w-full p-2 border rounded" />
             </div>
             <div class="mb-4">
-              <label class="block mb-1 text-sm font-medium">內容</label>
-              <input v-model="newTask.content" type="text" placeholder="輸入事項內容" class="w-full p-2 border rounded" />
+              <label class="block mb-1 text-sm font-medium">血糖</label>
+              <input v-model="newRecord.bloodSugar" type="text" placeholder="輸入血糖(選填)" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1 text-sm font-medium">胰島素</label>
+              <input v-model="newRecord.insulin" type="text" placeholder="輸入胰島素(選填)" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1 text-sm font-medium">備註</label>
+              <input v-model="newRecord.notes" type="text" placeholder="輸入備註(選填)" class="w-full p-2 border rounded" />
             </div>
             <div class="flex justify-end gap-4">
               <button class="px-4 py-2 text-gray-700 bg-gray-300 rounded" @click="closeModal">取消</button>
@@ -647,7 +691,7 @@ export default {
     </div>
     <div>
       <div v-for="chart in sugarCurveChart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full">
-        <Mychart :chartData="chart.chartData" :chartOptions="chart.chartOption"></Mychart>
+        <Mychart :chartData="chart.chartData" :chartOmptions="chart.chartOption"></Mychart>
       </div>
     </div>
     <!-- 快速紀錄 -->
