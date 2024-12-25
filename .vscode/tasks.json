@@ -26,7 +26,7 @@
         },
         {
             "label": "Run All",
-            "dependsOn": ["npm: dev - client", "npm: start - server"],
+            "dependsOn": ["前端dev", "後端start"],
             "problemMatcher": [],
             "group": "build"
         }
