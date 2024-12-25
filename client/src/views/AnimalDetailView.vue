@@ -1,9 +1,9 @@
 <script>
-import Mychart from '@/components/Mychart.vue'
+import LineChartComponent from '@/components/LineChartComponent.vue'
 import axios from 'axios'
 import { Field, Form, ErrorMessage } from 'vee-validate'
 export default {
-  components: { Mychart, VField: Field, VForm: Form, ErrorMessage },
+  components: { LineChartComponent, VField: Field, VForm: Form, ErrorMessage },
   data() {
     return {
       animal: { Id: this.$route.params.id, Info: {}, diaryBloodSugar: [] },
@@ -49,22 +49,21 @@ export default {
         },
       },
       bloodSugarCurveChart: [],
-      sugarCurveChart: [],
       today: new Date(),
       currentDate: this.getToday(),
-      calendar: Array.from({ length: 42 }, () => ({ loading: true })),
       calendarDisplay: 'week',
+      calendar: Array.from({ length: 42 }, () => ({ loading: true })),
       insulinOption: [
-        { value: null, text: '請選擇劑量' },
+        { value: '', text: '請選擇劑量' },
         { value: 0, text: '0 小格' },
         { value: 0.5, text: '0.5 小格' },
         { value: 1, text: '1 小格' },
         { value: 1.5, text: '1.5 小格' },
       ],
       window: {
-        quick: { value: { bloodSugar: '', insulin: null }, toggle: false, loading: false },
+        quick: { value: { bloodSugar: '', insulin: '' }, toggle: false, loading: false },
         weight: { value: '', date: new Date().toISOString().split('T')[0], toggle: false, loading: false },
-        sugarCurve: {
+        bloodSugarCurve: {
           fields: [{ time: '', value: '' }],
           date: new Date().toISOString().split('T')[0],
           toggle: false,
@@ -89,13 +88,51 @@ export default {
         { value: 10, label: '2024年11月' },
         { value: 11, label: '2024年12月' },
       ],
-      weekBloodSugarData: [],
       newRecord: { date: '', time: '', bloodSugar: '', insulin: '', notes: '' },
     }
   },
   methods: {
+    async getAnimalInfo() {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
+        this.animal.Info = data
+        this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
+        this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    convertBirthdayToAge(dateString) {
+      const today = new Date()
+      const birth = new Date(dateString)
+      let years = today.getFullYear() - birth.getFullYear()
+      let months = today.getMonth() - birth.getMonth()
+      if (months < 0) {
+        years--
+        months += 12
+      }
+      return { years, months }
+    },
+    async getDiaryBloodSugar() {
+      try {
+        const { year, month, dayInMonth } = this.currentDate
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
+          params: {
+            animalId: this.animal.Id,
+            startDate: `${year}-${month}-1`,
+            endDate: `${year}-${month}-${dayInMonth}`,
+          },
+        })
+        this.animal.diaryBloodSugar = data
+        return data
+      } catch (error) {
+        console.log(error)
+        this.$toast.error(error.response.data.message)
+      }
+    },
     async updateCalendar() {
       const { currentDate } = this
+      console.log(currentDate)
       const days = Array.from({ length: currentDate.dayInMonth }, (v, i) => {
         const date = `${currentDate.year}-${currentDate.month}-${String(i + 1).padStart(2, '0')}`
         return {
@@ -141,36 +178,7 @@ export default {
         allDays.push({ date: null })
       }
       this.calendar = allDays
-      console.log(allDays)
-      await this.updateSugarCurveChart()
-    },
-    async getAnimalInfo() {
-      try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
-        this.animal.Info = data
-        this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
-        this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      }
-    },
-    async getDiaryBloodSugar() {
-      try {
-        const { year, month, dayInMonth } = this.currentDate
-        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
-          params: {
-            animalId: this.animal.Id,
-            startDate: `${year}-${month}-1`,
-            endDate: `${year}-${month}-${dayInMonth}`,
-          },
-        })
-        this.animal.diaryBloodSugar = data
-        console.log(data)
-        return data
-      } catch (error) {
-        console.log(error)
-        this.$toast.error(error.response.data.message)
-      }
+      await this.updateBloodSugarCurveChart()
     },
     async createDiaryBloodSugar(date, morningBloodSugar, morningInsulin, eveningBloodSugar, eveningInsulin, notes) {
       try {
@@ -200,29 +208,19 @@ export default {
     },
     async createQuick() {
       const { value } = this.window.quick
-      if (!value.bloodSugar || !value.insulin) {
-        this.$toast.error('請輸入完整資訊')
-        return
-      }
       const now = new Date()
       const currentHour = now.getHours()
-      let quickResponse = ''
       if (currentHour < 14) {
-        quickResponse = await this.createDiaryBloodSugar(now.toISOString().split('T')[0], value.bloodSugar, value.insulin, '', '', '')
+        await this.createDiaryBloodSugar(now.toISOString().split('T')[0], value.bloodSugar, value.insulin, '', '', '')
       } else if (currentHour >= 14) {
-        quickResponse = await this.createDiaryBloodSugar(now.toISOString().split('T')[0], '', '', value.bloodSugar, value.insulin, '')
+        await this.createDiaryBloodSugar(now.toISOString().split('T')[0], '', '', value.bloodSugar, value.insulin, '')
       }
-      console.log(quickResponse)
       this.window.quick.toggle = false
       this.updateCalendar()
     },
     async createWeight() {
       const { date, value } = this.window.weight
       const { Id: animalId } = this.animal
-      if (!animalId || !value) {
-        this.$toast.error('請輸入有效的體重資料！')
-        return
-      }
       const payload = {
         animalId,
         date,
@@ -241,102 +239,33 @@ export default {
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
-        this.window.weight.loading = false // 確保重置 loading 狀態
+        this.window.weight.loading = false
       }
     },
-    async createSugarCurve() {
-      const { date, fields } = this.window.sugarCurve
+    async createBloodSugarCurve() {
+      const { date, fields } = this.window.bloodSugarCurve
       const { Id: animalId } = this.animal
       const payload = {
         animalId,
         date,
         records: fields,
       }
-      this.window.sugarCurve.loading = true
+      this.window.bloodSugarCurve.loading = true
       try {
         await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/createCurve`, payload, {
           headers: { 'Content-Type': 'application/json' },
         })
         this.$toast.success('新增血糖曲線成功')
-        await this.updateSugarCurveChart()
-        this.window.sugarCurve.toggle = false
-        this.window.sugarCurve.fields = [{ time: '', value: '' }]
+        await this.updateBloodSugarCurveChart()
+        this.window.bloodSugarCurve.toggle = false
+        this.window.bloodSugarCurve.fields = [{ time: '', value: '' }]
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
-        this.window.sugarCurve.loading = false
+        this.window.bloodSugarCurve.loading = false
       }
     },
-    convertBirthdayToAge(dateString) {
-      const today = new Date()
-      const birth = new Date(dateString)
-      let years = today.getFullYear() - birth.getFullYear()
-      let months = today.getMonth() - birth.getMonth()
-      if (months < 0) {
-        years--
-        months += 12
-      }
-      return { years, months }
-    },
-    getToday() {
-      const date = new Date()
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1
-      return {
-        year,
-        month,
-        day: date.getDate(),
-        dayInMonth: new Date(year, month, 0).getDate(),
-      }
-    },
-    prevMonth() {
-      this.currentDate.month -= 1
-      if (this.currentDate.month < 1) {
-        this.currentDate.month = 12
-        this.currentDate.year -= 1
-      }
-    },
-    nextMonth() {
-      this.currentDate.month += 1
-      if (this.currentDate.month > 12) {
-        this.currentDate.month = 1
-        this.currentDate.year += 1
-      }
-    },
-    edit(index, timeOfDay, recordType) {
-      this.calendar[index][timeOfDay][recordType].isEditing = true
-      this.$nextTick(() => {
-        const refName = `${timeOfDay}${recordType.charAt(0).toUpperCase() + recordType.slice(1)}`
-        if (this.$refs[refName]) {
-          this.$refs[refName][0].focus()
-          this.$refs[refName][0].click()
-        }
-      })
-    },
-    async blur(index, timeOfDay, recordType) {
-      if (!this.calendar[index][timeOfDay][recordType].pending == true) {
-        this.calendar[index][timeOfDay][recordType].isEditing = false
-        this.calendar[index][timeOfDay][recordType].pending = true
-        await this.createDiaryBloodSugar(this.calendar[index].date, this.calendar[index].morning.bloodSugar.value, this.calendar[index].morning.insulin.value, this.calendar[index].evening.bloodSugar.value, this.calendar[index].evening.insulin.value, '')
-        this.calendar[index][timeOfDay][recordType].pending = false
-      }
-    },
-    handleEnter(event, index, period, type) {
-      event.preventDefault() // 阻止默認行為
-      this.$refs[`${period}${type.charAt(0).toUpperCase() + type.slice(1)}`].blur() // 直接觸發失焦
-    },
-    bloodColor(value) {
-      if (value == 0 || value === null) {
-        return 'bg-white'
-      } else if (value <= 250) {
-        return 'bg-green-100'
-      } else if (value <= 399) {
-        return 'bg-yellow-100'
-      } else {
-        return 'bg-red-100' // 危險
-      }
-    },
-    async updateSugarCurveChart() {
+    async updateBloodSugarCurveChart() {
       try {
         const { year, month, dayInMonth } = this.currentDate
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
@@ -346,9 +275,9 @@ export default {
             endDate: `${year}-${month}-${dayInMonth}`,
           },
         })
-        const sugarCurveObject = data.data.map(x => {
+        const bloodSugarCurveSetting = data.data.map(x => {
           return {
-            chartData: {
+            data: {
               labels: x.records.map(y => y.time),
               datasets: [
                 {
@@ -361,7 +290,7 @@ export default {
                 },
               ],
             },
-            chartOption: {
+            option: {
               fill: true,
               responsive: true,
               maintainAspectRatio: false,
@@ -394,15 +323,50 @@ export default {
             },
           }
         })
-        this.sugarCurveChart = sugarCurveObject
+        this.bloodSugarCurveChart = bloodSugarCurveSetting
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      }
+    },
+    getToday() {
+      const date = new Date()
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1
+      return {
+        year,
+        month,
+        day: date.getDate(),
+        dayInMonth: new Date(year, month, 0).getDate(),
+      }
+    },
+    prevMonth() {
+      this.currentDate.month -= 1
+      if (this.currentDate.month < 1) {
+        this.currentDate.month = 12
+        this.currentDate.year -= 1
+      }
+    },
+    nextMonth() {
+      this.currentDate.month += 1
+      if (this.currentDate.month > 12) {
+        this.currentDate.month = 1
+        this.currentDate.year += 1
+      }
+    },
+    bloodSugarColor(value) {
+      if (value == 0 || value === null) {
+        return 'bg-white'
+      } else if (value <= 250) {
+        return 'bg-green-100'
+      } else if (value <= 399) {
+        return 'bg-yellow-100'
+      } else {
+        return 'bg-red-100' // 危險
       }
     },
     addTask(day) {
       this.currentDay = day
       this.newRecord.date = day.date
-      console.log(this.newRecord)
       this.showModal = true
     },
     updateWeekData() {
@@ -435,14 +399,13 @@ export default {
           notes: '',
         })
       }
-      console.log(weekData)
       return weekData
     },
-    goToPrevWeek() {
+    prevWeek() {
       this.today.setDate(this.today.getDate() - 7)
       this.updateWeekData()
     },
-    goToNextWeek() {
+    nextWeek() {
       this.today.setDate(this.today.getDate() + 7)
       this.updateWeekData()
     },
@@ -494,7 +457,6 @@ export default {
           endDate: this.weekData[6].date,
         },
       })
-      this.weekBloodSugarData = data
       this.weekData.map(day => {
         const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
         if (diaryEntry) {
@@ -559,25 +521,21 @@ export default {
         </div>
       </div>
       <div class="grid-cols-1 rounded-lg overflow-hidden shadow-lg bg-white p-4 lg:p-6 h-full min-h-[300px]">
-        <Mychart :chartData="weightChart.data" :chartOptions="weightChart.option"></Mychart>
+        <LineChartComponent :chartData="weightChart.data" :chartOptions="weightChart.option"></LineChartComponent>
       </div>
     </div>
     <!-- 日曆 -->
     <div class="rounded-lg shadow-lg bg-white mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
-      <div class="flex justify-center space-x-4">
-        <!-- 日曆按鈕 -->
+      <div class="flex items-center justify-center h-[50px] space-x-4">
         <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
           <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
           <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days"></i> </span>
         </label>
-        <!-- 月曆按鈕 -->
         <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
           <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
           <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar"></i> </span>
         </label>
       </div>
-      <!-- xx月血糖表 -->
-
       <!-- 日曆格子 -->
       <div v-if="calendarDisplay == 'month'" class="grid grid-cols-2 col-span-7 gap-1 mt-2 lg:grid-cols-7">
         <div class="flex items-center justify-center col-span-2 py-3 text-2xl font-bold select-none text-primary-900 lg:col-span-7">
@@ -604,7 +562,7 @@ export default {
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
               <div class="text-center text-primary-900"><i class="fa-regular fa-sun"></i> {{ calendar[index].morning.time }}</div>
-              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodColor(calendar[index].morning.bloodSugar)]">
+              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodSugarColor(calendar[index].morning.bloodSugar)]">
                 <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar ? calendar[index].morning.bloodSugar : '---' }}</span>
               </div>
               <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin || calendar[index].morning.insulin === 0 ? calendar[index].morning.insulin + ' 小格' : '---' }}</div>
@@ -612,7 +570,7 @@ export default {
             <!-- 晚上 -->
             <div class="p-2 rounded-md bg-primary-100 hover:bg-primary-300">
               <div class="text-center text-primary-900"><i class="fa-regular fa-moon"></i> {{ calendar[index].evening.time }}</div>
-              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodColor(calendar[index].evening.bloodSugar)]">
+              <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodSugarColor(calendar[index].evening.bloodSugar)]">
                 <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar ? calendar[index].evening.bloodSugar : '---' }}</span>
               </div>
               <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none'"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin || calendar[index].evening.insulin === 0 ? calendar[index].evening.insulin + ' 小格' : '---' }}</div>
@@ -622,7 +580,7 @@ export default {
         </template>
       </div>
       <template v-else>
-        <div class="mb-4 text-center">
+        <div class="my-4 text-center">
           <select v-model="selectedMonth" class="px-4 py-2 border rounded-md" @change="goToFirstWeekOfSelectedMonth">
             <option v-for="month in months" :key="month.value" :value="month.value">
               {{ month.label }}
@@ -630,17 +588,17 @@ export default {
           </select>
         </div>
         <div class="flex items-center justify-center gap-4 mb-4">
-          <button class="px-4 py-2 text-white bg-blue-500 rounded-md" @click="goToPrevWeek">前週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek">前週</button>
           <div class="text-xl font-bold text-center">本周：{{ weekRange }}</div>
-          <button class="px-4 py-2 text-white bg-blue-500 rounded-md" @click="goToNextWeek">下週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週</button>
         </div>
 
         <div class="grid grid-cols-7 gap-2 p-4 rounded-lg shadow-md bg-gray-50">
-          <div v-for="day in weekData" :key="day.date" :class="['p-2 border rounded-lg shadow-sm', day.isToday ? 'bg-blue-100 border-blue-500' : 'bg-white']">
+          <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm min-h-[1000px]', day.isToday ? 'bg-primary-100 border-primary-500' : 'bg-white']">
             <!-- 日期與星期 -->
-            <div class="mb-3 text-sm font-semibold text-center text-gray-700">{{ day.date }} ({{ day.day }})</div>
+            <div class="mb-2 text-sm font-semibold text-center text-gray-700">{{ day.date }} ({{ day.day }})</div>
             <!-- 新增事項按鈕 -->
-            <button class="w-full px-2 py-2 mb-3 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" @click="addTask(day)">+ 新增事項</button>
+            <button class="w-full px-2 py-1.5 mb-2 text-sm text-white rounded-md bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-300" @click="addTask(day)">+ 新增事項</button>
             <!-- 事項清單 -->
             <ul class="space-y-2">
               <li v-for="(task, index) in day.records" :key="index" class="p-3 text-sm bg-gray-100 border border-gray-300 rounded-lg">
@@ -683,15 +641,15 @@ export default {
             </div>
             <div class="flex justify-end gap-4">
               <button class="px-4 py-2 text-gray-700 bg-gray-300 rounded" @click="closeModal">取消</button>
-              <button class="px-4 py-2 text-white bg-blue-500 rounded" @click="saveTask">儲存</button>
+              <button class="px-4 py-2 text-white rounded bg-primary-500" @click="saveTask">儲存</button>
             </div>
           </div>
         </div>
       </template>
     </div>
     <div>
-      <div v-for="chart in sugarCurveChart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full">
-        <Mychart :chartData="chart.chartData" :chartOmptions="chart.chartOption"></Mychart>
+      <div v-for="chart in bloodSugarCurveChart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full">
+        <LineChartComponent :chartData="chart.data" :chartOptions="chart.option"></LineChartComponent>
       </div>
     </div>
     <!-- 快速紀錄 -->
@@ -699,13 +657,21 @@ export default {
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <VForm @submit="createQuick">
           <h2 class="mb-2 text-xl font-bold text-gray-800">快速記錄</h2>
-          <div class="grid items-center grid-cols-2 gap-4 p-2 rounded-md shadow-md">
+          <div class="grid grid-cols-[1fr_1fr] gap-x-4 lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
             <VField v-model="window.quick.value.bloodSugar" name="quickBloodSugar" rules="required" placeholder="請輸入血糖值" type="tel" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
-            <select v-model="window.quick.value.insulin" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300">
-              <option v-for="option in insulinOption" :key="option.value" :value="option.value" :disabled="option.value === null">{{ option.text }}</option>
-            </select>
+            <VField v-model="window.quick.value.insulin" name="quickInsulin" as="select" rules="required" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300">
+              <option v-for="option in insulinOption" :key="option.value" :value="option.value">
+                {{ option.text }}
+              </option>
+            </VField>
+            <div>
+              <ErrorMessage class="mt-1 text-sm text-red-600" name="quickBloodSugar" />
+            </div>
+            <div>
+              <ErrorMessage class="mt-1 text-sm text-red-600" name="quickInsulin" />
+            </div>
           </div>
-          <ErrorMessage class="mt-1 text-sm text-red-600" name="quickBloodSugar" />
+
           <div class="flex justify-between mt-4">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.quick.toggle = false">取消</button>
             <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.quick.loading }]">確定</button>
@@ -718,7 +684,7 @@ export default {
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <VForm @submit="createWeight">
           <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
-          <div class="grid grid-cols-[1fr_1fr] lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
+          <div class="grid grid-cols-[1fr_1fr] gap-x-4 lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
             <VField v-model="window.weight.date" name="weightDate" rules="required" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
             <VField v-model="window.weight.value" name="weightValue" rules="required" type="number" placeholder="輸入體重" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
             <div>
@@ -737,27 +703,27 @@ export default {
       </div>
     </div>
     <!-- 血糖曲線視窗 -->
-    <div v-if="window.sugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-if="window.bloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
-        <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
-        <fieldset class="grid items-center grid-cols-1 gap-4 p-2 mb-5 border rounded-md shadow-md">
-          <legend><h2>日期</h2></legend>
-          <input ref="sugarCurveDate" v-model="window.sugarCurve.date" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" @focus="$refs.sugarCurveDate.showPicker()" />
-        </fieldset>
-        <div v-for="(field, index) in window.sugarCurve.fields" :key="index" class="mb-6 space-y-4">
-          <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
-            <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
-            <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
-            <button type="button" class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="window.sugarCurve.fields.splice(index, 1)">X</button>
+        <VForm @submit="createWeight">
+          <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
+          <VField v-model="window.bloodSugarCurve.date" name="bloodSugarCurveDate" rules="required" type="date" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
+          <ErrorMessage class="text-sm text-red-600" name="bloodSugarCurveDate" />
+          <div v-for="(field, index) in window.bloodSugarCurve.fields" :key="index" class="my-4 space-y-4">
+            <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
+              <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+              <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+              <button type="button" class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="window.bloodSugarCurve.fields.splice(index, 1)">X</button>
+            </div>
           </div>
-        </div>
-        <div class="flex justify-center mb-6">
-          <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.sugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
-        </div>
-        <div class="flex justify-between">
-          <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.sugarCurve.toggle = false">取消</button>
-          <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.sugarCurve.loading }]" @click="createSugarCurve">確定</button>
-        </div>
+          <div class="flex justify-center mb-6">
+            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="window.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
+          </div>
+          <div class="flex justify-between">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="window.bloodSugarCurve.toggle = false">取消</button>
+            <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: window.bloodSugarCurve.loading }]" @click="createBloodSugarCurve">確定</button>
+          </div>
+        </VForm>
       </div>
     </div>
     <div class="fixed z-10 space-y-4 right-6 bottom-6">
@@ -767,7 +733,7 @@ export default {
       <button type="button" class="flex items-center justify-center text-black bg-yellow-200 rounded-full shadow-md w-14 h-14" @click="window.weight.toggle = true">
         <i class="fa-solid fa-weight-scale"></i>
       </button>
-      <button type="button" class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md w-14 h-14" @click="window.sugarCurve.toggle = true">
+      <button type="button" class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md w-14 h-14" @click="window.bloodSugarCurve.toggle = true">
         <i class="fa-solid fa-chart-line"></i>
       </button>
     </div>
