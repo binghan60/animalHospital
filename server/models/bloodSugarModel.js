@@ -20,10 +20,25 @@ bloodSugarSchema.pre('save', function (next) {
         }
     }
     this.records.sort((a, b) => a.time.localeCompare(b.time));
+    const defaultRecord = { time: '', bloodSugar: '', insulin: '', notes: '' };
     const morningRecord = this.records.find((record) => record.time >= '00:00' && record.time < '12:00');
     const eveningRecord = [...this.records].reverse().find((record) => record.time >= '12:00' && record.time <= '23:59');
-    this.morning = morningRecord ? { time: morningRecord.time, bloodSugar: morningRecord.bloodSugar, insulin: morningRecord.insulin, notes: morningRecord.notes } : null;
-    this.evening = eveningRecord ? { time: eveningRecord.time, bloodSugar: eveningRecord.bloodSugar, insulin: eveningRecord.insulin, notes: eveningRecord.notes } : null;
+    this.morning = morningRecord
+        ? {
+              time: morningRecord.time,
+              bloodSugar: morningRecord.bloodSugar,
+              insulin: morningRecord.insulin,
+              notes: morningRecord.notes,
+          }
+        : defaultRecord;
+    this.evening = eveningRecord
+        ? {
+              time: eveningRecord.time,
+              bloodSugar: eveningRecord.bloodSugar,
+              insulin: eveningRecord.insulin,
+              notes: eveningRecord.notes,
+          }
+        : defaultRecord;
 
     next();
 });

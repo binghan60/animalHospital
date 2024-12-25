@@ -35,7 +35,7 @@ router.post('/create', async (req, res) => {
             existingRecord.records = [...existingRecord.records, ...records];
             existingRecord.notes = notes || existingRecord.notes;
             const updatedRecord = await existingRecord.save();
-            return res.status(200).send(updatedRecord);
+            return res.status(200).send({ message: '新增成功', ...updatedRecord });
         }
         const newBloodSugar = new BloodSugar({
             animalId,
@@ -44,7 +44,7 @@ router.post('/create', async (req, res) => {
             notes,
         });
         const bloodSugarRecord = await newBloodSugar.save();
-        return res.status(201).send(bloodSugarRecord);
+        return res.status(201).send({ message: '新增成功', ...bloodSugarRecord });
     } catch (error) {
         console.error('Error creating or updating blood sugar record:', error);
         if (error.name === 'ValidationError') {
