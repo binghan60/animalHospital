@@ -49,8 +49,9 @@ export default {
         },
       },
       bloodSugarCurveChart: [],
-      today: new Date(),
-      currentDate: this.getToday(),
+      today: '',
+      newtoday: { date: '', year: '', month: '', day: '', lastDay: '' },
+      currentDate: '',
       calendarDisplay: 'week',
       calendar: Array.from({ length: 42 }, () => ({ loading: true })),
       insulinOption: [
@@ -115,12 +116,12 @@ export default {
     },
     async getDiaryBloodSugar() {
       try {
-        const { year, month, dayInMonth } = this.currentDate
+        const { year, month, lastDay } = this.newtoday
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
           params: {
             animalId: this.animal.Id,
-            startDate: `${year}-${month}-1`,
-            endDate: `${year}-${month}-${dayInMonth}`,
+            startDate: `${year}-${month + 1}-01`,
+            endDate: `${year}-${month + 1}-${lastDay}`,
           },
         })
         this.animal.diaryBloodSugar = data
@@ -129,56 +130,6 @@ export default {
         console.log(error)
         this.$toast.error(error.response.data.message)
       }
-    },
-    async updateCalendar() {
-      const { currentDate } = this
-      console.log(currentDate)
-      const days = Array.from({ length: currentDate.dayInMonth }, (v, i) => {
-        const date = `${currentDate.year}-${currentDate.month}-${String(i + 1).padStart(2, '0')}`
-        return {
-          year: currentDate.year,
-          month: currentDate.month,
-          day: i + 1,
-          date,
-          morning: { time: '', bloodSugar: '', insulin: '', notes: '', isEditing: false, pending: false },
-          evening: { time: '', bloodSugar: '', insulin: '', notes: '', isEditing: false, pending: false },
-        }
-      })
-      const diaryData = await this.getDiaryBloodSugar()
-      const mergedDays = days.map(day => {
-        const diaryEntry = diaryData.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
-        if (diaryEntry) {
-          return Object.assign({}, day, diaryEntry, {
-            morning: {
-              time: diaryEntry.morning.time,
-              bloodSugar: diaryEntry.morning.bloodSugar,
-              insulin: diaryEntry.morning.insulin,
-              notes: diaryEntry.morning.notes,
-            },
-            evening: {
-              time: diaryEntry.evening.time,
-              bloodSugar: diaryEntry.evening.bloodSugar,
-              insulin: diaryEntry.evening.insulin,
-              notes: diaryEntry.evening.notes,
-            },
-          })
-        }
-        return day
-      })
-      const firstDay = new Date(currentDate.year, currentDate.month - 1, 1).getDay()
-      const spaceDay = firstDay === 0 ? 6 : firstDay - 1
-      const blankDays = Array.from({ length: spaceDay }, () => ({ date: null }))
-      const allDays = [...blankDays, ...mergedDays]
-      let totalCells = 42
-      const backBlank = totalCells - allDays.length
-      if (backBlank >= 7) {
-        totalCells -= 7
-      }
-      for (let i = allDays.length; i < totalCells; i++) {
-        allDays.push({ date: null })
-      }
-      this.calendar = allDays
-      await this.updateBloodSugarCurveChart()
     },
     async createDiaryBloodSugar(date, morningBloodSugar, morningInsulin, eveningBloodSugar, eveningInsulin, notes) {
       try {
@@ -267,12 +218,12 @@ export default {
     },
     async updateBloodSugarCurveChart() {
       try {
-        const { year, month, dayInMonth } = this.currentDate
+        const { year, month, lastDay } = this.newtoday
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
           params: {
             animalId: this.animal.Id,
-            startDate: `${year}-${month}-1`,
-            endDate: `${year}-${month}-${dayInMonth}`,
+            startDate: `${year}-${month + 1}-01`,
+            endDate: `${year}-${month + 1}-${lastDay}`,
           },
         })
         const bloodSugarCurveSetting = data.data.map(x => {
@@ -328,92 +279,24 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
-    getToday() {
-      const date = new Date()
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1
-      return {
-        year,
-        month,
-        day: date.getDate(),
-        dayInMonth: new Date(year, month, 0).getDate(),
-      }
-    },
-    prevMonth() {
-      this.currentDate.month -= 1
-      if (this.currentDate.month < 1) {
-        this.currentDate.month = 12
-        this.currentDate.year -= 1
-      }
-    },
-    nextMonth() {
-      this.currentDate.month += 1
-      if (this.currentDate.month > 12) {
-        this.currentDate.month = 1
-        this.currentDate.year += 1
-      }
-    },
     bloodSugarColor(value) {
-      if (value == 0 || value === null) {
+      if (value === '' || value === null || value === undefined) {
         return 'bg-white'
-      } else if (value <= 250) {
+      }
+      if (value >= 0 && value <= 249) {
         return 'bg-green-100'
-      } else if (value <= 399) {
+      }
+      if (value >= 250 && value <= 399) {
         return 'bg-yellow-100'
-      } else {
-        return 'bg-red-100' // 危險
+      }
+      if (value >= 400) {
+        return 'bg-red-100'
       }
     },
     addTask(day) {
       this.currentDay = day
       this.newRecord.date = day.date
       this.showModal = true
-    },
-    updateWeekData() {
-      const startOfWeek = this.getStartOfWeek(this.today)
-      startOfWeek.setDate(startOfWeek.getDate() + 1)
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-      this.weekRange = `${startOfWeek.toISOString().split('T')[0]} ~ ${endOfWeek.toISOString().split('T')[0]}`
-      this.weekData = this.getWeekData(startOfWeek)
-    },
-    getStartOfWeek(date) {
-      const d = new Date(date)
-      const day = d.getDay()
-      const diff = d.getDate() - (day === 0 ? 6 : day - 1)
-      d.setDate(diff)
-      d.setHours(0, 0, 0, 0)
-      return d
-    },
-    getWeekData(startOfWeek) {
-      const weekData = []
-      const daysOfWeek = ['一', '二', '三', '四', '五', '六', '日']
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek)
-        date.setDate(startOfWeek.getDate() + i)
-        weekData.push({
-          date: date.toISOString().split('T')[0],
-          day: daysOfWeek[i],
-          records: [],
-          isToday: date.toISOString().split('T')[0] === new Date().toISOString().split('T')[0],
-          notes: '',
-        })
-      }
-      return weekData
-    },
-    prevWeek() {
-      this.today.setDate(this.today.getDate() - 7)
-      this.updateWeekData()
-    },
-    nextWeek() {
-      this.today.setDate(this.today.getDate() + 7)
-      this.updateWeekData()
-    },
-    goToFirstWeekOfSelectedMonth() {
-      const firstDayOfMonth = new Date(new Date().getFullYear(), this.selectedMonth, 1)
-      const startOfWeek = this.getStartOfWeek(firstDayOfMonth)
-      this.today = startOfWeek
-      this.updateWeekData()
     },
     async saveTask() {
       try {
@@ -464,9 +347,131 @@ export default {
         }
         return day
       })
+    }, // 日期處理區
+    async updateCalendar() {
+      const { year, month, lastDay } = this.newtoday
+      const container = Array.from({ length: lastDay }, (v, i) => {
+        const date = new Date(`${year}-${month + 1}-${String(i + 1).padStart(2, '0')}`).toISOString()
+        return {
+          year,
+          month: month + 1,
+          day: i + 1,
+          date,
+          morning: { time: '', bloodSugar: '', insulin: '', notes: '' },
+          evening: { time: '', bloodSugar: '', insulin: '', notes: '' },
+          isToday: date.split('T')[0] === new Date().toISOString().split('T')[0] ? true : false,
+        }
+      })
+      const diaryData = await this.getDiaryBloodSugar()
+      const mergedData = container.map(day => {
+        const diaryEntry = diaryData.find(diary => diary.date === day.date)
+        if (diaryEntry) {
+          return Object.assign(day, diaryEntry)
+        }
+        return day
+      })
+      const firstDay = new Date(year, month, 1).getDay()
+      const spaceDay = (firstDay + 6) % 7
+      const totalCells = 42 - (42 - mergedData.length - spaceDay >= 7 ? 7 : 0) // 空白超過7天總長-7
+      const allDays = [...Array.from({ length: spaceDay }, () => ({ date: null })), ...mergedData, ...Array.from({ length: totalCells - spaceDay - mergedData.length }, () => ({ date: null }))]
+      this.calendar = allDays
+      await this.updateBloodSugarCurveChart()
+    },
+    getToday() {
+      const year = this.today.getFullYear()
+      const month = this.today.getMonth() + 1
+      return {
+        year,
+        month,
+        day: this.today.getDate(),
+        dayInMonth: new Date(year, month, 0).getDate(),
+      }
+    },
+    updateWeekData() {
+      const startOfWeek = this.getStartOfWeek(this.today)
+      startOfWeek.setDate(startOfWeek.getDate() + 1) //0 ~ 6 +1天
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(startOfWeek.getDate() + 6)
+      this.weekRange = `${startOfWeek.toISOString().split('T')[0]} ~ ${endOfWeek.toISOString().split('T')[0]}`
+      this.weekData = this.getWeekData(startOfWeek)
+    },
+    getStartOfWeek(date) {
+      const startOfWeek = new Date(date)
+      const day = startOfWeek.getDay()
+      const diff = startOfWeek.getDate() - (day === 0 ? 6 : day - 1)
+      startOfWeek.setDate(diff)
+      startOfWeek.setHours(0, 0, 0, 0)
+      return startOfWeek
+    },
+    getWeekData(startOfWeek) {
+      const weekData = []
+      const daysOfWeek = ['一', '二', '三', '四', '五', '六', '日']
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek)
+        date.setDate(startOfWeek.getDate() + i)
+        weekData.push({
+          date: date.toISOString().split('T')[0],
+          day: daysOfWeek[i],
+          records: [],
+          isToday: date.toISOString().split('T')[0] === new Date().toISOString().split('T')[0],
+          notes: '',
+        })
+      }
+      return weekData
+    },
+    prevWeek() {
+      this.newtoday.date.setDate(this.newtoday.date.getDate() - 7)
+      this.newtoday.date = new Date(this.newtoday.date)
+      this.today.setDate(this.today.getDate() - 7)
+      this.today = new Date(this.today)
+
+      this.updateWeekData()
+    },
+    nextWeek() {
+      this.newtoday.date.setDate(this.newtoday.date.getDate() + 7)
+      this.newtoday.date = new Date(this.newtoday.date)
+
+      this.today.setDate(this.today.getDate() + 7)
+      this.today = new Date(this.today)
+      this.updateWeekData()
+    },
+    prevMonth() {
+      this.newtoday.date.setDate(this.newtoday.date.getDate() - 30)
+      this.newtoday.date = new Date(this.newtoday.date)
+      this.today.setDate(this.today.getDate() - 30)
+      this.today = new Date(this.today)
+      this.updateWeekData()
+    },
+    nextMonth() {
+      this.newtoday.date.setDate(this.newtoday.date.getDate() + 30)
+      this.newtoday.date = new Date(this.newtoday.date)
+      this.today.setDate(this.today.getDate() + 30)
+      this.today = new Date(this.today)
+      this.updateWeekData()
+    },
+    goToFirstWeekOfSelectedMonth() {
+      const firstDayOfMonth = new Date(new Date().getFullYear(), this.selectedMonth, 1)
+      const startOfWeek = this.getStartOfWeek(firstDayOfMonth)
+      this.today = startOfWeek
+      this.newtoday.date = startOfWeek
+      console.log(startOfWeek)
+      this.updateWeekData()
     },
   },
   watch: {
+    today: {
+      handler() {
+        this.currentDate = this.getToday()
+      },
+    },
+    'newtoday.date': {
+      handler() {
+        this.newtoday.year = this.newtoday.date.getFullYear()
+        this.newtoday.month = this.newtoday.date.getMonth()
+        this.newtoday.day = this.newtoday.date.getDate()
+        this.newtoday.lastDay = new Date(this.newtoday.date.getFullYear(), this.newtoday.date.getMonth() + 1, 0).getDate()
+      },
+    },
     'currentDate.month': {
       handler() {
         this.updateCalendar()
@@ -479,6 +484,9 @@ export default {
     },
   },
   async mounted() {
+    this.today = new Date()
+    this.newtoday.date = new Date()
+    this.currentDate = this.getToday()
     await this.getAnimalInfo()
     await this.updateCalendar()
     this.updateWeekData()
@@ -504,7 +512,6 @@ export default {
             <li class="text-sm font-medium text-primary-900">生日：</li>
             <li v-if="animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
             <li v-else class="col-span-2 text-sm text-gray-800"></li>
-
             <li class="text-sm font-medium text-primary-900">性別：</li>
             <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars'></i>` : `<i class='text-pink-600 fa-solid fa-venus'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">血型：</li>
@@ -526,23 +533,42 @@ export default {
     </div>
     <!-- 日曆 -->
     <div class="rounded-lg shadow-lg bg-white mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
-      <div class="flex items-center justify-center h-[50px] space-x-4">
-        <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
-          <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days"></i> </span>
-        </label>
-        <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
-          <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar"></i> </span>
-        </label>
+      <!-- 切換按鈕 -->
+      <div class="flex items-center justify-around">
+        <div class="flex items-center justify-center h-[50px] space-x-4">
+          <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
+            <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days"></i> </span>
+          </label>
+          <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
+            <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar"></i> </span>
+          </label>
+        </div>
+        <div class="my-4 text-center">
+          <select v-model="selectedMonth" class="p-2 border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" @change="goToFirstWeekOfSelectedMonth">
+            <option v-for="month in months" :key="month.value" :value="month.value">
+              {{ month.label }}
+            </option>
+          </select>
+        </div>
+        <div v-if="calendarDisplay === 'week'" class="flex items-center justify-center h-[50px] space-x-4">
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek">前週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週</button>
+        </div>
+        <div v-else class="flex items-center justify-center h-[50px] space-x-4">
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevMonth">前月</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextMonth">下月</button>
+        </div>
       </div>
+
       <!-- 日曆格子 -->
       <div v-if="calendarDisplay == 'month'" class="grid grid-cols-2 col-span-7 gap-1 mt-2 lg:grid-cols-7">
         <div class="flex items-center justify-center col-span-2 py-3 text-2xl font-bold select-none text-primary-900 lg:col-span-7">
           <button type="button" class="text-primary-600 hover:text-primary-700" @click="prevMonth">
             <i class="text-4xl fa-solid fa-caret-left"></i>
           </button>
-          <span class="px-4">{{ this.currentDate.year }} 年 {{ this.currentDate.month }} 月 血糖表</span>
+          <span class="px-4">{{ newtoday.year }} 年 {{ newtoday.month + 1 }} 月 血糖表</span>
           <button type="button" class="text-primary-600 hover:text-primary-700" @click="nextMonth">
             <i class="text-4xl fa-solid fa-caret-right"></i>
           </button>
@@ -557,7 +583,7 @@ export default {
           <div>日</div>
         </div>
         <template v-for="(day, index) in calendar">
-          <div v-if="day.day" :key="day.isoDate" class="p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900">
+          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday }]">
             <div class="font-bold text-center">{{ day.month }} / {{ day.day }}{{ day.records?.length > 2 ? '*' : '' }}</div>
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
@@ -580,17 +606,8 @@ export default {
         </template>
       </div>
       <template v-else>
-        <div class="my-4 text-center">
-          <select v-model="selectedMonth" class="px-4 py-2 border rounded-md" @change="goToFirstWeekOfSelectedMonth">
-            <option v-for="month in months" :key="month.value" :value="month.value">
-              {{ month.label }}
-            </option>
-          </select>
-        </div>
         <div class="flex items-center justify-center gap-4 mb-4">
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek">前週</button>
           <div class="text-xl font-bold text-center">本周：{{ weekRange }}</div>
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週</button>
         </div>
 
         <div class="grid grid-cols-7 gap-2 p-4 rounded-lg shadow-md bg-gray-50">
