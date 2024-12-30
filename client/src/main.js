@@ -32,6 +32,14 @@ defineRule('confirmed', (value, [target]) => {
   }
   return '密碼與確認密碼不一致，請重新確認'
 })
+defineRule('atLeastOneFieldRule', (value, [field1, field2]) => {
+  if (value || field1 || field2) {
+    return true
+  }
+  console.log(value)
+  console.log([field1, field2])
+  return '至少填寫一個欄位'
+})
 const options = {
   position: 'bottom-center',
   timeout: 1500,

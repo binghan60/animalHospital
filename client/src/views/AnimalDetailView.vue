@@ -553,12 +553,12 @@ export default {
           </select>
         </div>
         <div v-if="calendarDisplay === 'week'" class="flex items-center justify-center h-[50px] space-x-4">
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek">前週</button>
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek"><i class="fa-solid fa-circle-left"></i> 上週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週 <i class="fa-solid fa-circle-right"></i></button>
         </div>
         <div v-else class="flex items-center justify-center h-[50px] space-x-4">
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevMonth">前月</button>
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextMonth">下月</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevMonth"><i class="fa-solid fa-circle-left"></i> 前月</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextMonth">下月 <i class="fa-solid fa-circle-right"></i></button>
         </div>
       </div>
 
@@ -636,30 +636,36 @@ export default {
             </ul>
           </div>
         </div>
-
+        <!-- 新增事項 -->
         <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div class="p-6 bg-white rounded-md shadow-lg w-96">
-            <h3 class="mb-4 text-lg font-semibold">新增事項</h3>
-            <div class="mb-4">
-              <label class="block mb-1 text-sm font-medium">時間</label>
-              <input v-model="newRecord.time" type="time" class="w-full p-2 border rounded" />
-            </div>
-            <div class="mb-4">
-              <label class="block mb-1 text-sm font-medium">血糖</label>
-              <input v-model="newRecord.bloodSugar" type="text" placeholder="輸入血糖(選填)" class="w-full p-2 border rounded" />
-            </div>
-            <div class="mb-4">
-              <label class="block mb-1 text-sm font-medium">胰島素</label>
-              <input v-model="newRecord.insulin" type="text" placeholder="輸入胰島素(選填)" class="w-full p-2 border rounded" />
-            </div>
-            <div class="mb-4">
-              <label class="block mb-1 text-sm font-medium">備註</label>
-              <input v-model="newRecord.notes" type="text" placeholder="輸入備註(選填)" class="w-full p-2 border rounded" />
-            </div>
-            <div class="flex justify-end gap-4">
-              <button class="px-4 py-2 text-gray-700 bg-gray-300 rounded" @click="closeModal">取消</button>
-              <button class="px-4 py-2 text-white rounded bg-primary-500" @click="saveTask">儲存</button>
-            </div>
+            <VForm @submit="saveTask">
+              <h3 class="mb-4 text-lg font-semibold">新增事項</h3>
+              <div class="mb-4">
+                <label class="block mb-1 text-sm font-medium">時間</label>
+                <VField v-model="newRecord.time" rules="required" name="time" type="time" class="w-full p-2 border rounded" />
+                <ErrorMessage name="time" class="mt-1 text-sm text-red-500" />
+              </div>
+              <div class="mb-4">
+                <label class="block mb-1 text-sm font-medium">血糖</label>
+                <VField v-model="newRecord.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="text" placeholder="輸入血糖(選填)" class="w-full p-2 border rounded" autocomplete="off" />
+                <ErrorMessage name="bloodSugar" class="mt-1 text-sm text-red-500" />
+              </div>
+              <div class="mb-4">
+                <label class="block mb-1 text-sm font-medium">胰島素</label>
+                <VField v-model="newRecord.insulin" name="insulin" rules="atLeastOneFieldRule:@bloodSugar,@notes" type="text" placeholder="輸入胰島素(選填)" class="w-full p-2 border rounded" autocomplete="off" />
+                <ErrorMessage name="insulin" class="mt-1 text-sm text-red-500" />
+              </div>
+              <div class="mb-4">
+                <label class="block mb-1 text-sm font-medium">備註</label>
+                <VField v-model="newRecord.notes" name="notes" rules="atLeastOneFieldRule:@bloodSugar,@insulin" type="text" placeholder="輸入備註(選填)" class="w-full p-2 border rounded" autocomplete="off" />
+                <ErrorMessage name="notes" class="mt-1 text-sm text-red-500" />
+              </div>
+              <div class="flex justify-end gap-4">
+                <button type="button" class="px-4 py-2 text-gray-700 bg-gray-300 rounded" @click="closeModal">取消</button>
+                <button type="submit" class="px-4 py-2 text-white rounded bg-primary-500">儲存</button>
+              </div>
+            </VForm>
           </div>
         </div>
       </template>
