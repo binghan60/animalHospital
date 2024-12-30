@@ -95,9 +95,34 @@ export default {
       selectedMonth: '',
       newRecord: { date: '', time: '', bloodSugar: '', insulin: '', notes: '' },
       editRecord: { recordId: '', taskId: '', task: { time: '', bloodSugar: '', insulin: '', notes: '' }, notes: '' },
+      showTooltip: false,
+      hoverData: [],
+      tooltipStyle: {
+        top: '0px',
+        left: '0px',
+      },
     }
   },
   methods: {
+    showTips(event, record) {
+      this.hoverData = record
+      const offset = 15
+      const tooltipWidth = 200
+      const tooltipHeight = 100
+      let left = event.clientX + window.scrollX + offset
+      let top = event.clientY + window.scrollY + offset
+      if (left + tooltipWidth > window.innerWidth + window.scrollX) {
+        left = window.innerWidth + window.scrollX - tooltipWidth - offset
+      }
+      if (top + tooltipHeight > window.innerHeight + window.scrollY) {
+        top = window.innerHeight + window.scrollY - tooltipHeight - offset
+      }
+      this.tooltipStyle = {
+        top: `${top}px`,
+        left: `${left}px`,
+      }
+      this.showTooltip = true
+    },
     async getAnimalInfo() {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
@@ -299,7 +324,6 @@ export default {
           endDate: this.weekData[6].date,
         },
       })
-      console.log(data)
       this.weekData.map(day => {
         const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
         if (diaryEntry) {
@@ -351,6 +375,7 @@ export default {
           date,
           morning: { time: '', bloodSugar: '', insulin: '', notes: '' },
           evening: { time: '', bloodSugar: '', insulin: '', notes: '' },
+          record: [{ time: '', bloodSugar: '', insulin: '', notes: '' }],
           isToday: date.split('T')[0] === new Date().toISOString().split('T')[0] ? true : false,
         }
       })
@@ -452,6 +477,7 @@ export default {
     this.updateWeekData()
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
+    console.log(this.calendar)
   },
 }
 </script>
@@ -468,12 +494,12 @@ export default {
             <li class="text-sm font-medium text-primary-900">姓名：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.name }}</li>
             <li class="text-sm font-medium text-primary-900">種類：</li>
-            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.type === 'dog' ? `<i class='fa-solid fa-dog'></i>` : `<i class='fa-solid fa-cat'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.type === 'dog' ? `<i class='fa-solid fa-dog fa-fw'></i>` : `<i class='fa-solid fa-cat fa-fw'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">生日：</li>
             <li v-if="animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
             <li v-else class="col-span-2 text-sm text-gray-800"></li>
             <li class="text-sm font-medium text-primary-900">性別：</li>
-            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars'></i>` : `<i class='text-pink-600 fa-solid fa-venus'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars fa-fw'></i>` : `<i class='text-pink-600 fa-solid fa-venus fa-fw'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">血型：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.bloodType }} 型</li>
             <li class="text-sm font-medium text-primary-900">體重：</li>
@@ -481,7 +507,7 @@ export default {
             <li class="text-sm font-medium text-primary-900">品種：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.breed }}</li>
             <li class="text-sm font-medium text-primary-900">結紮：</li>
-            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.sterilized ? `<i class='text-green-500 fa-solid fa-check'></i>` : `<i class='text-red-600 fa-solid fa-x'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800" v-html="animal.Info.sterilized ? `<i class='text-green-500 fa-solid fa-check fa-fw'></i>` : `<i class='text-red-600 fa-solid fa-x fa-fw'></i>`"></li>
             <li class="text-sm font-medium text-primary-900">胰島素品牌：</li>
             <li class="col-span-2 text-sm text-gray-800">{{ animal.Info.insulinBrand }}</li>
           </ul>
@@ -498,11 +524,11 @@ export default {
         <div class="w-1/3 flex items-center justify-center h-[50px] space-x-4">
           <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
             <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
-            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days"></i> </span>
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-solid fa-calendar-days fa-fw"></i> </span>
           </label>
           <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
             <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
-            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar"></i> </span>
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i class="fa-regular fa-calendar fa-fw"></i> </span>
           </label>
         </div>
         <div class="w-1/3 space-x-6 text-center">
@@ -518,12 +544,12 @@ export default {
           </select>
         </div>
         <div v-if="calendarDisplay === 'week'" class="w-1/3 flex items-center justify-center h-[50px] space-x-4">
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek"><i class="fa-solid fa-circle-left"></i> 上週</button>
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週 <i class="fa-solid fa-circle-right"></i></button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevWeek"><i class="fa-solid fa-circle-left fa-fw"></i> 上週</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextWeek">下週 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
         <div v-else class="w-1/3 flex items-center justify-center h-[50px] space-x-4">
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevMonth"><i class="fa-solid fa-circle-left"></i> 前月</button>
-          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextMonth">下月 <i class="fa-solid fa-circle-right"></i></button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="prevMonth"><i class="fa-solid fa-circle-left fa-fw"></i> 前月</button>
+          <button class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600" @click="nextMonth">下月 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
       </div>
       <!-- 日曆格子 -->
@@ -541,28 +567,58 @@ export default {
           <div>日</div>
         </div>
         <template v-for="(day, index) in calendar">
-          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday }]">
-            <div class="font-bold text-center">{{ day.month }} / {{ day.day }}{{ day.records?.length > 2 ? '*' : '' }}</div>
+          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday, 'cursor-pointer': day.records?.length > 2 }]" @click="day.records?.length > 2 ? showTips($event, day?.records) : null">
+            <div class="font-bold text-center">{{ day.month }} / {{ day.day }} {{ day.records?.length > 2 ? '*' : '' }}</div>
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
-              <div class="text-center text-primary-900"><i class="fa-regular fa-sun"></i> {{ calendar[index].morning.time }}</div>
+              <div class="text-center text-primary-900"><i class="fa-regular fa-sun fa-fw"></i> {{ calendar[index].morning.time }}</div>
               <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodSugarColor(calendar[index].morning.bloodSugar)]">
-                <i class="fa-solid fa-droplet w-[14px]"></i> : <span class="">{{ calendar[index].morning.bloodSugar ? calendar[index].morning.bloodSugar : '---' }}</span>
+                <i class="fa-solid fa-droplet fa-fw"></i> : <span class="">{{ calendar[index].morning.bloodSugar ? calendar[index].morning.bloodSugar : '---' }}</span>
               </div>
-              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].morning.insulin || calendar[index].morning.insulin === 0 ? calendar[index].morning.insulin + ' 小格' : '---' }}</div>
+              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none"><i class="fa-solid fa-syringe fa-fw"></i> : {{ calendar[index].morning.insulin || calendar[index].morning.insulin === 0 ? calendar[index].morning.insulin + ' 小格' : '---' }}</div>
             </div>
             <!-- 晚上 -->
             <div class="p-2 rounded-md bg-primary-100 hover:bg-primary-300">
-              <div class="text-center text-primary-900"><i class="fa-regular fa-moon"></i> {{ calendar[index].evening.time }}</div>
+              <div class="text-center text-primary-900"><i class="fa-regular fa-moon fa-fw"></i> {{ calendar[index].evening.time }}</div>
               <div :class="['w-full p-1 mt-1 text-sm border border-gray-300 rounded select-none', bloodSugarColor(calendar[index].evening.bloodSugar)]">
-                <i class="fa-solid fa-droplet w-[14px]"></i> : <span>{{ calendar[index].evening.bloodSugar ? calendar[index].evening.bloodSugar : '---' }}</span>
+                <i class="fa-solid fa-droplet fa-fw"></i> : <span>{{ calendar[index].evening.bloodSugar ? calendar[index].evening.bloodSugar : '---' }}</span>
               </div>
-              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none'"><i class="fa-solid fa-syringe"></i> : {{ calendar[index].evening.insulin || calendar[index].evening.insulin === 0 ? calendar[index].evening.insulin + ' 小格' : '---' }}</div>
+              <div class="w-full p-1 mt-1 text-sm bg-white border border-gray-300 rounded select-none'"><i class="fa-solid fa-syringe fa-fw"></i> : {{ calendar[index].evening.insulin || calendar[index].evening.insulin === 0 ? calendar[index].evening.insulin + ' 小格' : '---' }}</div>
             </div>
           </div>
           <div v-else :key="index" :class="['p-2 m-1 rounded-md h-[264px] hidden lg:grid', { lazyLoading: day.loading }]"></div>
         </template>
+        <template v-if="showTooltip">
+          <div class="absolute p-4 border rounded-lg shadow-lg border-primary-300 bg-primary-50" :style="tooltipStyle">
+            <button class="absolute text-primary-500 top-2 right-2 hover:text-primary-700" @click="showTooltip = false">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div>
+              <table class="min-w-full text-sm text-left text-gray-500">
+                <thead class="bg-primary-100">
+                  <tr>
+                    <th class="px-4 py-2 font-semibold text-primary-600">時間</th>
+                    <th class="px-4 py-2 font-semibold text-primary-600">血糖值</th>
+                    <th class="px-4 py-2 font-semibold text-primary-600">胰島素</th>
+                    <th class="px-4 py-2 font-semibold text-primary-600">備註</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="data in hoverData" :key="data.id" class="border-b border-primary-200">
+                    <td class="px-4 py-2">{{ data?.time }}</td>
+                    <td class="px-4 py-2">{{ data?.bloodSugar || '無' }}</td>
+                    <td class="px-4 py-2">{{ data?.insulin || '無' }}</td>
+                    <td class="px-4 py-2">{{ data?.notes || '無' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
       </div>
+
       <template v-else>
         <div class="col-span-2 py-3 text-2xl font-bold text-center select-none text-primary-900 lg:col-span-7">{{ weekRange }}</div>
         <div class="grid grid-cols-7 gap-2 p-4 rounded-lg shadow-md bg-gray-50">
@@ -576,15 +632,15 @@ export default {
               <li v-for="(task, index) in day.records" :key="index" class="p-3 text-sm bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-primary-100" @click="editTask(day._id, task._id, task.time, task.bloodSugar, task.insulin, task.notes, day.notes)">
                 <div class="mb-1 text-center text-gray-800">🕒{{ task.time }}</div>
                 <div v-if="task.bloodSugar" class="text-gray-600">
-                  <i class="fa-solid fa-droplet"></i> :
+                  <i class="fa-solid fa-droplet fa-fw"></i> :
                   {{ task.bloodSugar }}
                 </div>
                 <div v-if="task.insulin" class="text-gray-600">
-                  <i class="fa-solid fa-syringe"></i> :
+                  <i class="fa-solid fa-syringe fa-fw"></i> :
                   {{ task.insulin }}
                 </div>
                 <div v-if="task.notes" class="text-gray-600">
-                  <i class="fa-regular fa-comment-dots"></i> :
+                  <i class="fa-regular fa-comment-dots fa-fw"></i> :
                   {{ task.notes }}
                 </div>
               </li>
@@ -699,7 +755,7 @@ export default {
             </div>
           </div>
           <div class="flex justify-center mb-6">
-            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="modal.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus"></i> 新增欄位</button>
+            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="modal.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus fa-fw"></i> 新增欄位</button>
           </div>
           <div class="flex justify-between">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="modal.bloodSugarCurve.toggle = false">取消</button>
@@ -709,14 +765,11 @@ export default {
       </div>
     </div>
     <div class="fixed z-10 space-y-4 right-6 bottom-6">
-      <!-- <button type="button" class="flex items-center justify-center text-black bg-green-400 rounded-full shadow-md w-14 h-14" @click="modal.quick.toggle = true">
-        <i class="fa-solid fa-plus"></i>
-      </button> -->
       <button type="button" class="flex items-center justify-center text-black bg-yellow-200 rounded-full shadow-md w-14 h-14" @click="modal.weight.toggle = true">
-        <i class="fa-solid fa-weight-scale"></i>
+        <i class="fa-solid fa-weight-scale fa-fw"></i>
       </button>
       <button type="button" class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md w-14 h-14" @click="modal.bloodSugarCurve.toggle = true">
-        <i class="fa-solid fa-chart-line"></i>
+        <i class="fa-solid fa-chart-line fa-fw"></i>
       </button>
     </div>
   </div>
