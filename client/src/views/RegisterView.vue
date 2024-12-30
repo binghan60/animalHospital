@@ -68,8 +68,8 @@ export default {
           <div class="relative flex items-center mt-2">
             <VField id="password" v-model="registerForm.password" :type="registerForm.showPassword ? 'text' : 'password'" rules="required|length:4,20" name="password" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showPassword = !registerForm.showPassword">
-              <i v-if="!registerForm.showPassword" class="fa-solid fa-eye-slash"></i>
-              <i v-else class="fa-solid fa-eye text-primary-600"></i>
+              <i v-if="!registerForm.showPassword" class="fa-solid fa-eye-slash fa-fw"></i>
+              <i v-else class="fa-solid fa-eye text-primary-600 fa-fw"></i>
             </button>
           </div>
           <ErrorMessage class="mt-1 text-sm text-red-600" name="password" />
@@ -79,8 +79,8 @@ export default {
           <div class="relative flex items-center mt-2">
             <VField id="confirmPassword" v-model="registerForm.confirmPassword" :type="registerForm.showConfirmPassword ? 'text' : 'password'" rules="required|length:4,20|confirmed:@password" name="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="registerForm.showConfirmPassword = !registerForm.showConfirmPassword">
-              <i v-if="!registerForm.showConfirmPassword" class="fa-solid fa-eye-slash"></i>
-              <i v-else class="fa-solid fa-eye text-primary-600"></i>
+              <i v-if="!registerForm.showConfirmPassword" class="fa-solid fa-eye-slash fa-fw"></i>
+              <i v-else class="fa-solid fa-eye text-primary-600 fa-fw"></i>
             </button>
           </div>
           <ErrorMessage class="mt-1 text-sm text-red-600" name="confirmPassword" />

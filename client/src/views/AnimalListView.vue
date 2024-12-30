@@ -190,11 +190,11 @@ export default {
                   <div v-if="filterType === ''" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'dog'">
-                  <div class="z-10"><i class="fa-solid fa-dog"></i></div>
+                  <div class="z-10"><i class="fa-solid fa-dog fa-fw"></i></div>
                   <div v-if="filterType === 'dog'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'cat'">
-                  <div class="z-10"><i class="fa-solid fa-cat"></i></div>
+                  <div class="z-10"><i class="fa-solid fa-cat fa-fw"></i></div>
                   <div v-if="filterType === 'cat'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
               </ul>
@@ -277,8 +277,8 @@ export default {
                   <div class="flex items-center gap-3">
                     <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                     <div class="flex flex-col">
-                      <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars' : 'text-pink-600 fa-solid fa-venus'"></i> {{ animal.name }}</p>
-                      <p v-if="animal.birthday != '1970-01-01T00:00:00.000Z'" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                      <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
+                      <p v-if="animal.birthday != '1970-01-01T00:00:00.000Z'" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
                     </div>
                   </div>
                 </td>
@@ -310,7 +310,7 @@ export default {
                 <td class="text-center border-b border-primary-50" @click="editToggle($event, animal._id)">
                   <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                     <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                      <i class="text-xl text-primary-900 fa-solid fa-pen-to-square"></i>
+                      <i class="text-xl text-primary-900 fa-solid fa-pen-to-square fa-fw"></i>
                     </span>
                   </button>
                 </td>
@@ -384,7 +384,7 @@ export default {
               <div class="flex justify-between col-span-2 gap-2">
                 <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
                   <VField v-model="createForm.type" type="radio" :value="type" name="type" class="hidden peer" />
-                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
               </div>
             </div>
@@ -455,7 +455,7 @@ export default {
               <div class="flex justify-between col-span-2 gap-2">
                 <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
                   <VField v-model="editForm.type" type="radio" :value="type" name="editType" class="hidden peer" />
-                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
+                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
               </div>
             </div>
