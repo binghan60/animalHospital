@@ -36,8 +36,6 @@ defineRule('atLeastOneFieldRule', (value, [field1, field2]) => {
   if (value || field1 || field2) {
     return true
   }
-  console.log(value)
-  console.log([field1, field2])
   return '至少填寫一個欄位'
 })
 const options = {
