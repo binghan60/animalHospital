@@ -53,6 +53,39 @@ router.post('/create', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+router.put('/update/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { animalId, taskId, task, notes } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).json({ message: 'Invalid ID' });
+        }
+        const existingRecord = await BloodSugar.findById(id);
+        if (!existingRecord) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+        if (animalId != existingRecord.animalId) {
+            return res.status(404).json({ message: 'this account not auth' });
+        }
+        const recordIndex = existingRecord.records.findIndex((record) => record._id.toString() === taskId);
+        if (recordIndex === -1) {
+            return res.status(404).json({ message: 'Record item not found' });
+        }
+        existingRecord.records[recordIndex] = { ...existingRecord.records[recordIndex], ...task };
+        if (notes !== undefined) {
+            existingRecord.notes = notes;
+        }
+        const updatedBloodSugar = await existingRecord.save();
+        return res.status(200).json({ message: '更新成功', ...updatedBloodSugar });
+    } catch (error) {
+        console.error('Error updating blood sugar record:', error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: 'Validation Error', errors: error.errors });
+        }
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
 router.get('/getCurve', async (req, res) => {
     const { animalId, startDate, endDate } = req.query;
     if (!mongoose.Types.ObjectId.isValid(animalId)) {
