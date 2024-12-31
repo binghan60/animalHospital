@@ -372,7 +372,6 @@ export default {
     }, // 日期處理區
     async updateCalendar() {
       const { year, month, lastDay } = this.newtoday
-      console.log({ year, month, lastDay })
       const container = Array.from({ length: lastDay }, (v, i) => {
         const date = new Date(`${year}-${String(month + 1).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`).toISOString()
         return {
@@ -480,7 +479,6 @@ export default {
     this.updateWeekData()
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
-    console.log(this.newtoday.date)
   },
 }
 </script>
