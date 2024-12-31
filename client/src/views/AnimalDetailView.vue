@@ -306,6 +306,7 @@ export default {
         })
         this.$toast.success(data.message)
         await this.getWeekBloodSugarData()
+        this.updateCalendar()
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
@@ -362,6 +363,7 @@ export default {
         const { data } = await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/update/${this.editRecord.recordId}`, payload)
         this.$toast.success(data.message)
         this.updateWeekData()
+        this.updateCalendar()
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
