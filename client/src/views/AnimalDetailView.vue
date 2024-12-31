@@ -372,6 +372,7 @@ export default {
     }, // 日期處理區
     async updateCalendar() {
       const { year, month, lastDay } = this.newtoday
+      console.log({ year, month, lastDay })
       const container = Array.from({ length: lastDay }, (v, i) => {
         const date = new Date(`${year}-${String(month + 1).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`).toISOString()
         return {
@@ -453,9 +454,7 @@ export default {
       this.updateWeekData()
     },
     goToFirstWeekOfSelectedMonth() {
-      const firstDayOfMonth = new Date(this.selectedYear, this.selectedMonth, 1)
-      const startOfWeek = this.getStartOfWeek(firstDayOfMonth)
-      this.newtoday.date = startOfWeek
+      this.newtoday.date = new Date(this.selectedYear, this.selectedMonth, 1)
       this.updateWeekData()
     },
   },
@@ -471,16 +470,13 @@ export default {
     },
     weekData: {
       handler() {
-        console.log('WEEKDATA')
         this.getWeekBloodSugarData()
       },
-      // deep: true,
     },
   },
   async mounted() {
     this.newtoday.date = new Date()
     await this.getAnimalInfo()
-    await this.updateCalendar()
     this.updateWeekData()
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
