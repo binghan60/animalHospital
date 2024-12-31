@@ -317,21 +317,25 @@ export default {
       this.newRecord = { date: '', time: '', bloodSugar: '', insulin: '', notes: '' }
     },
     async getWeekBloodSugarData() {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
-        params: {
-          animalId: this.animal.Id,
-          startDate: this.weekData[0].date,
-          endDate: this.weekData[6].date,
-        },
-      })
-      this.weekData.map(day => {
-        const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
-        if (diaryEntry) {
-          day._id = diaryEntry._id
-          day.records = diaryEntry.records
-        }
-        return day
-      })
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
+          params: {
+            animalId: this.animal.Id,
+            startDate: this.weekData[0].date,
+            endDate: this.weekData[6].date,
+          },
+        })
+        this.weekData.map(day => {
+          const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
+          if (diaryEntry) {
+            day._id = diaryEntry._id
+            day.records = diaryEntry.records
+          }
+          return day
+        })
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
     },
     editTask(recordId, taskId, time, bloodSugar, insulin, recordNotes, notes) {
       this.editRecord = {
@@ -367,7 +371,7 @@ export default {
     async updateCalendar() {
       const { year, month, lastDay } = this.newtoday
       const container = Array.from({ length: lastDay }, (v, i) => {
-        const date = new Date(`${year}-${month + 1}-${String(i + 1).padStart(2, '0')}`).toISOString()
+        const date = new Date(`${year}-${String(month + 1).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`).toISOString()
         return {
           year,
           month: month + 1,
@@ -466,8 +470,10 @@ export default {
     },
     weekData: {
       handler() {
+        console.log('WEEKDATA')
         this.getWeekBloodSugarData()
       },
+      // deep: true,
     },
   },
   async mounted() {
@@ -477,7 +483,7 @@ export default {
     this.updateWeekData()
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
-    console.log(this.calendar)
+    console.log(this.weekData)
   },
 }
 </script>
