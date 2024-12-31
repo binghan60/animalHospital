@@ -435,7 +435,6 @@ export default {
     prevWeek() {
       this.newtoday.date.setDate(this.newtoday.date.getDate() - 7)
       this.newtoday.date = new Date(this.newtoday.date)
-
       this.updateWeekData()
     },
     nextWeek() {
@@ -444,12 +443,12 @@ export default {
       this.updateWeekData()
     },
     prevMonth() {
-      this.newtoday.date.setDate(this.newtoday.date.getDate() - 30)
+      this.newtoday.date.setDate(this.newtoday.date.getDate() - this.newtoday.lastDay)
       this.newtoday.date = new Date(this.newtoday.date)
       this.updateWeekData()
     },
     nextMonth() {
-      this.newtoday.date.setDate(this.newtoday.date.getDate() + 30)
+      this.newtoday.date.setDate(this.newtoday.date.getDate() + this.newtoday.lastDay)
       this.newtoday.date = new Date(this.newtoday.date)
       this.updateWeekData()
     },
@@ -485,7 +484,7 @@ export default {
     this.updateWeekData()
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
-    console.log(this.weekData)
+    console.log(this.newtoday.date)
   },
 }
 </script>
