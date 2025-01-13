@@ -8,6 +8,7 @@ import userRouter from './routes/userRouter.js';
 import animalRouter from './routes/animalRouter.js';
 import bloodSugarRouter from './routes/bloodSugarRouter.js';
 import authenticateToken from './middleware/authMiddleware.js';
+import dashBoardRouter from './routes/hospitalDashBoardRouter.js';
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ app.use('/hospital', hospitalRouter);
 app.use('/user', userRouter);
 app.use('/animal', authenticateToken, animalRouter);
 app.use('/bloodSugar', authenticateToken, bloodSugarRouter);
+app.use('/dashboard', authenticateToken, dashBoardRouter);
 app.get('/', (req, res) => {
     res.send('AnimalHospital Server');
 });
