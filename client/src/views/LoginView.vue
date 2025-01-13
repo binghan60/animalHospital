@@ -66,8 +66,8 @@ export default {
           <div class="relative flex items-center mt-2">
             <VField id="password" v-model="loginFrom.password" name="password" rules="required|length:4,20" :type="loginFrom.showPassword ? 'text' : 'password'" class="w-full h-8 pl-3 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
             <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="togglePassword">
-              <i v-if="!loginFrom.showPassword" class="fa-solid fa-eye-slash fa-fw"></i>
-              <i v-else class="fa-solid fa-eye text-primary-600 fa-fw"></i>
+              <i v-show="!loginFrom.showPassword" class="fa-solid fa-eye-slash fa-fw"></i>
+              <i v-show="loginFrom.showPassword" class="fa-solid fa-eye text-primary-600 fa-fw"></i>
             </button>
           </div>
           <ErrorMessage class="mt-1 text-sm text-red-600" name="password" />
