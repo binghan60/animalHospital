@@ -1,14 +1,23 @@
 import express from 'express';
 import Animal from '../models/animalModel.js';
-import mongoose from 'mongoose';
-
 const router = express.Router();
-
 router.post('/create', async (req, res) => {
-    const { hospitalId, userId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate, sharedWith } = req.body;
+    const { hospitalId, userId, name, gender, weight, sterilized, breed, bloodType, type, insulinBrand, admissionDate, sharedWith } = req.body;
+    let { birthday } = req.body;
     if (!name.trim()) {
         res.status(501).send({ message: '缺少參數' });
         return;
+    }
+    if (typeof birthday === 'number') {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        const currentDay = currentDate.getDate();
+        const birthYear = currentYear - Math.floor(birthday);
+        const fractionalAge = birthday % 1; // 小數部分
+        const daysInYear = 365.25; // 平均每年天數
+        const fractionalDays = Math.round(fractionalAge * daysInYear);
+        birthday = new Date(birthYear, currentMonth, currentDay - fractionalDays);
     }
     try {
         const newAnimal = new Animal({
@@ -53,7 +62,7 @@ router.get('/:hospitalId', async (req, res) => {
         const animals = await Animal.find({ hospitalId }).lean();
         animals.forEach((animal) => {
             if (animal.weight && animal.weight.length > 0) {
-                animal.weight = [animal.weight[animal.weight.length - 1]];
+                animal.weight = animal.weight[animal.weight.length - 1].value;
             }
         });
         return res.status(200).send(animals);
@@ -119,5 +128,18 @@ router.post('/createWeight', async (req, res) => {
         res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
     }
 });
-
+router.delete('/delete/:animalId', async (req, res) => {
+    try {
+        const { animalId } = req.params;
+        const animal = await Animal.findById(animalId);
+        if (!animal) {
+            return res.status(404).json({ message: '動物未找到' });
+        }
+        await animal.deleteOne();
+        return res.json({ message: '刪除成功', animal });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '伺服器錯誤' });
+    }
+});
 export default router;
