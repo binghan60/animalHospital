@@ -44,23 +44,25 @@ export default {
       otherField: true,
       searchKeyword: '',
       filterType: '',
+      birthdayType: 'date',
     }
   },
   methods: {
     async getUserAnimal() {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
+        console.log(data)
         this.animalList = data
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
     },
     async creatNewAnimal() {
-      const payload = {
-        hospitalId: this.user._id,
-        ...this.createForm,
-      }
       try {
+        const payload = {
+          hospitalId: this.user._id,
+          ...this.createForm,
+        }
         await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, payload, {
           headers: {
             'Content-Type': 'application/json',
@@ -101,6 +103,17 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
+    async deleteAnimal(event, animalId) {
+      event.stopPropagation()
+      try {
+        const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${animalId}`)
+        console.log(data)
+        this.$toast.success(data.message)
+        await this.getUserAnimal()
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
+    },
     editToggle(event, animalId) {
       event.stopPropagation()
       const animal = this.animalList.find(x => x._id === animalId)
@@ -109,7 +122,7 @@ export default {
         animalId: _id,
         name,
         gender,
-        weight: [{ date: new Date().toISOString().slice(0, 10), value: weight[0].value }],
+        weight: [{ date: new Date().toISOString().slice(0, 10), value: weight }],
         birthday: new Date(birthday).toISOString().split('T')[0],
         sterilized,
         breed,
@@ -141,7 +154,20 @@ export default {
         return 'fa-question'
       }
     },
+    sortBy(attribute) {
+      // 先比較當前列表是否已經是升冪排序
+      const isAscending = this.animalList.every((item, index, array) => {
+        return index === 0 || array[index - 1][attribute] <= item[attribute]
+      })
+      // 根據當前是否升冪，決定排序方式
+      this.animalList.sort((a, b) => {
+        if (a[attribute] < b[attribute]) return isAscending ? 1 : -1
+        if (a[attribute] > b[attribute]) return isAscending ? -1 : 1
+        return 0
+      })
+    },
   },
+
   computed: {
     ...mapState(authStore, ['user', 'token']),
     showData() {
@@ -172,8 +198,8 @@ export default {
             <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700"></p>
           </div>
           <div class="flex flex-col gap-2 shrink-0 sm:flex-row">
-            <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="((this.searchKeyword = ''), (this.filterType = ''))">清空搜尋條件</button>
-            <button class="flex select-none items-center gap-3 rounded-lg bg-primary-600 py-2 px-4 text-center text-xs font-bold text-white shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-primary-600/20 focus:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" @click="createFormToggle = true">
+            <button type="button" class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" @click="((this.searchKeyword = ''), (this.filterType = ''))">清空搜尋條件</button>
+            <button type="button" class="flex select-none items-center gap-3 rounded-lg bg-primary-600 py-2 px-4 text-center text-xs font-bold text-white shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-primary-600/20 focus:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" @click="createFormToggle = true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" stroke-width="2" class="w-4 h-4">
                 <path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM19.75 7.5a.75.75 0 00-1.5 0v2.25H16a.75.75 0 000 1.5h2.25v2.25a.75.75 0 001.5 0v-2.25H22a.75.75 0 000-1.5h-2.25V7.5z"></path>
               </svg>
@@ -187,15 +213,15 @@ export default {
               <ul role="tablist" class="relative flex flex-row p-1 min-w-[300px] rounded-lg bg-primary-100 bg-opacity-60">
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = ''">
                   <div class="z-10">All</div>
-                  <div v-if="filterType === ''" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-show="filterType === ''" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'dog'">
                   <div class="z-10"><i class="fa-solid fa-dog fa-fw"></i></div>
-                  <div v-if="filterType === 'dog'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-show="filterType === 'dog'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
                 <li role="tab" class="relative flex items-center justify-center w-full h-full px-2 py-1 text-center cursor-pointer select-none text-primary-900" @click="this.filterType = 'cat'">
                   <div class="z-10"><i class="fa-solid fa-cat fa-fw"></i></div>
-                  <div v-if="filterType === 'cat'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
+                  <div v-show="filterType === 'cat'" class="absolute inset-0 h-full bg-white rounded-md shadow z-5"></div>
                 </li>
               </ul>
             </nav>
@@ -213,19 +239,19 @@ export default {
           </div>
         </div>
       </div>
-      <div class="p-6 px-0 overflow-scroll min-h-[600px]">
+      <div class="p-6 px-0 overflow-auto h-[700px]">
         <table class="w-full mt-4 text-left table-auto min-w-max">
           <thead>
             <tr>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('name')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased text-primary-900 opacity-70">
-                  姓名
+                  基本資料
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path>
                   </svg>
                 </p>
               </th>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('weight')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
                   體重
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
@@ -233,7 +259,7 @@ export default {
                   </svg>
                 </p>
               </th>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('bloodType')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
                   血型
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
@@ -241,7 +267,7 @@ export default {
                   </svg>
                 </p>
               </th>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('breed')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
                   品種
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
@@ -249,7 +275,7 @@ export default {
                   </svg>
                 </p>
               </th>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('sterilized')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
                   結紮
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
@@ -257,13 +283,16 @@ export default {
                   </svg>
                 </p>
               </th>
-              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('admissionDate')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
                   入院日期
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path>
                   </svg>
                 </p>
+              </th>
+              <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
+                <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70"></p>
               </th>
               <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70"></p>
@@ -275,16 +304,16 @@ export default {
               <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
                 <td class="p-4 border-b border-primary-50">
                   <div class="flex items-center gap-3">
-                    <img src="/image/1.jpg" alt="John Michael" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                    <img src="/image/1.jpg" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                     <div class="flex flex-col">
                       <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
-                      <p v-if="animal.birthday != '1970-01-01T00:00:00.000Z'" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                      <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
                     </div>
                   </div>
                 </td>
                 <td class="p-4 border-b border-primary-50">
                   <div class="flex flex-col">
-                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight[0]?.value ? animal.weight[0]?.value + ' 公斤' : '' }}</p>
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">{{ animal.weight ? animal.weight + ' 公斤' : '' }}</p>
                   </div>
                 </td>
                 <td class="p-4 border-b border-primary-50">
@@ -314,6 +343,13 @@ export default {
                     </span>
                   </button>
                 </td>
+                <td class="text-center border-b border-primary-50" @click="deleteAnimal($event, animal._id)">
+                  <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                    <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+                      <i class="text-xl text-red-400 fa-solid fa-trash fa-fw"></i>
+                    </span>
+                  </button>
+                </td>
               </tr>
             </template>
             <template v-else>
@@ -326,17 +362,17 @@ export default {
           </tbody>
         </table>
       </div>
-      <div class="flex items-center justify-between p-4 border-t border-primary-50">
+      <!-- <div class="flex items-center justify-between p-4 border-t border-primary-50">
         <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900">Page 1 of 10</p>
         <div class="flex gap-2">
           <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">上一頁</button>
           <button class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">下一頁</button>
         </div>
-      </div>
+      </div> -->
     </div>
-    <div v-if="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
       <div class="w-full max-w-xl bg-primary-50 rounded-xl">
-        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8 scrollbar" @submit="creatNewAnimal">
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="creatNewAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">新增動物資料</h2>
           <div class="space-y-4">
             <div class="grid items-center grid-cols-3">
@@ -355,10 +391,18 @@ export default {
               <label for="weight" class="text-left text-primary-700">體重 (kg)</label>
               <VField id="weight" v-model="createForm.weight[0].value" name="weight" type="number" placeholder="體重 (kg)" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
-            <div class="grid items-center grid-cols-3">
+            <div class="grid items-center grid-cols-3 gap-2">
               <label for="birthday" class="text-left text-primary-700">生日</label>
-              <VField id="birthday" v-model="createForm.birthday" name="birthday" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              <div class="flex items-center col-span-2 gap-2">
+                <select v-model="birthdayType" class="p-1.5 text-sm border rounded-lg shadow-sm border-primary-200">
+                  <option value="date">日期</option>
+                  <option value="text">年齡</option>
+                </select>
+                <VField v-show="birthdayType === 'date'" id="birthday" v-model="createForm.birthday" name="birthdayDate" type="date" class="flex-grow p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+                <VField v-show="birthdayType === 'text'" id="birthday" v-model="createForm.birthday" name="birthdayText" type="number" class="flex-grow p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" placeholder="直接輸入年齡 ex:1.5" />
+              </div>
             </div>
+
             <div class="grid items-center grid-cols-3">
               <label for="neutered" class="text-left text-primary-700">是否結紮</label>
               <select id="neutered" v-model="createForm.sterilized" name="neutered" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300">
@@ -405,9 +449,9 @@ export default {
       </div>
     </div>
     <!-- //編輯 -->
-    <div v-if="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
       <div class="w-full max-w-xl bg-primary-50 rounded-xl">
-        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8 scrollbar" @submit="editAnimal">
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="editAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>
           <div class="space-y-4">
             <div class="grid items-center grid-cols-3">
