@@ -15,6 +15,12 @@ const router = createRouter({
           component: () => import('@/views/AnimalDetailView.vue'),
           props: true,
         },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('@/views/DashboardView.vue'),
+          props: true,
+        },
       ],
       meta: { requiresAuth: true },
     },
