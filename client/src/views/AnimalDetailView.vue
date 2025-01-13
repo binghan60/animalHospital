@@ -525,7 +525,6 @@ export default {
       endOfWeek.setDate(startOfWeek.getDate() + 6)
       this.weekRange = `${startOfWeek.toISOString().split('T')[0]} ~ ${endOfWeek.toISOString().split('T')[0]}`
       this.weekData = this.getWeekData(startOfWeek)
-      console.log(this.weekData)
     },
     getStartOfWeek(date) {
       // 取得每周第一天

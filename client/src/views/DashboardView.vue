@@ -77,10 +77,8 @@ export default {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/dashboard`, {
           params,
         })
-        console.log(data)
         this.dashboard = data
       } catch (error) {
-        console.log(error)
         this.$toast.error(error.response.data.message)
       }
     },

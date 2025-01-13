@@ -38,7 +38,6 @@ router.post('/create', async (req, res) => {
         const animal = await newAnimal.save();
         res.send({ animal });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: error.errors });
     }
 });
@@ -102,7 +101,6 @@ router.put('/edit', async (req, res) => {
         await animal.save();
         res.send({ animal });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: '更新發生錯誤' });
     }
 });

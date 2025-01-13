@@ -51,7 +51,6 @@ export default {
     async getUserAnimal() {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
-        console.log(data)
         this.animalList = data
       } catch (error) {
         this.$toast.error(error.response.data.message)
@@ -107,7 +106,6 @@ export default {
       event.stopPropagation()
       try {
         const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${animalId}`)
-        console.log(data)
         this.$toast.success(data.message)
         await this.getUserAnimal()
       } catch (error) {

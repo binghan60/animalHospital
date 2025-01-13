@@ -44,7 +44,6 @@ export default {
     quicklogin() {
       this.loginFrom.account = 'admin'
       this.loginFrom.password = 'Hank!0688'
-      console.log('A')
     },
     ...mapActions(authStore, ['auth']),
   },
