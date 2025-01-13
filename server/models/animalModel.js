@@ -7,7 +7,7 @@ const animalSchema = new mongoose.Schema(
         name: { type: String, required: true },
         gender: { type: String, enum: ['male', 'female', 'other', ''], default: '' },
         weight: [{ date: { type: Date }, value: { type: Number, default: 0 } }],
-        birthday: { type: Date, default: '' },
+        birthday: { type: Date },
         sterilized: { type: Boolean, default: false },
         breed: { type: String, default: '' },
         bloodType: { type: String, enum: ['A', 'B', 'AB', 'O', ''], default: '' },
