@@ -6,28 +6,35 @@ import axios from 'axios'
 export default {
   components: { RouterView },
   data() {
-    return {}
+    return { isLoading: false }
   },
   methods: {
     async autoLogin() {
       const token = this.getCookieValue('animalHospitalToken')
       const role = this.getCookieValue('animalHospitalRole')
       if (token) {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
-          {},
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+        try {
+          this.isLoading = true
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
+            {},
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
             },
-          },
-        )
-        this.auth(data)
-        const redirectPath = this.redirectPath || '/animallist'
-        this.$router.push(redirectPath)
-        this.clearRedirectPath()
-        axios.defaults.headers.common.Authorization = `Bearer ${token}`
+          )
+          this.auth(data)
+          const redirectPath = this.redirectPath || '/animallist'
+          this.$router.push(redirectPath)
+          this.clearRedirectPath()
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`
+        } catch (error) {
+          this.$toast.error(error.response.data.message)
+        } finally {
+          this.isLoading = false
+        }
       }
     },
     getCookieValue(name) {
@@ -55,5 +62,8 @@ export default {
 </script>
 
 <template>
-  <RouterView></RouterView>
+  <div>
+    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+    <RouterView></RouterView>
+  </div>
 </template>
