@@ -133,17 +133,21 @@ export default {
         top: '0px',
         left: '0px',
       },
+      isLoading: false,
     }
   },
   methods: {
     async getAnimalInfo() {
       try {
+        this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
         this.animal.Info = data
         this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      } finally {
+        this.isLoading = false
       }
     },
     async getDiaryBloodSugar() {
@@ -171,6 +175,7 @@ export default {
           date,
           value,
         }
+        this.isLoading = true
         this.modal.weight.loading = true
         const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/animal/createWeight`, payload, {
           headers: { 'Content-Type': 'application/json' },
@@ -183,11 +188,14 @@ export default {
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
+        this.isLoading = false
         this.modal.weight.loading = false
       }
     },
     async createBloodSugarCurve() {
       try {
+        this.isLoading = true
+        this.modal.bloodSugarCurve.loading = true
         const { date, fields } = this.modal.bloodSugarCurve
         const { Id: animalId } = this.animal
         const payload = {
@@ -195,7 +203,6 @@ export default {
           date,
           records: fields,
         }
-        this.modal.bloodSugarCurve.loading = true
         await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/createCurve`, payload, {
           headers: { 'Content-Type': 'application/json' },
         })
@@ -206,6 +213,7 @@ export default {
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
+        this.isLoading = false
         this.modal.bloodSugarCurve.loading = false
       }
     },
@@ -274,6 +282,7 @@ export default {
     },
     async createTask() {
       try {
+        this.isLoading = true
         const payload = {
           animalId: this.animal.Id,
           date: this.newRecord.date,
@@ -292,17 +301,42 @@ export default {
             'Content-Type': 'application/json',
           },
         })
-        this.$toast.success(data.message)
         await this.getWeekBloodSugarData()
+        this.$toast.success(data.message)
+        const range = this.getDateRange('week')
+        this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
+        this.isLoading = false
         this.closeTaskModal()
+      }
+    },
+    async editTask() {
+      try {
+        const payload = {
+          animalId: this.animal.Id,
+          taskId: this.editRecord.taskId,
+          task: this.editRecord.task,
+          notes: this.editRecord.notes,
+        }
+        const { data } = await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/update/${this.editRecord.recordId}`, payload)
+        await this.getWeekBloodSugarData()
+        this.$toast.success(data.message)
+        const range = this.getDateRange('week')
+        this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
+        this.updateCalendar()
+      } catch (error) {
+        console.log(error)
+        // this.$toast.error(error.response.data.message)
+      } finally {
+        this.modal.editNotes.toggle = false
       }
     },
     async deleteTask(dataId, taskId) {
       try {
+        this.isLoading = true
         const payload = {
           animalId: this.animal.Id,
           taskId,
@@ -314,13 +348,15 @@ export default {
           },
         })
         await this.getWeekBloodSugarData()
-        const range = this.getDateRange('week')
-        await this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.$toast.success(data.message)
-
-        this.modal.editNotes.toggle = false
+        const range = this.getDateRange('week')
+        this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
+        this.updateCalendar()
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      } finally {
+        this.modal.editNotes.toggle = false
+        this.isLoading = false
       }
     },
     async getWeekBloodSugarData() {
@@ -345,34 +381,19 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
-    async editTask() {
-      try {
-        const payload = {
-          animalId: this.animal.Id,
-          taskId: this.editRecord.taskId,
-          task: this.editRecord.task,
-          notes: this.editRecord.notes,
-        }
-        const { data } = await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/update/${this.editRecord.recordId}`, payload)
-        this.$toast.success(data.message)
-        this.updateWeekData()
-        this.updateCalendar()
-        this.updateAverageChart()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
-        this.modal.editNotes.toggle = false
-      }
-    },
     async getAverage(startDate, endDate) {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/average`, {
-        params: {
-          animalId: this.animal.Id,
-          startDate,
-          endDate,
-        },
-      })
-      return data
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/average`, {
+          params: {
+            animalId: this.animal.Id,
+            startDate,
+            endDate,
+          },
+        })
+        return data
+      } catch (error) {
+        this.$$toast.error(error.response.data.message)
+      }
     },
     convertBirthdayToAge(dateString) {
       const today = new Date()
@@ -719,8 +740,8 @@ export default {
           <div>日</div>
         </div>
         <template v-for="(day, index) in calendar">
-          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday, 'cursor-pointer': day.records?.length > 2 }]" @click="day.records?.length > 2 ? showTips($event, day?.records) : null">
-            <div class="font-bold text-center">{{ day.month }} / {{ day.day }} {{ day.records?.length > 2 ? '*' : '' }}</div>
+          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday, 'cursor-pointer': day.records?.length }]" @click="day.records?.length ? showTips($event, day?.records) : null">
+            <div class="font-bold text-center">{{ day.month }} / {{ day.day }} {{ day.records?.length > 2 ? '**' : '' }}</div>
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300">
               <div class="text-center text-primary-900"><i class="fa-regular fa-sun fa-fw"></i> {{ calendar[index].morning.time }}</div>
@@ -934,7 +955,6 @@ export default {
         </table>
       </div>
     </div>
-
     <div class="fixed z-10 space-y-4 right-6 bottom-6">
       <button type="button" class="flex items-center justify-center text-black bg-yellow-200 rounded-full shadow-md w-14 h-14" @click="modal.weight.toggle = true">
         <i class="fa-solid fa-weight-scale fa-fw"></i>
@@ -943,5 +963,6 @@ export default {
         <i class="fa-solid fa-chart-line fa-fw"></i>
       </button>
     </div>
+    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
   </div>
 </template>

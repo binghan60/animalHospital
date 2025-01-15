@@ -66,11 +66,13 @@ export default {
       },
       genderChinese: { male: '男生', female: '女生' },
       typeChinese: { dog: '狗狗', cat: '貓貓', other: '其他' },
+      isLoading: false,
     }
   },
   methods: {
     async getDashBoard() {
       try {
+        this.isLoading = true
         const params = {
           hospitalId: this.user._id,
         }
@@ -80,6 +82,8 @@ export default {
         this.dashboard = data
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      } finally {
+        this.isLoading = false
       }
     },
   },
@@ -354,7 +358,7 @@ export default {
 <template>
   <div class="grid grid-cols-3 gap-4 text-center">
     <div class="col-span-3">
-      <div class="text-4xl">{{ dashboard.stats?.total }}隻</div>
+      <div class="text-4xl">{{ dashboard.stats?.total ? dashboard.stats?.total : '--' }}隻</div>
       <div>目前院內動物數量</div>
     </div>
     <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg">
@@ -381,5 +385,6 @@ export default {
     <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg">
       <ChartComponent :type="insulinBrand.type" :chartData="insulinBrand.data" :chartOptions="insulinBrand.options"></ChartComponent>
     </div>
+    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
   </div>
 </template>

@@ -5,6 +5,8 @@ import App from '@/App.vue'
 import router from '@/router'
 import Toast, { useToast } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 import { defineRule } from 'vee-validate'
 
 defineRule('required', value => {
@@ -58,5 +60,6 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(Toast, options)
+app.component('VueLoading', Loading) // 全域註冊 VueLoading 元件
 app.config.globalProperties.$toast = useToast() // 全域註冊 this.$toast 方法
 app.mount('#app')

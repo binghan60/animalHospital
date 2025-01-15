@@ -16,6 +16,7 @@ export default {
         password: '',
         showPassword: false,
       },
+      isLoading: false,
     }
   },
   methods: {
@@ -25,6 +26,7 @@ export default {
     async login() {
       const { account, password } = this.loginFrom
       try {
+        this.isLoading = true
         const payload = { account, password }
         const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/hospital/login`, payload, {
           headers: {
@@ -37,6 +39,7 @@ export default {
         document.cookie = `animalHospitalRole=${data.role}; expires=${new Date(data.expiresAt)}`
         axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
         this.$router.push('/animallist')
+        this.isLoading = false
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
@@ -76,5 +79,6 @@ export default {
       </VForm>
       <button type="submit" class="w-full px-4 py-2 my-5 text-white bg-orange-600 rounded-md hover:bg-orange-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">DEMO用帳號密碼</button>
     </div>
+    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
   </div>
 </template>
