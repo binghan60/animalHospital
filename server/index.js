@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
 import hospitalRouter from './routes/hospitalRouter.js';
 import userRouter from './routes/userRouter.js';
 import animalRouter from './routes/animalRouter.js';
@@ -14,6 +15,8 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+// 設定圖片路徑
+app.use('/avatars', express.static(path.join(path.resolve(), 'avatars')));
 app.use('/hospital', hospitalRouter);
 app.use('/user', userRouter);
 app.use('/animal', authenticateToken, animalRouter);

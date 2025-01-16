@@ -4,6 +4,7 @@ const animalSchema = new mongoose.Schema(
     {
         hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hospital', required: true, index: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+        avatar: { type: String },
         name: { type: String, required: true },
         gender: { type: String, enum: ['male', 'female', 'other', ''], default: '' },
         weight: [{ date: { type: Date }, value: { type: Number, default: 0 } }],
