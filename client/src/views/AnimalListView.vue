@@ -13,6 +13,8 @@ export default {
     return {
       animalList: [],
       createForm: {
+        avatar: '',
+        avatarUrl: '',
         name: '',
         gender: 'male',
         weight: [{ date: new Date().toISOString().slice(0, 10), value: 0 }],
@@ -26,6 +28,8 @@ export default {
         sharedWith: [],
       },
       editForm: {
+        avatar: '',
+        avatarUrl: '',
         animalId: '',
         name: '',
         gender: 'male',
@@ -46,6 +50,7 @@ export default {
       filterType: '',
       birthdayType: 'date',
       isLoading: false,
+      backendDomain: '',
     }
   },
   methods: {
@@ -60,21 +65,24 @@ export default {
         this.isLoading = false
       }
     },
-    async creatNewAnimal() {
+    async createNewAnimal() {
       try {
-        const payload = {
-          hospitalId: this.user._id,
-          ...this.createForm,
-        }
-        await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        const formData = new FormData()
+        formData.append('hospitalId', this.user._id)
+        Object.keys(this.createForm).forEach(key => {
+          if (key === 'weight' || key === 'sharedWith') {
+            formData.append(key, JSON.stringify(this.createForm[key])) // 序列化陣列或物件
+          } else {
+            formData.append(key, this.createForm[key])
+          }
         })
+        await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, formData)
         this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.createFormToggle = false
         this.createForm = {
+          avatar: '',
+          avatarUrl: '',
           name: '',
           gender: 'male',
           weight: [{ date: new Date().toISOString().slice(0, 10), value: 0 }],
@@ -88,17 +96,20 @@ export default {
           sharedWith: [],
         }
       } catch (error) {
-        this.$toast.error(error.response.data.message)
+        this.$toast.error(error.response?.data?.message || '新增失敗')
       }
     },
     async editAnimal() {
-      const payload = this.editForm
+      const formData = new FormData()
+      Object.keys(this.editForm).forEach(key => {
+        if (key === 'weight' || key === 'sharedWith') {
+          formData.append(key, JSON.stringify(this.editForm[key])) // 序列化陣列或物件
+        } else {
+          formData.append(key, this.editForm[key])
+        }
+      })
       try {
-        await axios.put(`${import.meta.env.VITE_API_PATH}/animal/edit`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        await axios.put(`${import.meta.env.VITE_API_PATH}/animal/edit`, formData)
         this.$toast.success('修改成功')
         this.editFormToggle = false
         await this.getUserAnimal()
@@ -120,8 +131,10 @@ export default {
       event.stopPropagation()
       const animal = this.animalList.find(x => x._id === animalId)
       const { _id, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = animal
+
       this.editForm = {
         animalId: _id,
+        avatarUrl: this.backendDomain + animal.avatar,
         name,
         gender,
         weight: [{ date: new Date().toISOString().slice(0, 10), value: weight }],
@@ -168,6 +181,20 @@ export default {
         return 0
       })
     },
+    createFileChange(event) {
+      const file = event.target.files[0]
+      this.createForm.avatar = file
+      if (file) {
+        this.createForm.avatarUrl = URL.createObjectURL(file)
+      }
+    },
+    editFileChange(event) {
+      const file = event.target.files[0]
+      this.editForm.avatar = file
+      if (file) {
+        this.editForm.avatarUrl = URL.createObjectURL(file)
+      }
+    },
   },
 
   computed: {
@@ -182,10 +209,7 @@ export default {
   },
   async mounted() {
     await this.getUserAnimal()
-    // TODO
-    // 照片上傳
-    // API按鈕防呆
-    // 出院住院紀錄
+    this.backendDomain = import.meta.env.VITE_API_PATH
   },
 }
 </script>
@@ -305,7 +329,7 @@ export default {
             <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
               <td class="p-4 border-b border-primary-50">
                 <div class="flex items-center gap-3">
-                  <img src="/image/1.jpg" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                  <img :src="animal.avatar ? backendDomain + animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                   <div class="flex flex-col">
                     <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
                     <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
@@ -365,9 +389,13 @@ export default {
     </div>
     <div v-show="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
       <div class="w-full max-w-xl bg-primary-50 rounded-xl">
-        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="creatNewAnimal">
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="createNewAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">新增動物資料</h2>
           <div class="space-y-4">
+            <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 rounded-lg cursor-pointer" @click="this.$refs.createFile.click()">
+              <input ref="createFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="createFileChange" />
+              <img class="object-cover w-full h-full" :src="createForm.avatar ? createForm.avatarUrl : '/image/sampleAvatar.png'" />
+            </div>
             <div class="grid items-center grid-cols-3">
               <label for="name" class="text-lg text-left text-primary-700">姓名</label>
               <VField id="name" v-model="createForm.name" name="name" type="text" rules="required" placeholder="姓名" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
@@ -421,7 +449,7 @@ export default {
               <div class="flex justify-between col-span-2 gap-2">
                 <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
                   <VField v-model="createForm.type" type="radio" :value="type" name="type" class="hidden peer" />
-                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
+                  <span class="px-1.5 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
               </div>
             </div>
@@ -447,6 +475,10 @@ export default {
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="editAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>
           <div class="space-y-4">
+            <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 rounded-lg cursor-pointer" @click="this.$refs.editFile.click()">
+              <input ref="editFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="editFileChange" />
+              <img class="object-cover w-full h-full" :src="editForm.avatarUrl" />
+            </div>
             <div class="grid items-center grid-cols-3">
               <label for="editName" class="text-lg text-left text-primary-700">姓名</label>
               <VField id="editName" v-model="editForm.name" name="editName" type="text" rules="required" placeholder="姓名" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
@@ -492,7 +524,7 @@ export default {
               <div class="flex justify-between col-span-2 gap-2">
                 <label v-for="type in ['cat', 'dog', 'other']" :key="type" class="min-w-[70px] rounded-lg">
                   <VField v-model="editForm.type" type="radio" :value="type" name="editType" class="hidden peer" />
-                  <span class="px-2 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
+                  <span class="px-1.5 py-1.5 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100 peer-checked:bg-primary-500 peer-checked:text-white"> <i :class="`fa-solid fa-fw ${animalIcon(type)}`"></i> {{ type === 'cat' ? '貓貓' : type === 'dog' ? '狗狗' : '其他' }} </span>
                 </label>
               </div>
             </div>
