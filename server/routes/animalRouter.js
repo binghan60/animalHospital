@@ -1,35 +1,35 @@
 import express from 'express';
 import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { v2 as cloudinary } from 'cloudinary';
+import streamifier from 'streamifier';
 import Animal from '../models/animalModel.js';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './avatars');
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
+const upload = multer();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({
-    storage,
-    limits: { fileSize: 3 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const fileTypes = /jpeg|jpg|jfif|png/;
-        const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = fileTypes.test(file.mimetype);
-        if (extname && mimetype) {
-            cb(null, true);
-        } else {
-            cb(new Error('只接受 JPEG 或 PNG 圖片格式'));
-        }
-    },
-});
+const streamUpload = (req) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'avatars' }, // 上傳到 Cloudinary 中的指定資料夾
+            (error, result) => {
+                if (result) {
+                    resolve(result);
+                } else {
+                    reject(error);
+                }
+            }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream); // 將檔案 buffer 轉成 Readable Stream
+    });
+};
+
 router.post('/create', upload.single('avatar'), async (req, res) => {
     try {
         // 解析 JSON 格式的欄位
@@ -37,10 +37,12 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
         const parsedSharedWith = JSON.parse(req.body.sharedWith || '[]');
         const { hospitalId, userId, name, gender, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
         let { birthday } = req.body;
+
         if (!name || !name.trim()) {
             res.status(400).send({ message: '缺少參數：name' });
             return;
         }
+
         if (typeof birthday === 'number') {
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
@@ -52,13 +54,17 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
             const fractionalDays = Math.round(fractionalAge * daysInYear);
             birthday = new Date(birthYear, currentMonth, currentDay - fractionalDays);
         }
-        const avatarPath = req.file ? `/avatars/${req.file.filename}` : null;
+        let avatarUrl = null;
+        if (req.file) {
+            const uploadResult = await streamUpload(req);
+            avatarUrl = uploadResult.secure_url; // Cloudinary回傳圖片URL
+        }
         const newAnimal = new Animal({
             hospitalId,
             userId,
             name,
             gender,
-            weight: parsedWeight, // 已解析的嵌套陣列
+            weight: parsedWeight,
             birthday,
             sterilized,
             breed,
@@ -66,8 +72,8 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
             type,
             insulinBrand,
             admissionDate,
-            sharedWith: parsedSharedWith, // 已解析的陣列
-            avatar: avatarPath,
+            sharedWith: parsedSharedWith,
+            avatar: avatarUrl,
         });
         const animal = await newAnimal.save();
         res.status(201).send({ animal });
@@ -112,10 +118,18 @@ router.put('/edit', upload.single('avatar'), async (req, res) => {
         return res.status(400).send({ message: '缺少動物 ID' });
     }
     try {
-        const avatarPath = req.file ? `/avatars/${req.file.filename}` : null;
         const animal = await Animal.findById(animalId);
         if (!animal) {
             return res.status(404).send({ message: '找不到指定的動物資料' });
+        }
+        let avatarUrl = animal.avatar;
+        if (req.file) {
+            if (animal.avatar) {
+                const publicId = animal.avatar.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy('avatars/' + publicId);
+            }
+            const uploadResult = await streamUpload(req);
+            avatarUrl = uploadResult.secure_url;
         }
         animal.name = name || animal.name;
         animal.gender = gender || animal.gender;
@@ -126,14 +140,15 @@ router.put('/edit', upload.single('avatar'), async (req, res) => {
         animal.type = type || animal.type;
         animal.insulinBrand = insulinBrand || animal.insulinBrand;
         animal.admissionDate = admissionDate || animal.admissionDate;
-        animal.avatar = avatarPath || animal.avatar;
-        if (animal.weight.length > 0) {
+        animal.avatar = avatarUrl;
+        if (weight && Array.isArray(animal.weight) && animal.weight.length > 0) {
             //體重有資料就改最後一筆，日期改為今天
             const today = new Date().toISOString().split('T')[0];
             const lastWeightEntry = animal.weight[animal.weight.length - 1];
-            lastWeightEntry.value = weight[0].value;
+            lastWeightEntry.value = weight.value || lastWeightEntry.value;
             lastWeightEntry.date = today;
         } else {
+            const today = new Date().toISOString().split('T')[0];
             animal.weight = [{ value: weight.value, date: today }];
         }
         await animal.save();
@@ -172,10 +187,8 @@ router.delete('/delete/:animalId', async (req, res) => {
             return res.status(404).json({ message: '動物未找到' });
         }
         if (animal.avatar) {
-            const avatarPath = path.resolve(process.cwd(), 'avatars', path.basename(animal.avatar));
-            if (fs.existsSync(avatarPath)) {
-                fs.unlinkSync(avatarPath);
-            }
+            const publicId = animal.avatar.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy('avatars/' + publicId);
         }
         await animal.deleteOne();
         return res.json({ message: '刪除成功', animal });
