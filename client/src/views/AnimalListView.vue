@@ -320,7 +320,7 @@ export default {
               </th>
               <th class="p-4 transition-colors cursor-pointer border-y border-primary-100 bg-primary-100/75 hover:bg-primary-200" @click="sortBy('admissionDate')">
                 <p class="flex items-center justify-between gap-2 font-sans text-sm antialiased font-normal leading-none text-primary-900 opacity-70">
-                  入院日期
+                  新增日期
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path>
                   </svg>
@@ -467,7 +467,7 @@ export default {
               <VField id="insulinBrand" v-model="createForm.insulinBrand" name="insulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="grid items-center grid-cols-3">
-              <label for="admissionDate" class="text-left text-primary-700">入院日期</label>
+              <label for="admissionDate" class="text-left text-primary-700">新增日期</label>
               <VField id="admissionDate" v-model="createForm.admissionDate" name="admissionDate" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
           </div>
@@ -542,7 +542,7 @@ export default {
               <VField id="editInsulinBrand" v-model="editForm.insulinBrand" name="editInsulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
             <div class="grid items-center grid-cols-3">
-              <label for="editAdmissionDate" class="text-left text-primary-700">入院日期</label>
+              <label for="editAdmissionDate" class="text-left text-primary-700">新增日期</label>
               <VField id="editAdmissionDate" v-model="editForm.admissionDate" name="editAdmissionDate" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
           </div>
