@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Animal from '../models/animalModel.js';
@@ -169,6 +170,12 @@ router.delete('/delete/:animalId', async (req, res) => {
         const animal = await Animal.findById(animalId);
         if (!animal) {
             return res.status(404).json({ message: '動物未找到' });
+        }
+        if (animal.avatar) {
+            const avatarPath = path.resolve(process.cwd(), 'avatars', path.basename(animal.avatar));
+            if (fs.existsSync(avatarPath)) {
+                fs.unlinkSync(avatarPath);
+            }
         }
         await animal.deleteOne();
         return res.json({ message: '刪除成功', animal });
