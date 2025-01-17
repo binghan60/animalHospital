@@ -134,6 +134,7 @@ export default {
         left: '0px',
       },
       isLoading: false,
+      backendDomain: '',
     }
   },
   methods: {
@@ -642,6 +643,7 @@ export default {
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
     this.calendarDisplay = 'week'
+    this.backendDomain = import.meta.env.VITE_API_PATH
   },
 }
 </script>
@@ -649,7 +651,7 @@ export default {
   <div>
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <div class="h-full bg-white rounded-lg shadow-lg">
-        <!-- <img class="object-cover w-full h-full" src="image/avatar.png" alt="" /> -->
+        <img class="object-cover w-full h-full p-4 lg:p-6" :src="animal.Info.avatar ? backendDomain + animal.Info.avatar : '/image/sampleAvatar.png'" alt="" />
       </div>
       <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 border border-gray-200 h-full min-h-[300px]">
         <div class="w-full h-full">

@@ -58,7 +58,9 @@ export default {
       try {
         this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
+        console.log(this.user._id)
         this.animalList = data
+        console.log(data)
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
@@ -394,7 +396,7 @@ export default {
           <div class="space-y-4">
             <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 rounded-lg cursor-pointer" @click="this.$refs.createFile.click()">
               <input ref="createFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="createFileChange" />
-              <img class="object-cover w-full h-full" :src="createForm.avatar ? createForm.avatarUrl : '/image/sampleAvatar.png'" />
+              <img class="object-cover w-full h-full rounded-lg" :src="createForm.avatar ? createForm.avatarUrl : '/image/sampleAvatar.png'" />
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="name" class="text-lg text-left text-primary-700">姓名</label>
@@ -475,9 +477,9 @@ export default {
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="editAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>
           <div class="space-y-4">
-            <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 rounded-lg cursor-pointer" @click="this.$refs.editFile.click()">
+            <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 cursor-pointer rounded-lg" @click="this.$refs.editFile.click()">
               <input ref="editFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="editFileChange" />
-              <img class="object-cover w-full h-full" :src="editForm.avatarUrl" />
+              <img class="object-cover w-full h-full rounded-lg" :src="editForm.avatarUrl" />
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="editName" class="text-lg text-left text-primary-700">姓名</label>
