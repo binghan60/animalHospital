@@ -50,7 +50,6 @@ export default {
       filterType: '',
       birthdayType: 'date',
       isLoading: false,
-      backendDomain: '',
     }
   },
   methods: {
@@ -69,6 +68,7 @@ export default {
     },
     async createNewAnimal() {
       try {
+        this.isLoading = true
         const formData = new FormData()
         formData.append('hospitalId', this.user._id)
         Object.keys(this.createForm).forEach(key => {
@@ -99,34 +99,42 @@ export default {
         }
       } catch (error) {
         this.$toast.error(error.response?.data?.message || '新增失敗')
+      } finally {
+        this.isLoading = false
       }
     },
     async editAnimal() {
-      const formData = new FormData()
-      Object.keys(this.editForm).forEach(key => {
-        if (key === 'weight' || key === 'sharedWith') {
-          formData.append(key, JSON.stringify(this.editForm[key])) // 序列化陣列或物件
-        } else {
-          formData.append(key, this.editForm[key])
-        }
-      })
       try {
+        this.isLoading = true
+        const formData = new FormData()
+        Object.keys(this.editForm).forEach(key => {
+          if (key === 'weight' || key === 'sharedWith') {
+            formData.append(key, JSON.stringify(this.editForm[key])) // 序列化陣列或物件
+          } else {
+            formData.append(key, this.editForm[key])
+          }
+        })
         await axios.put(`${import.meta.env.VITE_API_PATH}/animal/edit`, formData)
         this.$toast.success('修改成功')
         this.editFormToggle = false
         await this.getUserAnimal()
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      } finally {
+        this.isLoading = false
       }
     },
     async deleteAnimal(event, animalId) {
       event.stopPropagation()
       try {
+        this.isLoading = true
         const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${animalId}`)
         this.$toast.success(data.message)
         await this.getUserAnimal()
       } catch (error) {
         this.$toast.error(error.response.data.message)
+      } finally {
+        this.isLoading = false
       }
     },
     editToggle(event, animalId) {
@@ -136,7 +144,7 @@ export default {
 
       this.editForm = {
         animalId: _id,
-        avatarUrl: this.backendDomain + animal.avatar,
+        avatarUrl: animal.avatar,
         name,
         gender,
         weight: [{ date: new Date().toISOString().slice(0, 10), value: weight }],
@@ -211,7 +219,6 @@ export default {
   },
   async mounted() {
     await this.getUserAnimal()
-    this.backendDomain = import.meta.env.VITE_API_PATH
   },
 }
 </script>
@@ -331,7 +338,7 @@ export default {
             <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
               <td class="p-4 border-b border-primary-50">
                 <div class="flex items-center gap-3">
-                  <img :src="animal.avatar ? backendDomain + animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                  <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                   <div class="flex flex-col">
                     <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
                     <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
