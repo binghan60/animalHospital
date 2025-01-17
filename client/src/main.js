@@ -21,10 +21,10 @@ defineRule('length', (value, [min, max]) => {
   }
   const numericValue = value.length
   if (numericValue < min) {
-    return `請輸入至少 ${min} 個字`
+    return `請輸入至少 ${min} 個字元`
   }
   if (numericValue > max) {
-    return `請輸入不超過 ${max} 個字`
+    return `長度限制最多 ${max} 個字元`
   }
   return true
 })
