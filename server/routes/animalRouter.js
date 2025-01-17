@@ -9,11 +9,6 @@ dotenv.config();
 const router = express.Router();
 const upload = multer();
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 const streamUpload = (req) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -56,6 +51,11 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
         }
         let avatarUrl = null;
         if (req.file) {
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET,
+            });
             const uploadResult = await streamUpload(req);
             avatarUrl = uploadResult.secure_url; // Cloudinary回傳圖片URL
         }
@@ -124,6 +124,11 @@ router.put('/edit', upload.single('avatar'), async (req, res) => {
         }
         let avatarUrl = animal.avatar;
         if (req.file) {
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET,
+            });
             if (animal.avatar) {
                 const publicId = animal.avatar.split('/').pop().split('.')[0];
                 await cloudinary.uploader.destroy('avatars/' + publicId);
@@ -187,6 +192,11 @@ router.delete('/delete/:animalId', async (req, res) => {
             return res.status(404).json({ message: '動物未找到' });
         }
         if (animal.avatar) {
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET,
+            });
             const publicId = animal.avatar.split('/').pop().split('.')[0];
             await cloudinary.uploader.destroy('avatars/' + publicId);
         }
