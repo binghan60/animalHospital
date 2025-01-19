@@ -2,21 +2,33 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
     res.send({ message: 'UserRouter' });
 });
+router.get('/allUser', async (req, res) => {
+    try {
+        const user = await User.find({}).select('name _id');
+        res.status(200).json(user);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: '伺服器錯誤' });
+    }
+});
 router.post('/register', async (req, res) => {
     try {
-        const { account, password } = req.body;
-        if (!account || !password) {
+        const { account, nickname, password } = req.body;
+        if (!account || !password || !nickname) {
             return res.status(400).json({ message: '參數不足' });
         }
-        const existingUser = await User.findOne({ account });
+        const existingUser = await User.findOne({
+            $or: [{ account }, { name: nickname }],
+        });
         if (existingUser) {
-            return res.status(400).json({ message: '帳號重複' });
+            return res.status(400).json({ message: '帳號或暱稱已存在' });
         }
         const passwordString = String(password);
         const salt = await bcrypt.genSalt(10);
@@ -55,8 +67,9 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
         const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
         const response = user.toObject();
+        response.role = 'user';
         delete response.password;
-        return res.status(200).json({ ...response, message: '登入成功', token, expiresAt, role: 'user' });
+        return res.status(200).json({ ...response, message: '登入成功', token, expiresAt });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: '伺服器錯誤' });
@@ -78,6 +91,7 @@ router.post('/tokenLogin', async (req, res) => {
         }
         const response = user.toObject();
         delete response.password;
+        response.role = 'user';
         return res.status(200).json({ ...response, message: '登入成功', token });
     });
 });
