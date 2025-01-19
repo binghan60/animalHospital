@@ -12,6 +12,7 @@ export default {
       registerForm: {
         role: '',
         account: '',
+        nickname: '',
         password: '',
         confirmPassword: '',
         showPassword: false,
@@ -22,10 +23,11 @@ export default {
   methods: {
     async register() {
       try {
-        const { account, password, role } = this.registerForm
+        const { account, nickname, password, role } = this.registerForm
         const payload = {
           account,
           password,
+          nickname,
         }
         const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/register`, payload, {
           headers: {
@@ -50,10 +52,10 @@ export default {
       <h2 class="mb-6 text-2xl font-bold text-center text-primary-900">註冊</h2>
       <VForm @submit="register">
         <div class="mb-4">
-          <label for="role" class="text-primary-900">選擇身份*</label>
+          <label for="role" class="text-primary-900">請選擇註冊身份*</label>
           <VField id="role" v-model="registerForm.role" name="role" as="select" rules="required" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none">
             <option value="" disabled selected>請選擇</option>
-            <!-- <option value="user">飼主</option> -->
+            <option value="user">飼主</option>
             <option value="hospital">醫院</option>
           </VField>
           <ErrorMessage class="mt-1 text-sm text-red-600" name="role" />
@@ -87,8 +89,8 @@ export default {
         </div>
 
         <div v-show="registerForm.role === 'user'" class="mb-4">
-          <label for="nickname" class="text-primary-900">暱稱</label>
-          <VField id="nickname" v-model="registerForm.nickname" type="text" name="nickname" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入暱稱" autocomplete="off" />
+          <label for="nickname" class="text-primary-900">暱稱*</label>
+          <VField id="nickname" v-model="registerForm.nickname" rules="required|length:1,20" type="text" name="nickname" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 focus:outline-none" placeholder="請輸入暱稱" autocomplete="off" />
           <ErrorMessage class="mt-1 text-sm text-red-600" name="nickname" />
         </div>
         <div v-show="registerForm.role === 'hospital'" class="mb-4">
