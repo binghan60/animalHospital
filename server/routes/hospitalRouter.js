@@ -66,15 +66,17 @@ router.post('/tokenLogin', async (req, res) => {
             if (err) {
                 return res.status(400).json({ message: '登入失敗' });
             }
-            const hospital = await Hospital.findById(decoded._id).lean();
-            delete hospital.password;
+            const hospital = await Hospital.findById(decoded._id);
             if (!hospital) {
                 return res.status(400).json({ message: '登入失敗' });
             }
             if (!hospital.isActive) {
                 return res.status(400).json({ message: '登入失敗' });
             }
-            return res.status(200).json({ ...hospital, message: '登入成功', token });
+            const response = hospital.toObject();
+            delete response.password;
+            response.role = 'hospital';
+            return res.status(200).json({ ...response, message: '登入成功', token });
         });
     }
 });
