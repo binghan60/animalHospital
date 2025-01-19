@@ -142,13 +142,12 @@ export default {
         this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
         this.animal.Info = data
-        console.log(data)
         this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async getDiaryBloodSugar() {
@@ -183,14 +182,15 @@ export default {
         })
         this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
-        this.$toast.success(data.message)
         this.modal.weight.toggle = false
         this.modal.weight.value = ''
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
         this.modal.weight.loading = false
+        this.$toast.success(data.message)
+      } catch (error) {
+        this.isLoading = false
+        this.modal.weight.loading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async createBloodSugarCurve() {
@@ -208,14 +208,15 @@ export default {
           headers: { 'Content-Type': 'application/json' },
         })
         await this.updateBloodSugarCurveChart()
-        this.$toast.success('新增血糖曲線成功')
         this.modal.bloodSugarCurve.toggle = false
         this.modal.bloodSugarCurve.fields = [{ time: '', value: '' }]
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
         this.modal.bloodSugarCurve.loading = false
+        this.$toast.success('新增血糖曲線成功')
+      } catch (error) {
+        this.isLoading = false
+        this.modal.bloodSugarCurve.loading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async updateBloodSugarCurveChart() {
@@ -303,19 +304,20 @@ export default {
           },
         })
         await this.getWeekBloodSugarData()
-        this.$toast.success(data.message)
         const range = this.getDateRange('week')
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
         this.closeTaskModal()
+        this.$toast.success(data.message)
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async editTask() {
       try {
+        this.isLoading = true
         const payload = {
           animalId: this.animal.Id,
           taskId: this.editRecord.taskId,
@@ -324,14 +326,15 @@ export default {
         }
         const { data } = await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/update/${this.editRecord.recordId}`, payload)
         await this.getWeekBloodSugarData()
-        this.$toast.success(data.message)
         const range = this.getDateRange('week')
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
+        this.isLoading = false
         this.modal.editNotes.toggle = false
+        this.$toast.success(data.message)
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async deleteTask(dataId, taskId) {
@@ -348,15 +351,15 @@ export default {
           },
         })
         await this.getWeekBloodSugarData()
-        this.$toast.success(data.message)
         const range = this.getDateRange('week')
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
-        this.modal.editNotes.toggle = false
         this.isLoading = false
+        this.modal.editNotes.toggle = false
+        this.$toast.success(data.message)
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async getWeekBloodSugarData() {
@@ -383,6 +386,7 @@ export default {
     },
     async getAverage(startDate, endDate) {
       try {
+        this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/average`, {
           params: {
             animalId: this.animal.Id,
@@ -390,8 +394,10 @@ export default {
             endDate,
           },
         })
+        this.isLoading = false
         return data
       } catch (error) {
+        this.isLoading = false
         this.$$toast.error(error.response.data.message)
       }
     },
@@ -814,7 +820,7 @@ export default {
       </div>
       <!-- 新增事項 -->
       <div v-show="modal.addNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @click="closeTaskModal">
-        <div class="p-6 bg-white rounded-md shadow-lg w-96">
+        <div class="p-6 bg-white rounded-md shadow-lg w-96" @click.stop>
           <VForm @submit="createTask">
             <h3 class="mb-4 text-lg font-semibold">新增事項 {{ newRecord.date }}</h3>
             <div class="mb-4">
@@ -845,7 +851,7 @@ export default {
         </div>
       </div>
       <div v-show="modal.editNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @click="modal.editNotes.toggle = false">
-        <div class="p-6 bg-white rounded-md shadow-lg w-96">
+        <div class="p-6 bg-white rounded-md shadow-lg w-96" @click.stop>
           <VForm @submit="editTask">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold">編輯事項 {{ editRecord.date }}</h3>
@@ -886,7 +892,7 @@ export default {
     </div>
     <!-- 體重視窗 -->
     <div v-show="modal.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.weight.toggle = false">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @click.stop>
         <VForm @submit="createWeight">
           <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
           <div class="grid grid-cols-[1fr_1fr] gap-x-4 lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
@@ -909,7 +915,7 @@ export default {
     </div>
     <!-- 血糖曲線視窗 -->
     <div v-show="modal.bloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.bloodSugarCurve.toggle = false">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @click.stop>
         <VForm @submit="createBloodSugarCurve">
           <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
           <VField v-model="modal.bloodSugarCurve.date" name="bloodSugarCurveDate" rules="required" type="date" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
@@ -932,7 +938,7 @@ export default {
       </div>
     </div>
     <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.tips.toggle = false">
-      <div class="relative bg-white p-2 lg:p-4 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+      <div class="relative bg-white p-2 lg:p-4 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @click.stop>
         <!-- 關閉按鈕 -->
         <button class="absolute text-primary-900 bg-white h-[25px] w-[25px] top-2 right-2 hover:text-gray-700 focus:outline-none" @click="modal.tips.toggle = false"><i class="fa-solid fa-x fa-fw"></i></button>
         <table class="w-full text-sm text-left text-gray-500 bg-white border-collapse rounded-md shadow-lg">

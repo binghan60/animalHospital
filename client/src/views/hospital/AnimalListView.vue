@@ -61,10 +61,10 @@ export default {
         this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
         this.animalList = data
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
       }
     },
     async createNewAnimal() {
@@ -80,7 +80,6 @@ export default {
           }
         })
         await axios.post(`${import.meta.env.VITE_API_PATH}/animal/create`, formData)
-        this.$toast.success('新增成功')
         await this.getUserAnimal()
         this.createFormToggle = false
         this.createForm = {
@@ -98,10 +97,11 @@ export default {
           admissionDate: new Date().toISOString().slice(0, 10),
           sharedWith: [],
         }
-      } catch (error) {
-        this.$toast.error(error.response?.data?.message || '新增失敗')
-      } finally {
         this.isLoading = false
+        this.$toast.success('新增成功')
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response?.data?.message || '新增失敗')
       }
     },
     async editAnimal() {
@@ -116,13 +116,13 @@ export default {
           }
         })
         await axios.put(`${import.meta.env.VITE_API_PATH}/animal/edit`, formData)
-        this.$toast.success('修改成功')
-        this.editFormToggle = false
         await this.getUserAnimal()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
+        this.editFormToggle = false
         this.isLoading = false
+        this.$toast.success('修改成功')
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response?.data?.message || '編輯失敗')
       }
     },
     async deleteAnimal(event, animalId) {
@@ -130,12 +130,12 @@ export default {
       try {
         this.isLoading = true
         const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${animalId}`)
-        this.$toast.success(data.message)
         await this.getUserAnimal()
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-      } finally {
         this.isLoading = false
+        this.$toast.success(data.message)
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response?.data?.message || '刪除失敗')
       }
     },
     async getUserList() {
@@ -200,21 +200,14 @@ export default {
         return 0
       })
     },
-    createFileChange(event) {
+    fileChange(type, event) {
+      const form = type === 'create' ? this.createForm : this.editForm
       const file = event.target.files[0]
-      this.createForm.avatar = file
+      form.avatar = file
       if (file) {
-        this.createForm.avatarUrl = URL.createObjectURL(file)
+        form.avatarUrl = URL.createObjectURL(file)
       }
     },
-    editFileChange(event) {
-      const file = event.target.files[0]
-      this.editForm.avatar = file
-      if (file) {
-        this.editForm.avatarUrl = URL.createObjectURL(file)
-      }
-    },
-
     selectUser(type, item) {
       const form = type === 'create' ? this.createForm : this.editForm
       if (form.sharedWith.some(user => user._id === item._id)) {
@@ -438,12 +431,12 @@ export default {
       </div> -->
     </div>
     <div v-show="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70" @click="createFormToggle = false">
-      <div class="w-full max-w-xl bg-primary-50 rounded-xl">
+      <div class="w-full max-w-xl bg-primary-50 rounded-xl" @click.stop>
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="createNewAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">新增動物資料</h2>
           <div class="space-y-4">
             <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 rounded-lg cursor-pointer" @click="this.$refs.createFile.click()">
-              <input ref="createFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="createFileChange" />
+              <input ref="createFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="fileChange('create', $event)" />
               <img class="object-cover w-full h-full rounded-lg" :src="createForm.avatar ? createForm.avatarUrl : '/image/sampleAvatar.png'" />
             </div>
             <div class="grid items-center grid-cols-3">
@@ -539,12 +532,12 @@ export default {
     </div>
     <!-- //編輯 -->
     <div v-show="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70" @click="editFormToggle = false">
-      <div class="w-full max-w-xl bg-primary-50 rounded-xl">
+      <div class="w-full max-w-xl bg-primary-50 rounded-xl" @click.stop>
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="editAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>
           <div class="space-y-4">
             <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 cursor-pointer rounded-lg" @click="this.$refs.editFile.click()">
-              <input ref="editFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="editFileChange" />
+              <input ref="editFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="fileChange('edit', $event)" />
               <img class="object-cover w-full h-full rounded-lg" :src="editForm.avatarUrl ? editForm.avatarUrl : '/image/sampleAvatar.png'" />
             </div>
             <div class="grid items-center grid-cols-3">
