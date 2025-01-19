@@ -15,7 +15,7 @@ const animalSchema = new mongoose.Schema(
         type: { type: String, enum: ['cat', 'dog', 'other', ''], default: '' },
         insulinBrand: { type: String, default: '' },
         admissionDate: { type: Date, default: Date.now },
-        sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+        sharedWith: [{ _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, name: { type: String, required: true } }],
     },
     { timestamps: true }
 );
