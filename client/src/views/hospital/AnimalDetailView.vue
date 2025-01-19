@@ -328,8 +328,7 @@ export default {
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
       } catch (error) {
-        console.log(error)
-        // this.$toast.error(error.response.data.message)
+        this.$toast.error(error.response.data.message)
       } finally {
         this.modal.editNotes.toggle = false
       }
@@ -431,10 +430,10 @@ export default {
       }
     },
     bloodSugarColor(value) {
-      if (value === '' || value === null || value === undefined) {
-        return 'bg-white'
+      if (value === '' || value === null || value === undefined || value == 0) {
+        return 'bg-gray-200'
       }
-      if (value >= 0 && value <= 249) {
+      if (value > 0 && value <= 249) {
         return 'bg-green-100'
       }
       if (value >= 250 && value <= 399) {

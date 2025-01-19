@@ -26,6 +26,7 @@ export default {
         insulinBrand: '',
         admissionDate: new Date().toISOString().slice(0, 10),
         sharedWith: [],
+        searchText: '',
       },
       editForm: {
         avatar: '',
@@ -42,6 +43,7 @@ export default {
         insulinBrand: '',
         admissionDate: new Date().toISOString().slice(0, 10),
         sharedWith: [],
+        searchText: '',
       },
       createFormToggle: false,
       editFormToggle: false,
@@ -50,6 +52,7 @@ export default {
       filterType: '',
       birthdayType: 'date',
       isLoading: false,
+      userList: [{ name: 'test' }, { name: 'test1' }, { name: 'example' }, { name: 'apple' }],
     }
   },
   methods: {
@@ -57,9 +60,7 @@ export default {
       try {
         this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/${this.user._id}`)
-        console.log(this.user._id)
         this.animalList = data
-        console.log(data)
       } catch (error) {
         this.$toast.error(error.response.data.message)
       } finally {
@@ -137,11 +138,18 @@ export default {
         this.isLoading = false
       }
     },
+    async getUserList() {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/user/allUser`)
+        this.userList = data
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
+    },
     editToggle(event, animalId) {
       event.stopPropagation()
       const animal = this.animalList.find(x => x._id === animalId)
-      const { _id, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = animal
-
+      const { _id, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, sharedWith, admissionDate } = animal
       this.editForm = {
         animalId: _id,
         avatarUrl: animal.avatar,
@@ -155,7 +163,8 @@ export default {
         type,
         insulinBrand,
         admissionDate: new Date(admissionDate).toISOString().slice(0, 10),
-        sharedWith: [],
+        sharedWith: [...sharedWith],
+        searchText: '',
       }
       this.editFormToggle = true
     },
@@ -205,6 +214,23 @@ export default {
         this.editForm.avatarUrl = URL.createObjectURL(file)
       }
     },
+
+    selectUser(type, item) {
+      const form = type === 'create' ? this.createForm : this.editForm
+      if (form.sharedWith.some(user => user._id === item._id)) {
+        form.searchText = ''
+      } else {
+        form.sharedWith.push(item)
+        form.searchText = ''
+      }
+    },
+    removeUser(type, id) {
+      const form = type === 'create' ? this.createForm : this.editForm
+      const index = form.sharedWith.findIndex(user => user._id === id)
+      if (index !== -1) {
+        form.sharedWith.splice(index, 1)
+      }
+    },
   },
 
   computed: {
@@ -216,9 +242,24 @@ export default {
         return matchesName && matchesType
       })
     },
+    filteredData() {
+      if (this.createForm.searchText == '') {
+        return this.userList
+      } else {
+        return this.userList.filter(item => item.name.toLowerCase().includes(this.createForm.searchText.toLowerCase()))
+      }
+    },
+    editUserData() {
+      if (this.editForm.searchText == '') {
+        return this.userList
+      } else {
+        return this.userList.filter(item => item.name.toLowerCase().includes(this.editForm.searchText.toLowerCase()))
+      }
+    },
   },
   async mounted() {
     await this.getUserAnimal()
+    await this.getUserList()
   },
 }
 </script>
@@ -335,7 +376,7 @@ export default {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/animal/${animal._id}`)">
+            <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-100" @click="this.$router.push(`/hospital/animal/${animal._id}`)">
               <td class="p-4 border-b border-primary-50">
                 <div class="flex items-center gap-3">
                   <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
@@ -466,6 +507,24 @@ export default {
               <label for="insulinBrand" class="text-left text-primary-700">胰島素品牌</label>
               <VField id="insulinBrand" v-model="createForm.insulinBrand" name="insulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
             </div>
+            <div class="relative grid items-center grid-cols-3">
+              <label for="shareWith" class="text-left text-primary-700">資料共享</label>
+              <VField id="shareWith" v-model="createForm.searchText" name="shareWith" type="text" placeholder="請輸入用戶暱稱" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+              <!-- 顯示過濾結果 -->
+              <div v-if="filteredData.length && createForm.searchText" class="absolute left-0 right-0 z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg top-full">
+                <ul class="overflow-y-auto max-h-48">
+                  <li v-for="item in filteredData" :key="item.name" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('create', item)">
+                    {{ item.name }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 col-span-3 gap-2">
+              <span v-for="user in createForm.sharedWith" :key="user._id" class="block col-span-1 px-1 py-1 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100">
+                <i class="w-6 h-6 text-base rounded-full fa-solid fa-x fa-fw hover:bg-primary-400 bg-primary-200" @click="removeUser('create', user._id)"></i>
+                {{ user.name }}
+              </span>
+            </div>
             <div class="grid items-center grid-cols-3">
               <label for="admissionDate" class="text-left text-primary-700">新增日期</label>
               <VField id="admissionDate" v-model="createForm.admissionDate" name="admissionDate" type="date" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" />
@@ -486,7 +545,7 @@ export default {
           <div class="space-y-4">
             <div class="w-full h-[200px] lg:h-[300px] bg-gray-200 cursor-pointer rounded-lg" @click="this.$refs.editFile.click()">
               <input ref="editFile" class="hidden" type="file" accept="image/png, image/jpeg" @change="editFileChange" />
-              <img class="object-cover w-full h-full rounded-lg" :src="editForm.avatarUrl" />
+              <img class="object-cover w-full h-full rounded-lg" :src="editForm.avatarUrl ? editForm.avatarUrl : '/image/sampleAvatar.png'" />
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="editName" class="text-lg text-left text-primary-700">姓名</label>
@@ -540,6 +599,24 @@ export default {
             <div class="grid items-center grid-cols-3">
               <label for="editInsulinBrand" class="text-left text-primary-700">胰島素品牌</label>
               <VField id="editInsulinBrand" v-model="editForm.insulinBrand" name="editInsulinBrand" type="text" placeholder="胰島素品牌" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+            </div>
+            <div class="relative grid items-center grid-cols-3">
+              <label for="editShareWith" class="text-left text-primary-700">資料共享</label>
+              <VField id="editShareWith" v-model="editForm.searchText" name="editShareWith" type="text" placeholder="請輸入用戶暱稱" class="col-span-2 p-1.5 text-sm border rounded-lg shadow-sm border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300" autocomplete="off" />
+              <!-- 顯示過濾結果 -->
+              <div v-if="editUserData.length && editForm.searchText" class="absolute left-0 right-0 z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg top-full">
+                <ul class="overflow-y-auto max-h-48">
+                  <li v-for="item in editUserData" :key="item.name" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('edit', item)">
+                    {{ item.name }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="grid col-span-3 gap-2 lg:grid-cols-2">
+              <span v-for="user in editForm.sharedWith" :key="user._id" class="block col-span-1 px-1 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100">
+                <i class="w-6 h-6 text-base rounded-full fa-solid fa-x fa-fw hover:bg-primary-400 bg-primary-200" @click="removeUser('edit', user._id)"></i>
+                {{ user.name }}
+              </span>
             </div>
             <div class="grid items-center grid-cols-3">
               <label for="editAdmissionDate" class="text-left text-primary-700">新增日期</label>
