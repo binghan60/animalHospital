@@ -52,9 +52,9 @@ export default {
       averageChart: {
         title: '',
         averages: {
-          combinedAverage: '',
-          morning: '',
-          evening: '',
+          combinedAverage: 0,
+          morning: 0,
+          evening: 0,
         },
         data: {
           labels: [],
@@ -139,19 +139,17 @@ export default {
   methods: {
     async getAnimalInfo() {
       try {
-        this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${this.animal.Id}`)
         this.animal.Info = data
         this.weightChart.data.labels = data.weight.map(x => new Date(x.date).toISOString().slice(0, 10))
         this.weightChart.data.datasets[0].data = data.weight.map(x => x.value)
-        this.isLoading = false
       } catch (error) {
-        this.isLoading = false
         this.$toast.error(error.response.data.message)
       }
     },
     async getDiaryBloodSugar() {
       try {
+        this.isLoading = true
         const { year, month, lastDay } = this.newtoday
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
           params: {
@@ -161,8 +159,10 @@ export default {
           },
         })
         this.animal.diaryBloodSugar = data
+        this.isLoading = false
         return data
       } catch (error) {
+        this.isLoading = false
         this.$toast.error(error.response.data.message)
       }
     },
@@ -386,7 +386,6 @@ export default {
     },
     async getAverage(startDate, endDate) {
       try {
-        this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/average`, {
           params: {
             animalId: this.animal.Id,
@@ -394,10 +393,8 @@ export default {
             endDate,
           },
         })
-        this.isLoading = false
         return data
       } catch (error) {
-        this.isLoading = false
         this.$$toast.error(error.response.data.message)
       }
     },
