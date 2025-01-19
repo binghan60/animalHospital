@@ -12,6 +12,7 @@ export default {
     async getAnimalList() {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/share/${this.user._id}`)
+        console.log('A')
         this.animalList = data
       } catch (error) {
         this.$toast.error(error.response.data.message)
