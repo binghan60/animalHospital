@@ -437,7 +437,7 @@ export default {
         </div>
       </div> -->
     </div>
-    <div v-show="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="createFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70" @click="createFormToggle = false">
       <div class="w-full max-w-xl bg-primary-50 rounded-xl">
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="createNewAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">新增動物資料</h2>
@@ -538,7 +538,7 @@ export default {
       </div>
     </div>
     <!-- //編輯 -->
-    <div v-show="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="editFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70" @click="editFormToggle = false">
       <div class="w-full max-w-xl bg-primary-50 rounded-xl">
         <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="editAnimal">
           <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900">修改動物資料</h2>

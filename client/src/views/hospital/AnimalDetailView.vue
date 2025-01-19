@@ -813,7 +813,7 @@ export default {
         </div>
       </div>
       <!-- 新增事項 -->
-      <div v-show="modal.addNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div v-show="modal.addNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @click="closeTaskModal">
         <div class="p-6 bg-white rounded-md shadow-lg w-96">
           <VForm @submit="createTask">
             <h3 class="mb-4 text-lg font-semibold">新增事項 {{ newRecord.date }}</h3>
@@ -844,7 +844,7 @@ export default {
           </VForm>
         </div>
       </div>
-      <div v-show="modal.editNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div v-show="modal.editNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @click="modal.editNotes.toggle = false">
         <div class="p-6 bg-white rounded-md shadow-lg w-96">
           <VForm @submit="editTask">
             <div class="flex items-center justify-between mb-4">
@@ -885,7 +885,7 @@ export default {
       <ChartComponent type="line" :chartData="chart.data" :chartOptions="chart.option"></ChartComponent>
     </div>
     <!-- 體重視窗 -->
-    <div v-show="modal.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="modal.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.weight.toggle = false">
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <VForm @submit="createWeight">
           <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
@@ -908,7 +908,7 @@ export default {
       </div>
     </div>
     <!-- 血糖曲線視窗 -->
-    <div v-show="modal.bloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="modal.bloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.bloodSugarCurve.toggle = false">
       <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <VForm @submit="createBloodSugarCurve">
           <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
@@ -931,7 +931,7 @@ export default {
         </VForm>
       </div>
     </div>
-    <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
+    <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @click="modal.tips.toggle = false">
       <div class="relative bg-white p-2 lg:p-4 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <!-- 關閉按鈕 -->
         <button class="absolute text-primary-900 bg-white h-[25px] w-[25px] top-2 right-2 hover:text-gray-700 focus:outline-none" @click="modal.tips.toggle = false"><i class="fa-solid fa-x fa-fw"></i></button>
