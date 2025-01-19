@@ -4,6 +4,7 @@ export default defineStore('authStore', {
   state: () => ({
     user: {
       __v: '',
+      role: '',
       _id: '',
       username: '',
       title: '',
@@ -30,6 +31,7 @@ export default defineStore('authStore', {
       this.user = {}
       this.redirectPath = null
       document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     },
     setRedirectPath(path) {
       this.redirectPath = path

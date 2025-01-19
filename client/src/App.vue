@@ -3,8 +3,10 @@ import { RouterView } from 'vue-router'
 import authStore from '@/stores/auth'
 import { mapState, mapActions } from 'pinia'
 import axios from 'axios'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+
 export default {
-  components: { RouterView },
+  components: { NavbarComponent, RouterView },
   data() {
     return { isLoading: false }
   },
@@ -26,7 +28,7 @@ export default {
             },
           )
           this.auth(data)
-          const redirectPath = this.redirectPath || '/animallist'
+          const redirectPath = this.redirectPath || '/hospital/animallist'
           this.$router.push(redirectPath)
           this.clearRedirectPath()
           axios.defaults.headers.common.Authorization = `Bearer ${token}`
@@ -63,7 +65,10 @@ export default {
 
 <template>
   <div>
-    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
-    <RouterView></RouterView>
+    <NavbarComponent></NavbarComponent>
+    <div class="p-4 mx-auto max-w-7xl lg:p-2">
+      <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+      <RouterView class="mb-16"></RouterView>
+    </div>
   </div>
 </template>
