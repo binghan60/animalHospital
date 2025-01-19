@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 import Animal from '../models/animalModel.js';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 dotenv.config();
 const router = express.Router();
@@ -113,7 +114,18 @@ router.get('/:hospitalId', async (req, res) => {
     }
 });
 router.put('/edit', upload.single('avatar'), async (req, res) => {
-    const { animalId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
+    const { animalId, name, gender, weight, birthday, sterilized, breed, bloodType, type, insulinBrand, sharedWith, admissionDate } = req.body;
+    // 確保 sharedWith 和 weight 正確解析
+    const parsedSharedWith = JSON.parse(sharedWith || '[]');
+    let parsedWeight = [];
+    if (weight) {
+        try {
+            parsedWeight = JSON.parse(weight);
+        } catch (error) {
+            console.error('解析 weight 失敗:', error);
+            return res.status(400).send({ message: '體重資料格式錯誤' });
+        }
+    }
     if (!animalId) {
         return res.status(400).send({ message: '缺少動物 ID' });
     }
@@ -139,17 +151,19 @@ router.put('/edit', upload.single('avatar'), async (req, res) => {
         animal.bloodType = bloodType || animal.bloodType;
         animal.type = type || animal.type;
         animal.insulinBrand = insulinBrand || animal.insulinBrand;
+        animal.sharedWith = parsedSharedWith;
         animal.admissionDate = admissionDate || animal.admissionDate;
         animal.avatar = avatarUrl;
-        if (weight && Array.isArray(animal.weight) && animal.weight.length > 0) {
-            //體重有資料就改最後一筆，日期改為今天
+        if (parsedWeight.length > 0) {
             const today = new Date().toISOString().split('T')[0];
-            const lastWeightEntry = animal.weight[animal.weight.length - 1];
-            lastWeightEntry.value = weight.value || lastWeightEntry.value;
-            lastWeightEntry.date = today;
-        } else {
-            const today = new Date().toISOString().split('T')[0];
-            animal.weight = [{ value: weight.value, date: today }];
+            // 體重有資料就改最後一筆，日期改為今天
+            if (animal.weight && Array.isArray(animal.weight) && animal.weight.length > 0) {
+                const lastWeightEntry = animal.weight[animal.weight.length - 1];
+                lastWeightEntry.value = parsedWeight[0].value || lastWeightEntry.value; // 用傳入的值更新
+                lastWeightEntry.date = today;
+            } else {
+                animal.weight = [{ value: parsedWeight[0].value, date: today }];
+            }
         }
         await animal.save();
         res.send({ animal });
@@ -197,4 +211,21 @@ router.delete('/delete/:animalId', async (req, res) => {
         res.status(500).json({ message: '伺服器錯誤' });
     }
 });
+router.get('/share/:userId', async (req, res) => {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.params.userId.trim());
+        const animals = await Animal.find({
+            'sharedWith._id': userId, // 查詢 sharedWith 中 _id 是否匹配
+        });
+        if (animals.length > 0) {
+            res.status(200).json(animals);
+        } else {
+            res.status(404).json({ message: '沒有找到符合條件的動物' });
+        }
+    } catch (error) {
+        console.error('查詢失敗:', error);
+        res.status(500).json({ message: '伺服器錯誤', error });
+    }
+});
+
 export default router;
