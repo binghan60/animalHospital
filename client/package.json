@@ -20,7 +20,8 @@
     "vue-chartjs": "^5.3.2",
     "vue-loading-overlay": "6.0",
     "vue-router": "^4.4.5",
-    "vue-toastification": "^2.0.0-rc.5"
+    "vue-toastification": "^2.0.0-rc.5",
+    "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
