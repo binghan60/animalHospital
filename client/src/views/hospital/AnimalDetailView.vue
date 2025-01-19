@@ -648,7 +648,7 @@ export default {
 <template>
   <div>
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <div class="h-full bg-white rounded-lg shadow-lg">
+      <div class="max-h-[450px] bg-white rounded-lg shadow-lg">
         <img class="object-cover w-full h-full p-4 lg:p-6" :src="animal.Info.avatar ? animal.Info.avatar : '/image/sampleAvatar.png'" alt="" />
       </div>
       <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 border border-gray-200 h-full min-h-[300px]">
@@ -761,7 +761,7 @@ export default {
           </div>
           <div v-else :key="index" :class="['p-2 m-1 rounded-md h-[264px] hidden lg:grid', { lazyLoading: day.loading }]"></div>
         </template>
-        <div v-show="showTooltip" class="absolute p-4 border rounded-lg shadow-lg border-primary-300 bg-primary-50" :style="tooltipStyle">
+        <div v-show="showTooltip" class="absolute p-4 bg-white border rounded-lg shadow-lg border-primary-300" :style="tooltipStyle">
           <button type="button" class="absolute text-primary-500 top-2 right-2 hover:text-primary-700" @click="showTooltip = false">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -932,24 +932,24 @@ export default {
       </div>
     </div>
     <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70">
-      <div class="relative bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
+      <div class="relative bg-white p-2 lg:p-4 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl">
         <!-- 關閉按鈕 -->
         <button class="absolute text-primary-900 bg-white h-[25px] w-[25px] top-2 right-2 hover:text-gray-700 focus:outline-none" @click="modal.tips.toggle = false"><i class="fa-solid fa-x fa-fw"></i></button>
         <table class="w-full text-sm text-left text-gray-500 bg-white border-collapse rounded-md shadow-lg">
           <thead class="text-center bg-primary-100">
             <tr>
-              <th class="px-2 py-3 font-semibold border-b text-primary-600 border-primary-200">時間</th>
-              <th class="px-2 py-3 font-semibold border-b text-primary-600 border-primary-200">血糖值</th>
-              <th class="px-2 py-3 font-semibold border-b text-primary-600 border-primary-200">胰島素</th>
-              <th class="px-2 py-3 font-semibold border-b text-primary-600 border-primary-200">備註</th>
+              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">時間</th>
+              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">血糖值</th>
+              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">胰島素</th>
+              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">備註</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="data in hoverData" :key="data.id" class="border-b hover:bg-primary-50 text-primary-900">
-              <td class="px-6 py-4">{{ data?.time }}</td>
-              <td class="px-6 py-4">{{ data?.bloodSugar || '無' }}</td>
-              <td class="px-6 py-4">{{ data?.insulin || '無' }}</td>
-              <td class="px-6 py-4">{{ data?.notes || '無' }}</td>
+              <td class="px-2 py-4">{{ data?.time }}</td>
+              <td class="px-2 py-4">{{ data?.bloodSugar || '無' }}</td>
+              <td class="px-2 py-4">{{ data?.insulin || '無' }}</td>
+              <td class="px-2 py-4">{{ data?.notes || '無' }}</td>
             </tr>
           </tbody>
         </table>
