@@ -49,6 +49,7 @@ export default {
       }
       return null
     },
+
     ...mapActions(authStore, ['auth', 'clearRedirectPath', 'setToken']),
   },
   computed: {
@@ -64,11 +65,11 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="transition-colors bg-primary-50 dark:bg-darkPrimary-800">
     <NavbarComponent></NavbarComponent>
     <div class="p-4 mx-auto max-w-7xl lg:p-2">
       <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
-      <RouterView class="mb-16"></RouterView>
+      <RouterView class="lg:mb-16"></RouterView>
     </div>
   </div>
 </template>

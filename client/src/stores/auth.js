@@ -21,6 +21,7 @@ export default defineStore('authStore', {
     },
     redirectPath: null,
     token: '',
+    isDark: false,
   }),
   actions: {
     auth(user) {
@@ -28,10 +29,15 @@ export default defineStore('authStore', {
       this.user.isLogin = true
     },
     clearAuth() {
-      this.user = {}
-      this.redirectPath = null
-      document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-      document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      if (this.user.isLogin) {
+        this.user = {}
+        this.redirectPath = null
+        document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        return 1
+      } else {
+        return 0
+      }
     },
     setRedirectPath(path) {
       this.redirectPath = path
@@ -41,6 +47,14 @@ export default defineStore('authStore', {
     },
     setToken(token) {
       this.token = token
+    },
+    toggleTheme() {
+      this.isDark = !this.isDark
+      if (this.isDark) {
+        document.querySelector('body').classList.add('dark')
+      } else {
+        document.querySelector('body').classList.remove('dark')
+      }
     },
   },
 })
