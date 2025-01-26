@@ -1194,12 +1194,12 @@ export default {
     </div>
     <!-- 體重視窗 -->
     <div v-show="modal.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown.stop="modal.weight.toggle = false">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl dark:bg-darkPrimary-700" @mousedown.stop>
         <VForm @submit="createWeight">
-          <h2 class="mb-2 text-xl font-semibold text-gray-800">新增體重紀錄</h2>
+          <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">新增體重紀錄</h2>
           <div class="grid grid-cols-[1fr_1fr] gap-x-4 lg:grid-cols-2 items-center border p-2 rounded-md shadow-md">
-            <VField v-model="modal.weight.date" name="weightDate" rules="required" type="date" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
-            <VField v-model="modal.weight.value" name="weightValue" rules="required" type="number" placeholder="輸入體重" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+            <VField v-model="modal.weight.date" name="weightDate" rules="required" type="date" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" />
+            <VField v-model="modal.weight.value" name="weightValue" rules="required" type="number" placeholder="輸入體重" class="w-full h-10 pl-3 border rounded-md shadow-sm h-1ull0 w-f dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
             <div>
               <ErrorMessage name="weightDate" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
             </div>
@@ -1209,32 +1209,32 @@ export default {
           </div>
 
           <div class="flex justify-between mt-4">
-            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="modal.weight.toggle = false">取消</button>
-            <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: modal.weight.loading }]">確定</button>
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.weight.toggle = false">取消</button>
+            <button type="submit" :class="['w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none', { lazyLoading: modal.weight.loading }]">確定</button>
           </div>
         </VForm>
       </div>
     </div>
     <!-- 血糖曲線視窗 -->
     <div v-show="modal.bloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.bloodSugarCurve.toggle = false">
-      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl dark:bg-darkPrimary-700" @mousedown.stop>
         <VForm @submit="createBloodSugarCurve">
-          <h2 class="mb-2 text-xl font-semibold text-gray-800">建立血糖曲線</h2>
-          <VField v-model="modal.bloodSugarCurve.date" name="bloodSugarCurveDate" rules="required" type="date" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" />
+          <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">建立血糖曲線</h2>
+          <VField v-model="modal.bloodSugarCurve.date" name="bloodSugarCurveDate" rules="required" type="date" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" />
           <ErrorMessage name="bloodSugarCurveDate" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
           <div v-for="(field, index) in modal.bloodSugarCurve.fields" :key="index" class="my-4 space-y-4">
             <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
-              <input v-model="field.time" type="time" name="sugarCurveTime" class="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
-              <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:outline-2 focus:outline-primary-300" autocomplete="off" />
+              <input v-model="field.time" type="time" name="sugarCurveTime" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <input v-model="field.value" type="number" name="sugarCurveBloodSugar" placeholder="血糖" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
               <button type="button" class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="modal.bloodSugarCurve.fields.splice(index, 1)">X</button>
             </div>
           </div>
           <div class="flex justify-center my-3">
-            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400" @click="modal.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus fa-fw"></i> 新增欄位</button>
+            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400 dark:bg-lime-600" @click="modal.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus fa-fw"></i> 新增欄位</button>
           </div>
           <div class="flex justify-between">
-            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md hover:bg-gray-400" @click="modal.bloodSugarCurve.toggle = false">取消</button>
-            <button type="submit" :class="['w-1/3 px-6 py-2 text-white transition-all bg-primary-600 rounded-lg shadow-md hover:bg-primary-700', { lazyLoading: modal.bloodSugarCurve.loading }]">確定</button>
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.bloodSugarCurve.toggle = false">取消</button>
+            <button type="submit" :class="['w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none', { lazyLoading: modal.bloodSugarCurve.loading }]">確定</button>
           </div>
         </VForm>
       </div>
