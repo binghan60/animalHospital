@@ -112,7 +112,11 @@ export default {
                 weight: 'bold', // 字重
               },
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -175,7 +179,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -233,7 +241,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -298,7 +310,11 @@ export default {
                 weight: 'bold', // 字重
               },
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -356,7 +372,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -419,7 +439,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -492,7 +516,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -560,7 +588,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -624,7 +656,11 @@ export default {
                 weight: 'bold',
               },
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -685,7 +721,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -727,7 +767,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -776,7 +820,11 @@ export default {
                 weight: 'bold', // 字重
               },
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -831,7 +879,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -878,7 +930,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -935,7 +991,11 @@ export default {
               anchor: 'end',
               align: 'top',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -965,12 +1025,7 @@ export default {
           datasets: [
             {
               data: this.dashboard.stats.insulinBrandStats.map(x => x.count),
-              backgroundColor: [
-                '#A7D8F2', // 粉藍色系
-                '#D3C4E0', // 薰衣草紫
-                '#D0E8D6', // 淺綠色系
-                '#F5D0D6', // 淡粉色系
-              ],
+              backgroundColor: ['#A7D8F2', '#D3C4E0', '#D0E8D6', '#F5D0D6'],
             },
           ],
         }
@@ -986,7 +1041,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
