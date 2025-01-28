@@ -239,14 +239,14 @@ export default {
       if (this.createForm.searchText == '') {
         return this.userList
       } else {
-        return this.userList.filter(item => item.name.toLowerCase().includes(this.createForm.searchText.toLowerCase()))
+        return this.userList.filter(item => item.account.toLowerCase().includes(this.createForm.searchText.toLowerCase()))
       }
     },
     editUserData() {
       if (this.editForm.searchText == '') {
         return this.userList
       } else {
-        return this.userList.filter(item => item.name.toLowerCase().includes(this.editForm.searchText.toLowerCase()))
+        return this.userList.filter(item => item.account.toLowerCase().includes(this.editForm.searchText.toLowerCase()))
       }
     },
   },
@@ -491,20 +491,20 @@ export default {
             </div>
             <div class="relative grid items-center grid-cols-3">
               <label for="shareWith" class="text-left text-primary-700 dark:text-darkPrimary-50">資料共享</label>
-              <VField id="shareWith" v-model="createForm.searchText" name="shareWith" type="text" placeholder="請輸入用戶暱稱" class="h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <VField id="shareWith" v-model="createForm.searchText" name="shareWith" type="text" placeholder="請輸入用戶帳號(手機號碼)" class="h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
               <!-- 顯示過濾結果 -->
               <div v-if="filteredData.length && createForm.searchText" class="absolute left-0 right-0 z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg top-full">
                 <ul class="overflow-y-auto max-h-48">
-                  <li v-for="item in filteredData" :key="item.name" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('create', item)">
-                    {{ item.name }}
+                  <li v-for="item in filteredData" :key="item._id" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('create', item)">
+                    {{ item.account }}
                   </li>
                 </ul>
               </div>
             </div>
-            <div class="grid grid-cols-3 col-span-3 gap-2">
-              <span v-for="user in createForm.sharedWith" :key="user._id" class="block col-span-1 px-1 py-1 transition-all rounded-lg shadow-md cursor-pointer lg:px-3 text-primary-800 bg-primary-100">
+            <div class="grid col-span-3 gap-2 lg:grid-cols-2">
+              <span v-for="user in createForm.sharedWith" :key="user._id" class="block col-span-1 px-1 py-2 transition-all rounded-lg shadow-md cursor-pointer hover:bg-primary-200 dark:hover:bg-darkPrimary-500 dark:bg-darkPrimary-600 lg:px-3 dark:text-darkPrimary-50 text-primary-800 bg-primary-100">
                 <i class="w-6 h-6 text-base rounded-full fa-solid fa-x fa-fw hover:bg-primary-400 bg-primary-200" @click="removeUser('create', user._id)"></i>
-                {{ user.name }}
+                {{ user.account }}
               </span>
             </div>
             <div class="grid items-center grid-cols-3">
@@ -588,8 +588,8 @@ export default {
               <!-- 顯示過濾結果 -->
               <div v-if="editUserData.length && editForm.searchText" class="absolute left-0 right-0 z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg top-full">
                 <ul class="overflow-y-auto max-h-48">
-                  <li v-for="item in editUserData" :key="item.name" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('edit', item)">
-                    {{ item.name }}
+                  <li v-for="item in editUserData" :key="item._id" class="px-4 py-2 cursor-pointer hover:bg-gray-100" @click="selectUser('edit', item)">
+                    {{ item.account }}
                   </li>
                 </ul>
               </div>
@@ -597,7 +597,7 @@ export default {
             <div class="grid col-span-3 gap-2 lg:grid-cols-2">
               <span v-for="user in editForm.sharedWith" :key="user._id" class="block col-span-1 px-1 py-2 transition-all rounded-lg shadow-md cursor-pointer hover:bg-primary-200 dark:hover:bg-darkPrimary-500 dark:bg-darkPrimary-600 lg:px-3 dark:text-darkPrimary-50 text-primary-800 bg-primary-100" @click="removeUser('edit', user._id)">
                 <i class="w-6 h-6 text-base rounded-full fa-solid fa-x fa-fw"></i>
-                {{ user.name }}
+                {{ user.account }}
               </span>
             </div>
             <div class="grid items-center grid-cols-3">
