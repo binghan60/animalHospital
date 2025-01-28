@@ -10,12 +10,11 @@ const userSchema = new mongoose.Schema(
         email: { type: String, default: '' },
         name: { type: String, default: '' },
         isActive: { type: Boolean, default: true },
-        lastLogin: { type: Date, default: '' },
+        lastLogin: { type: Date, default: null },
     },
     {
         timestamps: true,
     }
 );
 const User = mongoose.model('User', userSchema);
-
 export default User;
