@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
 });
 router.get('/allUser', async (req, res) => {
     try {
-        const user = await User.find({}).select('name _id');
+        const user = await User.find({}).select('_id account name');
         res.status(200).json(user);
     } catch (error) {
         console.log(error);
@@ -20,22 +20,25 @@ router.get('/allUser', async (req, res) => {
 });
 router.post('/register', async (req, res) => {
     try {
-        const { account, nickname, password } = req.body;
-        if (!account || !password || !nickname) {
+        const { account, password, name, phone, address, email, isActive } = req.body;
+        if (!account || !password) {
             return res.status(400).json({ message: '參數不足' });
         }
-        const existingUser = await User.findOne({
-            $or: [{ account }, { name: nickname }],
-        });
+        const existingUser = await User.findOne({ account });
         if (existingUser) {
-            return res.status(400).json({ message: '帳號或暱稱已存在' });
+            return res.status(400).json({ message: '帳號已存在' });
         }
         const passwordString = String(password);
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(passwordString, salt);
         const newUser = new User({
-            account,
+            account: account.trim(),
             password: hashedPassword,
+            name,
+            phone,
+            address,
+            email,
+            isActive,
         });
         await newUser.save();
         res.status(201).json({ message: '註冊成功' });
@@ -44,6 +47,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ message: '伺服器錯誤' });
     }
 });
+
 router.post('/login', async (req, res) => {
     try {
         const { account, password } = req.body;
