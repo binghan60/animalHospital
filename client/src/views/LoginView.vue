@@ -57,7 +57,7 @@ export default {
       this.loginFrom.role = 'hospital'
     },
     userlogin() {
-      this.loginFrom.account = 'tianshiang'
+      this.loginFrom.account = '0952123259'
       this.loginFrom.password = 'ted810714'
       this.loginFrom.role = 'user'
     },
