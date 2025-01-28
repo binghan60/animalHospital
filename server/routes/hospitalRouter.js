@@ -10,6 +10,10 @@ router.post('/register', async (req, res) => {
             res.status(400).send({ message: '註冊失敗' });
             return;
         }
+        const existingHospital = await Hospital.findOne({ account });
+        if (existingHospital) {
+            return res.status(400).json({ message: '帳號已存在' });
+        }
         const passwordString = String(password.trim());
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(passwordString, salt);
