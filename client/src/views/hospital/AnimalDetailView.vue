@@ -147,6 +147,7 @@ export default {
         left: '0px',
       },
       isLoading: false,
+      dataDisplay: 'all',
     }
   },
   methods: {
@@ -242,7 +243,6 @@ export default {
             endDate: `${year}-${month + 1}-${lastDay}`,
           },
         })
-        console.log(data)
         this.bloodSugarCurveChart.rawData = data.data
         const bloodSugarCurveSetting = isDark
           ? data.data.map(x => {
@@ -377,6 +377,8 @@ export default {
               bloodSugar: this.newRecord.bloodSugar,
               insulin: this.newRecord.insulin,
               notes: this.newRecord.notes,
+              author: this.user._id,
+              authorRole: this.user.role,
             },
           ],
           notes: '',
@@ -459,7 +461,15 @@ export default {
           const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
           if (diaryEntry) {
             day._id = diaryEntry._id
-            day.records = diaryEntry.records
+            if (this.dataDisplay === 'all') {
+              day.records = diaryEntry.records
+            }
+            if (this.dataDisplay === 'user') {
+              day.records = diaryEntry.records.filter(x => x.author === this.user._id)
+            }
+            if (this.dataDisplay === 'other') {
+              day.records = diaryEntry.records.filter(x => x.author != this.user._id)
+            }
           }
           return day
         })
@@ -517,7 +527,10 @@ export default {
       }
     },
     bloodSugarColor(value) {
-      if (value === '' || value === null || value === undefined || value == 0) {
+      if (value === '') {
+        return 'bg-white dark:bg-darkPrimary-600'
+      }
+      if (value === null || value === undefined || value == 0) {
         return 'bg-gray-200 dark:bg-darkPrimary-600'
       }
       if (value > 0 && value <= 249) {
@@ -580,7 +593,6 @@ export default {
       this.updateAverageChart(this.isDark)
     },
     updateAverageChart(isDark) {
-      console.log('A')
       this.averageChart.averages = this.averageChart.rawData.averages
       if (isDark) {
         this.averageChart.data = {
@@ -599,9 +611,9 @@ export default {
             legend: {
               position: 'left',
               labels: {
-                color: 'rgb(212, 212, 212)', // 圖例文字顏色
+                color: 'rgb(212, 212, 212)',
                 font: {
-                  size: 14, // 圖例文字大小
+                  size: 14,
                 },
               },
             },
@@ -614,7 +626,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -660,7 +676,11 @@ export default {
               anchor: 'center',
               align: 'center',
               formatter: (value, context) => {
-                const total = context.chart.data.datasets[0].data.reduce((sum, val) => sum + val, 0)
+                const data = context.chart.data.datasets[0]?.data || []
+                const total = data.reduce((sum, val) => sum + (val || 0), 0)
+                if (!total || !value) {
+                  return '0%'
+                }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
               },
@@ -934,14 +954,31 @@ export default {
       },
     },
     calendarDisplay(newValue) {
+      console.log(newValue)
       const range = this.getDateRange(newValue)
       if (range.startDate && range.endDate) {
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
       }
     },
+    dataDisplay(newValue) {
+      this.weekData = this.weekData.map(day => {
+        let filteredRecords
+        if (newValue === 'all') {
+          filteredRecords = day.records
+        } else if (newValue === 'user') {
+          filteredRecords = day.records.filter(x => x.author === this.user._id)
+        } else if (newValue === 'other') {
+          filteredRecords = day.records.filter(x => x.author !== this.user._id)
+        }
+        return {
+          ...day,
+          records: filteredRecords,
+        }
+      })
+    },
   },
   computed: {
-    ...mapState(authStore, ['isDark']),
+    ...mapState(authStore, ['user', 'isDark']),
   },
   async mounted() {
     this.newtoday.date = new Date()
@@ -1001,18 +1038,18 @@ export default {
     <!-- 日曆 -->
     <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
       <!-- 切換按鈕 -->
-      <div class="grid items-center justify-around grid-cols-3">
+      <div class="grid items-center justify-around grid-cols-4">
         <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-1">
-          <label for="calendarDisplay-day" @click="calendarDisplay = 'month'">
-            <input id="calendarDisplay-day" type="radio" name="calendar" value="day" class="hidden peer" :checked="calendarDisplay === 'month'" />
+          <label for="calendarDisplay-day">
+            <input id="calendarDisplay-day" v-model="calendarDisplay" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'month'" />
             <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white"> <i class="fa-solid fa-calendar-days fa-fw"></i> </span>
           </label>
-          <label for="calendarDisplay-month" @click="calendarDisplay = 'week'">
-            <input id="calendarDisplay-month" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'week'" />
+          <label for="calendarDisplay-month">
+            <input id="calendarDisplay-month" v-model="calendarDisplay" type="radio" name="calendar" value="week" class="hidden peer" :checked="calendarDisplay === 'week'" />
             <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white"> <i class="fa-regular fa-calendar fa-fw"></i> </span>
           </label>
         </div>
-        <div class="w-full col-span-2 space-x-2 text-center lg:col-span-1 lg:space-x-6">
+        <div class="w-full col-span-3 space-x-2 text-center lg:col-span-1 lg:space-x-6">
           <select v-model="selectedYear" class="h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" @change="goToFirstWeekOfSelectedMonth">
             <option v-for="year in years" :key="year.value" :value="year.value">
               {{ year.label }}
@@ -1024,11 +1061,32 @@ export default {
             </option>
           </select>
         </div>
-        <div v-show="calendarDisplay === 'week'" class="col-span-3 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
+        <div class="w-full flex items-center justify-center h-[50px] space-x-4 lg:col-span-1 col-span-4">
+          <label for="dataDisplay-all">
+            <input id="dataDisplay-all" v-model="dataDisplay" type="radio" name="dataDisplay" value="all" class="hidden peer" />
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+              <i class="fa-solid fa-users fa-fw"></i>
+            </span>
+          </label>
+          <label for="dataDisplay-user">
+            <input id="dataDisplay-user" v-model="dataDisplay" type="radio" name="dataDisplay" value="user" class="hidden peer" />
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+              <i class="fa-solid fa-user fa-fw"></i>
+            </span>
+          </label>
+          <label for="dataDisplay-other">
+            <input id="dataDisplay-other" v-model="dataDisplay" type="radio" name="dataDisplay" value="other" class="hidden peer" />
+            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+              <i class="fa-solid fa-user-slash fa-fw"></i>
+            </span>
+          </label>
+        </div>
+
+        <div v-show="calendarDisplay === 'week'" class="col-span-4 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="prevWeek"><i class="fa-solid fa-circle-left fa-fw"></i> 上週</button>
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 dark:bg-indigo-600 dark:hover:bg-indigo-700 hover:bg-primary-600" @click="nextWeek">下週 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
-        <div v-show="calendarDisplay === 'month'" class="col-span-3 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
+        <div v-show="calendarDisplay === 'month'" class="col-span-4 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="prevMonth"><i class="fa-solid fa-circle-left fa-fw"></i> 前月</button>
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="nextMonth">下月 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
@@ -1100,7 +1158,7 @@ export default {
 
       <div v-show="calendarDisplay == 'week'">
         <div class="col-span-2 py-3 text-2xl font-bold text-center select-none text-primary-900 lg:col-span-7 dark:text-darkPrimary-50">{{ weekRange }}</div>
-        <div class="p-4 overflow-x-auto">
+        <div class="overflow-x-auto">
           <div class="flex gap-2 lg:grid lg:grid-cols-7">
             <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm min-h-[1000px]', day.isToday ? 'border-primary-500 dark:border-indigo-500 border-2 bg-primary-50 dark:bg-darkPrimary-600' : 'bg-white dark:bg-darkPrimary-600']" class="shrink-0 w-[150px] lg:w-auto">
               <!-- 日期與星期 -->
@@ -1109,8 +1167,11 @@ export default {
               <button type="button" class="w-full px-2 py-1.5 mb-2 text-sm text-white rounded-md bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 hover:dark:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-primary-300" @click="openTaskModal(day.date)">+ 新增事項</button>
               <!-- 事項清單 -->
               <ul class="space-y-2">
-                <li v-for="(task, index) in day.records" :key="index" class="p-3 text-sm bg-gray-100 border rounded-lg cursor-pointer border-darkPriamry-300 dark:bg-darkPrimary-600 hover:bg-primary-100" @click="openEditTaskModal(day.date, day._id, task._id, task.time, task.bloodSugar, task.insulin, task.notes, day.notes)">
-                  <div class="mb-1 text-center text-gray-800 dark:text-darkPrimary-50">🕒{{ task.time }}</div>
+                <li v-for="(task, index) in day.records" :key="index" :class="['p-3 text-sm  border rounded-lg', task.author === this.user._id ? 'bg-gray-100 cursor-pointer hover:bg-primary-100 dark:bg-darkPrimary-600' : 'bg-amber-50 dark:bg-darkPrimary-500 select-none cursor-not-allowed']" @click="task.author === this.user._id ? openEditTaskModal(day.date, day._id, task._id, task.time, task.bloodSugar, task.insulin, task.notes, day.notes) : null">
+                  <div class="flex justify-between mb-1 text-gray-800 dark:text-darkPrimary-50">
+                    <div>🕒{{ task.time }}</div>
+                    <i v-if="task.author === this.user._id" class="fa-solid fa-pen-to-square"></i>
+                  </div>
                   <div v-show="task.bloodSugar" class="text-gray-600 dark:text-darkPrimary-50"><i class="fa-solid fa-droplet fa-fw"></i> : {{ task.bloodSugar }}</div>
                   <div v-show="task.insulin" class="text-gray-600 dark:text-darkPrimary-50"><i class="fa-solid fa-syringe fa-fw"></i> : {{ task.insulin }}</div>
                   <div v-show="task.notes" class="text-gray-600 dark:text-darkPrimary-50"><i class="fa-regular fa-comment-dots fa-fw"></i> : {{ task.notes }}</div>
