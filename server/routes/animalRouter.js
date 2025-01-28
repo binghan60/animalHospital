@@ -38,7 +38,6 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
         const parsedSharedWith = JSON.parse(req.body.sharedWith || '[]');
         const { hospitalId, userId, name, gender, sterilized, breed, bloodType, type, insulinBrand, admissionDate } = req.body;
         let { birthday } = req.body;
-
         if (!name || !name.trim()) {
             res.status(400).send({ message: '缺少參數：name' });
             return;
@@ -101,7 +100,7 @@ router.get('/detail/:animalId', async (req, res) => {
 router.get('/:hospitalId', async (req, res) => {
     try {
         const hospitalId = req.params.hospitalId;
-        const animals = await Animal.find({ hospitalId }).lean();
+        const animals = await Animal.find({ hospitalId }).populate('sharedWith').lean();
         animals.forEach((animal) => {
             if (animal.weight && animal.weight.length > 0) {
                 animal.weight = animal.weight[animal.weight.length - 1].value;
