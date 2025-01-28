@@ -6,7 +6,16 @@ const bloodSugarSchema = new mongoose.Schema(
         date: { type: Date, required: true },
         morning: { time: { type: String }, bloodSugar: { type: Number }, insulin: { type: Number }, notes: { type: String } },
         evening: { time: { type: String }, bloodSugar: { type: Number }, insulin: { type: Number }, notes: { type: String } },
-        records: [{ time: { type: String, required: true }, bloodSugar: { type: Number }, insulin: { type: Number }, notes: { type: String } }],
+        records: [
+            {
+                time: { type: String, required: true },
+                bloodSugar: { type: Number },
+                insulin: { type: Number },
+                notes: { type: String },
+                author: { type: mongoose.Schema.Types.ObjectId, required: true },
+                authorRole: { type: String, enum: ['user', 'hospital'], required: true },
+            },
+        ],
         notes: { type: String, default: '' },
     },
     { timestamps: true }
