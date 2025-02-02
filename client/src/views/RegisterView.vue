@@ -54,7 +54,6 @@ export default {
         <div class="mb-4">
           <label for="role" class="text-primary-900 dark:text-darkPrimary-50">請選擇註冊身份*</label>
           <VField id="role" v-model="registerForm.role" name="role" as="select" rules="required" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-500 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none">
-            <option value="" disabled selected>請選擇</option>
             <option value="hospital">醫院</option>
             <option value="user">飼主</option>
           </VField>
@@ -67,7 +66,7 @@ export default {
         </div>
         <div v-show="registerForm.role == 'user'" class="mb-4">
           <label for="misdn" class="text-primary-900 dark:text-darkPrimary-50">帳號*</label>
-          <VField id="misdn" v-model="registerForm.account" type="tel" name="misdn" rules="required|length:4,10" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="請輸入飼主手機號碼" autocomplete="off" />
+          <VField id="misdn" v-model="registerForm.account" type="tel" name="misdn" rules="required|length:4,10" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="請輸入帳號(建議使用手機號碼)" autocomplete="off" />
           <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="misdn" />
         </div>
         <div class="mb-4">
