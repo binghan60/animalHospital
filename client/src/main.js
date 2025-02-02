@@ -35,6 +35,12 @@ defineRule('confirmed', (value, [target]) => {
   }
   return '密碼與確認密碼不一致，請重新確認'
 })
+defineRule('deleteConfirmed', (value, [target]) => {
+  if (value === target) {
+    return true
+  }
+  return `請輸入正確的動物名稱：${target}`
+})
 defineRule('atLeastOneFieldRule', (value, [field1, field2]) => {
   if (value || field1 || field2) {
     return true
