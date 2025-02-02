@@ -8,6 +8,7 @@ import 'vue-toastification/dist/index.css'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import { defineRule } from 'vee-validate'
+import authStore from '@/stores/auth.js'
 
 defineRule('required', value => {
   if (!value?.toString() || !value?.toString().length) {
@@ -57,9 +58,19 @@ const options = {
 }
 const app = createApp(App)
 const pinia = createPinia()
+const store = authStore()
 app.use(pinia)
 app.use(router)
 app.use(Toast, options)
 app.component('VueLoading', Loading) // 全域註冊 VueLoading 元件
+app.provide('loadingConfig', {
+  // 全域設定
+  height: 190,
+  width: 190,
+  loader: 'dots',
+  getColor() {
+    return store.isDark ? '#d4d4d4' : '#007BFF'
+  },
+})
 app.config.globalProperties.$toast = useToast() // 全域註冊 this.$toast 方法
 app.mount('#app')
