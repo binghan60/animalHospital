@@ -971,7 +971,6 @@ export default {
       },
     },
     calendarDisplay(newValue) {
-      console.log(newValue)
       const range = this.getDateRange(newValue)
       if (range.startDate && range.endDate) {
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
@@ -1070,11 +1069,11 @@ export default {
       <div class="grid items-center justify-around grid-cols-4">
         <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-1">
           <label for="calendarDisplay-day">
-            <input id="calendarDisplay-day" v-model="calendarDisplay" type="radio" name="calendar" value="month" class="hidden peer" :checked="calendarDisplay === 'month'" />
+            <input id="calendarDisplay-day" v-model="calendarDisplay" type="radio" name="calendar" value="month" class="hidden peer" />
             <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white"> <i class="fa-solid fa-calendar-days fa-fw"></i> </span>
           </label>
           <label for="calendarDisplay-month">
-            <input id="calendarDisplay-month" v-model="calendarDisplay" type="radio" name="calendar" value="week" class="hidden peer" :checked="calendarDisplay === 'week'" />
+            <input id="calendarDisplay-month" v-model="calendarDisplay" type="radio" name="calendar" value="week" class="hidden peer" />
             <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white"> <i class="fa-regular fa-calendar fa-fw"></i> </span>
           </label>
         </div>
@@ -1092,20 +1091,20 @@ export default {
         </div>
         <div class="w-full flex items-center justify-center h-[50px] space-x-4 lg:col-span-1 col-span-4">
           <label for="dataDisplay-all">
-            <input id="dataDisplay-all" v-model="dataDisplay" type="radio" name="dataDisplay" value="all" class="hidden peer" />
-            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+            <input id="dataDisplay-all" v-model="dataDisplay" type="radio" name="dataDisplay" value="all" class="hidden peer" :disabled="calendarDisplay === 'month'" />
+            <span :class="{ 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-500': calendarDisplay === 'month' }" class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
               <i class="fa-solid fa-users fa-fw"></i>
             </span>
           </label>
           <label for="dataDisplay-user">
-            <input id="dataDisplay-user" v-model="dataDisplay" type="radio" name="dataDisplay" value="user" class="hidden peer" />
-            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+            <input id="dataDisplay-user" v-model="dataDisplay" type="radio" name="dataDisplay" value="user" class="hidden peer" :disabled="calendarDisplay === 'month'" />
+            <span :class="{ 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-500': calendarDisplay === 'month' }" class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
               <i class="fa-solid fa-user fa-fw"></i>
             </span>
           </label>
           <label for="dataDisplay-other">
-            <input id="dataDisplay-other" v-model="dataDisplay" type="radio" name="dataDisplay" value="other" class="hidden peer" />
-            <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
+            <input id="dataDisplay-other" v-model="dataDisplay" type="radio" name="dataDisplay" value="other" class="hidden peer" :disabled="calendarDisplay === 'month'" />
+            <span :class="{ 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-500': calendarDisplay === 'month' }" class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
               <i class="fa-solid fa-user-slash fa-fw"></i>
             </span>
           </label>
