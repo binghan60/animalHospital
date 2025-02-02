@@ -58,13 +58,12 @@ const options = {
 }
 const app = createApp(App)
 const pinia = createPinia()
-const store = authStore()
 app.use(pinia)
 app.use(router)
 app.use(Toast, options)
 app.component('VueLoading', Loading) // 全域註冊 VueLoading 元件
+const store = authStore()
 app.provide('loadingConfig', {
-  // 全域設定
   height: 190,
   width: 190,
   loader: 'dots',
