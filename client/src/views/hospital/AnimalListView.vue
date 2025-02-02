@@ -4,6 +4,7 @@ import { mapState } from 'pinia'
 import axios from 'axios'
 import { Field, Form, ErrorMessage } from 'vee-validate'
 export default {
+  inject: ['loadingConfig'],
   components: {
     VField: Field,
     VForm: Form,
@@ -612,6 +613,6 @@ export default {
         </VForm>
       </div>
     </div>
-    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
   </div>
 </template>

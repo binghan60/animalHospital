@@ -5,6 +5,7 @@ import { Field, Form, ErrorMessage } from 'vee-validate'
 import { mapState } from 'pinia'
 import authStore from '@/stores/auth'
 export default {
+  inject: ['loadingConfig'],
   components: { ChartComponent, VField: Field, VForm: Form, ErrorMessage },
   data() {
     return {
@@ -1332,6 +1333,6 @@ export default {
         <i class="fa-solid fa-chart-line fa-fw"></i>
       </button>
     </div>
-    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
   </div>
 </template>

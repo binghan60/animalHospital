@@ -1,9 +1,10 @@
 <script>
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import authStore from '@/stores/auth'
 import axios from 'axios'
 import { Field, Form, ErrorMessage } from 'vee-validate'
 export default {
+  inject: ['loadingConfig'],
   components: {
     VField: Field,
     VForm: Form,
@@ -38,7 +39,6 @@ export default {
         this.$toast.success(data.message)
         document.cookie = `animalHospitalToken=${data.token}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
         document.cookie = `animalHospitalRole=${data.role}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
-        // document.cookie = `animalHospitalDarkTheme=false; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
         axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
         if (role == 'user') {
           this.$router.push('/user/animallist')
@@ -63,7 +63,9 @@ export default {
     },
     ...mapActions(authStore, ['auth']),
   },
-  mounted() {},
+  computed: {
+    ...mapState(authStore, ['isDark']),
+  },
 }
 </script>
 <template>
@@ -102,6 +104,6 @@ export default {
       <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO用帳號密碼</button>
       <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">飼主DEMO用帳號密碼</button>
     </div>
-    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
   </div>
 </template>

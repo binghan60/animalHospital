@@ -1196,6 +1196,6 @@ export default {
     <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
       <ChartComponent :type="insulinBrand.type" :chartData="insulinBrand.data" :chartOptions="insulinBrand.options"></ChartComponent>
     </div>
-    <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
   </div>
 </template>
