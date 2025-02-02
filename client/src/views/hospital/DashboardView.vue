@@ -142,6 +142,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
             tooltip: {
               enabled: true,
@@ -196,6 +200,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -258,6 +266,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -340,6 +352,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
           },
         }
@@ -389,6 +405,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -456,6 +476,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -533,6 +557,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -618,6 +646,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
             tooltip: {
               enabled: true,
@@ -685,6 +717,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
             tooltip: {
               enabled: true,
@@ -738,6 +774,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
           },
           scales: {
@@ -783,6 +823,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -848,6 +892,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
           },
         }
@@ -895,6 +943,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -946,6 +998,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
           },
@@ -1008,6 +1064,10 @@ export default {
                 size: 16,
                 weight: 'bold',
               },
+              padding: {
+                top: 10,
+                bottom: 25,
+              },
             },
           },
           scales: {
@@ -1069,6 +1129,10 @@ export default {
               font: {
                 size: 16,
                 weight: 'bold',
+              },
+              padding: {
+                top: 10,
+                bottom: 25,
               },
             },
             tooltip: {
