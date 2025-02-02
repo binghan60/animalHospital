@@ -13,7 +13,7 @@ export default {
   data() {
     return {
       loginFrom: {
-        role: '',
+        role: 'hospital',
         account: '',
         password: '',
         showPassword: false,
@@ -58,7 +58,7 @@ export default {
     },
     userlogin() {
       this.loginFrom.account = '0952123259'
-      this.loginFrom.password = 'ted810714'
+      this.loginFrom.password = 'admin'
       this.loginFrom.role = 'user'
     },
     ...mapActions(authStore, ['auth']),
@@ -76,9 +76,8 @@ export default {
         <div class="mb-4">
           <label for="role" class="text-primary-900 dark:text-darkPrimary-50">請選擇登入身份</label>
           <VField id="role" v-model="loginFrom.role" name="role" as="select" rules="required" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-500 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none">
-            <option value="" disabled selected>請選擇</option>
-            <option class="dark:bg-darkPrimary-500" value="user">飼主</option>
             <option class="dark:bg-darkPrimary-500" value="hospital">醫院</option>
+            <option class="dark:bg-darkPrimary-500" value="user">飼主</option>
           </VField>
           <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="role" />
         </div>
@@ -101,8 +100,8 @@ export default {
         <button type="submit" class="w-full px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">登入</button>
         <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">沒有帳號？<RouterLink to="/register" class="text-primary-600 hover:underline dark:text-darkPrimary-50">註冊</RouterLink></p>
       </VForm>
-      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO用帳號密碼</button>
-      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">飼主DEMO用帳號密碼</button>
+      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO帳號</button>
+      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">飼主DEMO帳號</button>
     </div>
     <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
   </div>
