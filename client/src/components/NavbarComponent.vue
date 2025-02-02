@@ -37,7 +37,7 @@ export default {
 <template>
   <nav class="mb-0 transition-colors lg:mb-8 bg-primary-400 dark:bg-darkPrimary-500">
     <div class="flex items-center justify-between p-2 mx-auto text-lg text-white max-w-7xl">
-      <RouterLink :to="user.role === 'hospital' ? '/hospital/dashboard' : '/user/profile'" @click="isMenuOpen = false">
+      <RouterLink :to="user.role === 'hospital' ? '/hospital/dashboard' : '/user/animallist'" @click="isMenuOpen = false">
         <div class="flex items-center text-xl font-bold cursor-pointer">
           <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
           <div class="hidden lg:block">
