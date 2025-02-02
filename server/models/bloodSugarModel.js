@@ -30,8 +30,8 @@ bloodSugarSchema.pre('save', function (next) {
     }
     this.records.sort((a, b) => a.time.localeCompare(b.time));
     const defaultRecord = { time: '', bloodSugar: '', insulin: '', notes: '' };
-    const morningRecord = this.records.find((record) => record.time >= '00:00' && record.time < '12:00');
-    const eveningRecord = [...this.records].reverse().find((record) => record.time >= '12:00' && record.time <= '23:59');
+    const morningRecord = this.records.find((record) => record.time >= '06:00' && record.time < '14:00');
+    const eveningRecord = [...this.records].reverse().find((record) => record.time >= '14:01' && record.time <= '23:59');
     this.morning = morningRecord
         ? {
               time: morningRecord.time,
