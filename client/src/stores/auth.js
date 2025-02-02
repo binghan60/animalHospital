@@ -47,11 +47,8 @@ export default defineStore('authStore', {
     },
     toggleTheme() {
       this.isDark = !this.isDark
-      if (this.isDark) {
-        document.querySelector('body').classList.add('dark')
-      } else {
-        document.querySelector('body').classList.remove('dark')
-      }
+      document.querySelector('body').classList.toggle('dark', this.isDark)
+      localStorage.setItem('animalHospitalDarkTheme', JSON.stringify(this.isDark))
     },
   },
 })
