@@ -699,6 +699,20 @@ export default {
           },
         }
       }
+    },
+    getIconClass(type) {
+      if (type === 'dog') {
+        return 'fa-solid fa-dog fa-fw'
+      } else if (type === 'cat') {
+        return 'fa-solid fa-cat fa-fw'
+      }
+    },
+    getGenderIcon(gender) {
+      if (gender === 'male') {
+        return 'text-primary-600 fa-solid fa-mars fa-fw'
+      } else if (gender === 'female') {
+        return 'text-pink-600 fa-solid fa-venus fa-fw'
+      }
     }, // 日期處理區
     async updateCalendar() {
       const { year, month, lastDay } = this.newtoday
@@ -982,6 +996,14 @@ export default {
   },
   computed: {
     ...mapState(authStore, ['user', 'isDark']),
+    weightValue() {
+      const weight = this.animal.Info.weight
+      if (weight && weight.length > 0) {
+        const lastWeight = weight[weight.length - 1].value
+        return lastWeight !== 0 ? lastWeight + ' 公斤' : ''
+      }
+      return ''
+    },
   },
   async mounted() {
     this.newtoday.date = new Date()
@@ -1006,16 +1028,20 @@ export default {
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">姓名：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.name }}</li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">種類：</li>
-            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50" v-html="animal.Info.type === 'dog' ? `<i class='fa-solid fa-dog fa-fw'></i>` : `<i class='fa-solid fa-cat fa-fw'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
+              <i :class="getIconClass(animal.Info.type)"></i>
+            </li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">生日：</li>
             <li v-if="animal.Info.birthday !== null && animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
             <li v-else class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50"></li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">性別：</li>
-            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50" v-html="animal.Info.gender === 'male' ? `<i class='text-primary-600 fa-solid fa-mars fa-fw'></i>` : `<i class='text-pink-600 fa-solid fa-venus fa-fw'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
+              <i :class="getGenderIcon(animal.Info.gender)"></i>
+            </li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">血型：</li>
-            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.bloodType }} 型</li>
+            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.bloodType ? animal.Info.bloodType + ' 型' : '' }}</li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">體重：</li>
-            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.weight ? animal.Info.weight[animal.Info.weight.length - 1].value : '' }} 公斤</li>
+            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ weightValue }}</li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">品種：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.breed }}</li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">結紮：</li>
