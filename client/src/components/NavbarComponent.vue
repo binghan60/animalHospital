@@ -17,13 +17,18 @@ export default {
     },
     chagnePage(path) {
       this.$router.push(path)
-      this.isMenuOpen = false
+      this.toggleMenu()
     },
     logOut() {
       if (this.clearAuth()) {
         this.$router.push('/login')
         this.$toast.success('登出成功')
+        this.toggleMenu()
       }
+    },
+    handleClick() {
+      this.toggleTheme()
+      this.toggleMenu()
     },
 
     ...mapActions(authStore, ['clearAuth', 'toggleTheme']),
@@ -50,8 +55,9 @@ export default {
       <ul :class="['lg:flex lg:space-x-6 lg:space-y-0 absolute lg:static top-12 right-0 w-full text-center lg:w-auto transition-all duration-500 ease-out lg:max-h-full max-h-0 overflow-hidden', { 'max-h-72': isMenuOpen }]">
         <li v-if="user.role == 'hospital'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/hospital/animallist')">動物列表</li>
         <li v-if="user.role == 'user'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/user/animallist')">動物列表</li>
-        <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="toggleTheme"><i v-show="!this.isDark" class="fa-regular fa-sun fa-fw"></i><i v-show="this.isDark" class="fa-regular fa-moon fa-fw"></i></li>
-        <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">登出</li>
+        <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="handleClick"><i v-show="!this.isDark" class="fa-regular fa-sun fa-fw"></i><i v-show="this.isDark" class="fa-regular fa-moon fa-fw"></i></li>
+        <li v-show="user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">登出</li>
+        <li v-show="!user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/login')">登入</li>
       </ul>
     </div>
   </nav>
