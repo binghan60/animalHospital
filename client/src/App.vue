@@ -6,6 +6,7 @@ import axios from 'axios'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 
 export default {
+  inject: ['loadingConfig'],
   components: { NavbarComponent, RouterView },
   data() {
     return { isLoading: false }
@@ -50,13 +51,16 @@ export default {
       return null
     },
 
-    ...mapActions(authStore, ['auth', 'clearRedirectPath', 'setToken']),
+    ...mapActions(authStore, ['auth', 'clearRedirectPath', 'setToken', 'toggleTheme']),
   },
   computed: {
-    ...mapState(authStore, ['redirectPath']),
+    ...mapState(authStore, ['redirectPath', 'isDark']),
   },
   async mounted() {
     await this.autoLogin()
+    if (localStorage.getItem('animalHospitalDarkTheme') === 'true') {
+      this.toggleTheme()
+    }
     //axios自動帶token
     // const token = document.cookie.replace(/(?:(?:^|.*;\s*)Token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     // axios.defaults.headers.common.Authorization = token;
@@ -68,8 +72,8 @@ export default {
   <div class="transition-colors bg-primary-50 dark:bg-darkPrimary-800">
     <NavbarComponent></NavbarComponent>
     <div class="p-4 mx-auto max-w-7xl lg:p-2 min-h-[100vh]">
-      <VueLoading :active="isLoading" :height="190" :width="190" loader="dots" color="#007BFF" />
-      <RouterView class="lg:mb-16"></RouterView>
+      <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
+      <RouterView class="lg:mb-16" />
     </div>
   </div>
 </template>
