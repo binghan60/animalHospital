@@ -4,6 +4,7 @@ import authStore from '@/stores/auth'
 import { mapState } from 'pinia'
 import ChartComponent from '@/components/ChartComponent.vue'
 export default {
+  inject: ['loadingConfig'],
   components: { ChartComponent },
   data() {
     return {
