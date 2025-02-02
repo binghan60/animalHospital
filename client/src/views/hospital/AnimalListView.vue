@@ -46,8 +46,13 @@ export default {
         sharedWith: [],
         searchText: '',
       },
+      deleteForm: {
+        animalId: '',
+      },
       createFormToggle: false,
       editFormToggle: false,
+      deleteFormToggle: false,
+      deleteName: '',
       otherField: true,
       searchKeyword: '',
       filterType: '',
@@ -126,17 +131,21 @@ export default {
         this.$toast.error(error.response?.data?.message || '編輯失敗')
       }
     },
-    async deleteAnimal(event, animalId) {
-      event.stopPropagation()
-      try {
-        this.isLoading = true
-        const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${animalId}`)
-        await this.getUserAnimal()
-        this.isLoading = false
-        this.$toast.success(data.message)
-      } catch (error) {
-        this.isLoading = false
-        this.$toast.error(error.response?.data?.message || '刪除失敗')
+    async deleteAnimal() {
+      if (this.deleteFormToggle) {
+        try {
+          this.isLoading = true
+          const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/delete/${this.deleteForm._id}`)
+          await this.getUserAnimal()
+          this.isLoading = false
+          this.$toast.success(data.message)
+          this.deleteFormToggle = false
+          this.deleteName = ''
+        } catch (error) {
+          this.isLoading = false
+          this.$toast.error(error.response?.data?.message || '刪除失敗')
+          this.deleteFormToggle = false
+        }
       }
     },
     async getUserList() {
@@ -156,8 +165,8 @@ export default {
         avatarUrl: animal.avatar,
         name,
         gender,
-        weight: [{ date: new Date().toISOString().slice(0, 10), value: weight }],
-        birthday: new Date(birthday).toISOString().split('T')[0],
+        weight: [{ date: new Date().toISOString().slice(0, 10), value: weight ? weight : '' }],
+        birthday: birthday ? new Date(birthday).toISOString().split('T')[0] : '',
         sterilized,
         breed,
         bloodType,
@@ -169,16 +178,28 @@ export default {
       }
       this.editFormToggle = true
     },
+    deleteToggle(event, animal) {
+      event.stopPropagation()
+      this.deleteForm = animal
+      this.deleteFormToggle = true
+    },
     convertBirthdayToAge(dateString) {
-      const today = new Date()
+      if (!dateString) {
+        return ''
+      }
       const birth = new Date(dateString)
+      if (isNaN(birth.getTime())) {
+        return ''
+      }
+      const today = new Date()
       let years = today.getFullYear() - birth.getFullYear()
       let months = today.getMonth() - birth.getMonth()
       if (months < 0) {
         years--
         months += 12
       }
-      return { years, months }
+
+      return months > 0 ? `${years}歲 ${months}個月` : `${years}歲`
     },
     animalIcon(type) {
       if (type == 'dog') {
@@ -231,7 +252,7 @@ export default {
     ...mapState(authStore, ['user', 'token']),
     showData() {
       return this.animalList.filter(x => {
-        const matchesName = x.name?.toLowerCase().includes(this.searchKeyword?.toLowerCase() || '')
+        const matchesName = x?.name?.toLowerCase().includes(this.searchKeyword?.toLowerCase() || '')
         const matchesType = this.filterType === '' || x.type === this.filterType
         return matchesName && matchesType
       })
@@ -240,7 +261,7 @@ export default {
       if (this.createForm.searchText == '') {
         return this.userList
       } else {
-        return this.userList.filter(item => item.account.toLowerCase().includes(this.createForm.searchText.toLowerCase()))
+        return this.userList.filter(item => item.account?.toLowerCase().includes(this.createForm.searchText?.toLowerCase()))
       }
     },
     editUserData() {
@@ -365,7 +386,7 @@ export default {
                   <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                   <div class="flex flex-col">
                     <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900 dark:text-darkPrimary-50"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
-                    <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"> </i> {{ convertBirthdayToAge(animal.birthday).years }}歲 {{ convertBirthdayToAge(animal.birthday).months > 0 ? convertBirthdayToAge(animal.birthday).months + '個月' : '' }}</p>
+                    <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"></i> {{ convertBirthdayToAge(animal.birthday) }}</p>
                   </div>
                 </div>
               </td>
@@ -401,7 +422,7 @@ export default {
                   </span>
                 </button>
               </td>
-              <td class="text-center border-b border-primary-50" @click="deleteAnimal($event, animal._id)">
+              <td class="text-center border-b border-primary-50" @click="deleteToggle($event, animal)">
                 <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
                   <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
                     <i class="text-xl text-red-400 fa-solid fa-trash fa-fw"></i>
@@ -608,6 +629,29 @@ export default {
           </div>
           <div class="flex justify-between mt-4 lg:mt-6">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="editFormToggle = false">取消</button>
+            <button type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">確定</button>
+          </div>
+        </VForm>
+      </div>
+    </div>
+    <div v-show="deleteFormToggle" class="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70" @mousedown="deleteFormToggle = false">
+      <div class="w-full max-w-xl bg-white lg:rounded-xl dark:bg-darkPrimary-700" @mousedown.stop>
+        <VForm class="max-h-[100vh] lg:max-h-[80vh] overflow-y-auto p-4 lg:p-8" @submit="deleteAnimal">
+          <h2 class="mb-4 text-xl font-semibold text-center lg:text-2xl text-primary-900 dark:text-darkPrimary-50">
+            是否要刪除
+            <span class="text-red-600 dark:text-rose-500">{{ deleteForm.name }}</span>
+            資料
+          </h2>
+          <h6 class="p-2 mb-4 text-xl text-center text-yellow-800 bg-yellow-400 border-2 border-yellow-500 rounded-lg dark:text-amber-600 dark:bg-yellow-300"><i class="mr-2 text-2xl fa-solid fa-triangle-exclamation"></i> 注意！所有血糖紀錄及血糖曲線都將被刪除。</h6>
+          <div class="space-y-4">
+            <div class="grid items-center grid-cols-3">
+              <VField id="deleteName" v-model="deleteName" name="deleteName" type="text" rules="required|deleteConfirmed:@deleteConfirm" placeholder="請輸入欲刪除動物名稱" class="h-8 col-span-3 pl-3 mb-4 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <VField id="deleteConfirm" v-model="deleteForm.name" name="deleteConfirm" type="text" placeholder="" class="hidden" autocomplete="off" />
+              <ErrorMessage class="col-span-3 mt-1 text-sm text-center text-red-600 dark:text-rose-400" name="deleteName" />
+            </div>
+          </div>
+          <div class="flex justify-between mt-4 lg:mt-6">
+            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="deleteFormToggle = false">取消</button>
             <button type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">確定</button>
           </div>
         </VForm>
