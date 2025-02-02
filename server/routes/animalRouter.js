@@ -3,6 +3,8 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 import Animal from '../models/animalModel.js';
+import DiaryBloodRecord from '../models/bloodSugarModel.js';
+import BloodSugarCurve from '../models/bloodSugarCurveModel.js';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 
@@ -105,6 +107,9 @@ router.get('/:hospitalId', async (req, res) => {
             if (animal.weight && animal.weight.length > 0) {
                 animal.weight = animal.weight[animal.weight.length - 1].value;
             }
+            if (animal.birthday instanceof Date && animal.birthday.toISOString() === '1970-01-01T00:00:00.000Z') {
+                animal.birthday = '';
+            }
         });
         return res.status(200).send(animals);
     } catch (error) {
@@ -199,6 +204,8 @@ router.delete('/delete/:animalId', async (req, res) => {
         if (!animal) {
             return res.status(404).json({ message: '動物未找到' });
         }
+        await DiaryBloodRecord.deleteMany({ animalId });
+        await BloodSugarCurve.deleteMany({ animalId });
         if (animal.avatar) {
             const publicId = animal.avatar.split('/').pop().split('.')[0];
             await cloudinary.uploader.destroy('avatars/' + publicId);
@@ -212,9 +219,13 @@ router.delete('/delete/:animalId', async (req, res) => {
 });
 router.get('/share/:userId', async (req, res) => {
     try {
-        const userId = new mongoose.Types.ObjectId(req.params.userId.trim());
+        const { userId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: '無效的 userId' });
+        }
+        const objectId = new mongoose.Types.ObjectId(userId.trim());
         const animals = await Animal.find({
-            'sharedWith._id': userId, // 查詢 sharedWith 中 _id 是否匹配
+            sharedWith: objectId,
         });
         if (animals.length > 0) {
             res.status(200).json(animals);
