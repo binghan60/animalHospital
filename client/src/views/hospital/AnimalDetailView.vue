@@ -565,6 +565,8 @@ export default {
           bloodSugar,
           insulin,
           notes: recordNotes,
+          author: this.user._id,
+          authorRole: this.user.role,
         },
         notes,
       }
