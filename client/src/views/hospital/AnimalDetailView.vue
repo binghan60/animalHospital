@@ -1066,8 +1066,8 @@ export default {
     <!-- 日曆 -->
     <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
       <!-- 切換按鈕 -->
-      <div class="grid items-center justify-around grid-cols-4">
-        <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-1">
+      <div class="grid items-center justify-around grid-cols-5 lg:grid-cols-4">
+        <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-2 lg:col-span-1">
           <label for="calendarDisplay-day">
             <input id="calendarDisplay-day" v-model="calendarDisplay" type="radio" name="calendar" value="month" class="hidden peer" />
             <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white"> <i class="fa-solid fa-calendar-days fa-fw"></i> </span>
@@ -1089,7 +1089,7 @@ export default {
             </option>
           </select>
         </div>
-        <div class="w-full flex items-center justify-center h-[50px] space-x-4 lg:col-span-1 col-span-4">
+        <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-5 lg:col-span-1">
           <label for="dataDisplay-all">
             <input id="dataDisplay-all" v-model="dataDisplay" type="radio" name="dataDisplay" value="all" class="hidden peer" :disabled="calendarDisplay === 'month'" />
             <span :class="{ 'cursor-not-allowed opacity-50 bg-gray-300 text-gray-500': calendarDisplay === 'month' }" class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 text-primary-800 dark:text-indigo-800 dark:bg-indigo-100 bg-primary-100 dark:peer-checked:bg-indigo-500 peer-checked:bg-primary-500 hover:bg-primary-200 dark:hover:bg-indigo-200 dark:peer-checked:text-darkPrimary-50 peer-checked:text-white">
@@ -1109,12 +1109,11 @@ export default {
             </span>
           </label>
         </div>
-
-        <div v-show="calendarDisplay === 'week'" class="col-span-4 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
+        <div v-show="calendarDisplay === 'week'" class="col-span-5 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="prevWeek"><i class="fa-solid fa-circle-left fa-fw"></i> 上週</button>
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 dark:bg-indigo-600 dark:hover:bg-indigo-700 hover:bg-primary-600" @click="nextWeek">下週 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
-        <div v-show="calendarDisplay === 'month'" class="col-span-4 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
+        <div v-show="calendarDisplay === 'month'" class="col-span-5 lg:col-span-1 w-full flex items-center justify-center h-[50px] space-x-6">
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="prevMonth"><i class="fa-solid fa-circle-left fa-fw"></i> 前月</button>
           <button type="button" class="px-4 py-2 text-white rounded-md bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700" @click="nextMonth">下月 <i class="fa-solid fa-circle-right fa-fw"></i></button>
         </div>
@@ -1155,24 +1154,22 @@ export default {
           </div>
           <div v-else :key="index" :class="['p-2 m-1 rounded-md h-[264px] hidden lg:grid', { lazyLoading: day.loading }]"></div>
         </template>
-        <div v-show="showTooltip" class="absolute p-4 bg-white border rounded-lg shadow-lg border-primary-300" :style="tooltipStyle">
-          <button type="button" class="absolute text-primary-500 top-2 right-2 hover:text-primary-700" @click="showTooltip = false">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+        <div v-show="showTooltip" class="absolute p-3 bg-white border rounded-lg shadow-lg dark:bg-darkPrimary-700 border-primary-400 dark:border-darkPrimary-400" :style="tooltipStyle">
+          <button class="absolute top-2 right-2 group flex h-6 w-6 select-none items-center justify-center rounded-lg bg-white leading-8 text-zinc-950 shadow-[0_-1px_0_0px_#d4d4d8_inset,0_0_0_1px_#f4f4f5_inset,0_0.5px_0_1.5px_#fff_inset] hover:bg-zinc-50 hover:via-zinc-900 hover:to-zinc-800 active:shadow-[-1px_0px_1px_0px_#e4e4e7_inset,1px_0px_1px_0px_#e4e4e7_inset,0px_0.125rem_1px_0px_#d4d4d8_inset]" aria-label="Change language" @click="showTooltip = false">
+            <span class="flex items-center group-active:[transform:translate3d(0,1px,0)]"><i class="fa-solid fa-x fa-fw"></i></span>
           </button>
           <div>
-            <table class="min-w-full text-sm text-left text-gray-500">
-              <thead class="bg-primary-100">
+            <table class="min-w-full text-sm text-left">
+              <thead class="font-semibold border-b bg-primary-100 border-primary-400 dark:border-darkPrimary-100 dark:bg-darkPrimary-600 text-primary-600 dark:text-darkPrimary-50">
                 <tr>
-                  <th class="px-4 py-2 font-semibold text-primary-600">時間</th>
-                  <th class="px-4 py-2 font-semibold text-primary-600">血糖值</th>
-                  <th class="px-4 py-2 font-semibold text-primary-600">胰島素</th>
-                  <th class="px-4 py-2 font-semibold text-primary-600">備註</th>
+                  <th class="px-4 py-2">時間</th>
+                  <th class="px-4 py-2">血糖值</th>
+                  <th class="px-4 py-2">胰島素</th>
+                  <th class="px-4 py-2">備註</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="data in hoverData" :key="data.id" class="border-b border-primary-200">
+                <tr v-for="data in hoverData" :key="data.id" class="border-b border-primary-100 dark:border-darkPrimary-400 dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900">
                   <td class="px-4 py-2">{{ data?.time }}</td>
                   <td class="px-4 py-2">{{ data?.bloodSugar || '無' }}</td>
                   <td class="px-4 py-2">{{ data?.insulin || '無' }}</td>
@@ -1329,20 +1326,21 @@ export default {
       </div>
     </div>
     <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.tips.toggle = false">
-      <div class="relative bg-white p-2 lg:p-4 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
-        <!-- 關閉按鈕 -->
-        <button class="absolute text-primary-900 bg-white h-[25px] w-[25px] top-2 right-2 hover:text-gray-700 focus:outline-none" @click="modal.tips.toggle = false"><i class="fa-solid fa-x fa-fw"></i></button>
-        <table class="w-full text-sm text-left text-gray-500 bg-white border-collapse rounded-md shadow-lg">
-          <thead class="text-center bg-primary-100">
+      <div class="relative rounded-lg shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
+        <button class="absolute top-0 right-0 group flex h-6 w-6 select-none items-center justify-center rounded-lg bg-white leading-8 text-zinc-950 shadow-[0_-1px_0_0px_#d4d4d8_inset,0_0_0_1px_#f4f4f5_inset,0_0.5px_0_1.5px_#fff_inset] hover:bg-zinc-50 hover:via-zinc-900 hover:to-zinc-800 active:shadow-[-1px_0px_1px_0px_#e4e4e7_inset,1px_0px_1px_0px_#e4e4e7_inset,0px_0.125rem_1px_0px_#d4d4d8_inset]" aria-label="Change language" @click="modal.tips.toggle = false">
+          <span class="flex items-center group-active:[transform:translate3d(0,1px,0)]"><i class="fa-solid fa-x fa-fw"></i></span>
+        </button>
+        <table class="w-full text-sm text-left text-gray-500 bg-white border-collapse rounded-md shadow-lg dark:bg-darkPrimary-500">
+          <thead class="font-semibold text-center border-b bg-primary-100 dark:bg-darkPrimary-600 border-primary-200 dark:border-darkPrimary-400 text-primary-600 dark:text-darkPrimary-50">
             <tr>
-              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">時間</th>
-              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">血糖值</th>
-              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">胰島素</th>
-              <th class="px-2 py-2 font-semibold border-b text-primary-600 border-primary-200">備註</th>
+              <th class="px-2 py-2">時間</th>
+              <th class="px-2 py-2">血糖值</th>
+              <th class="px-2 py-2">胰島素</th>
+              <th class="px-2 py-2">備註</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="data in hoverData" :key="data.id" class="border-b hover:bg-primary-50 text-primary-900">
+            <tr v-for="data in hoverData" :key="data.id" class="border-b border-primary-200 dark:bg-darkPrimary-500 dark:border-darkPrimary-400 hover:bg-primary-50 text-primary-900 dark:text-darkPrimary-50">
               <td class="px-2 py-4">{{ data?.time }}</td>
               <td class="px-2 py-4">{{ data?.bloodSugar || '無' }}</td>
               <td class="px-2 py-4">{{ data?.insulin || '無' }}</td>
@@ -1352,11 +1350,11 @@ export default {
         </table>
       </div>
     </div>
-    <div class="fixed z-10 space-y-4 right-6 bottom-6">
-      <button type="button" class="flex items-center justify-center text-black bg-yellow-300 rounded-full shadow-md dark:bg-amber-300 w-14 h-14" @click="modal.weight.toggle = true">
+    <div class="fixed z-10 space-y-4 lg:right-6 lg:bottom-6 right-3 bottom-6">
+      <button type="button" class="flex items-center justify-center w-12 h-12 text-black bg-yellow-300 rounded-full shadow-md dark:bg-amber-300 lg:w-14 lg:h-14" @click="modal.weight.toggle = true">
         <i class="fa-solid fa-weight-scale fa-fw"></i>
       </button>
-      <button type="button" class="flex items-center justify-center text-black bg-pink-300 rounded-full shadow-md dark:bg-rose-300 w-14 h-14" @click="modal.bloodSugarCurve.toggle = true">
+      <button type="button" class="flex items-center justify-center w-12 h-12 text-black bg-pink-300 rounded-full shadow-md dark:bg-rose-300 lg:w-14 lg:h-14" @click="modal.bloodSugarCurve.toggle = true">
         <i class="fa-solid fa-chart-line fa-fw"></i>
       </button>
     </div>
