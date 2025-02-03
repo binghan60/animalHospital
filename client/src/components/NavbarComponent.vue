@@ -46,18 +46,27 @@ export default {
         <div class="flex items-center text-xl font-bold cursor-pointer">
           <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
           <div class="hidden lg:block">
-            {{ user.name }}
+            <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">{{ user.name }}</button>
           </div>
         </div>
       </RouterLink>
-
       <div class="cursor-pointer lg:hidden" @click="toggleMenu"><span class="text-2xl">☰</span></div>
       <ul :class="['lg:flex lg:space-x-6 lg:space-y-0 absolute lg:static top-12 right-0 w-full text-center lg:w-auto transition-all duration-500 ease-out lg:max-h-full max-h-0 overflow-hidden', { 'max-h-72': isMenuOpen }]">
-        <li v-if="user.role == 'hospital'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/hospital/animallist')">動物列表</li>
-        <li v-if="user.role == 'user'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/user/animallist')">動物列表</li>
-        <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="handleClick"><i v-show="!this.isDark" class="fa-regular fa-sun fa-fw"></i><i v-show="this.isDark" class="fa-regular fa-moon fa-fw"></i></li>
-        <li v-show="user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">登出</li>
-        <li v-show="!user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/login')">登入</li>
+        <li v-if="user.role == 'hospital'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/hospital/animallist')">
+          <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">動物列表</button>
+        </li>
+        <li v-if="user.role == 'user'" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/user/animallist')">
+          <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">動物列表</button>
+        </li>
+        <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="handleClick">
+          <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100"><i v-show="!this.isDark" class="fa-regular fa-sun fa-fw"></i><i v-show="this.isDark" class="fa-regular fa-moon fa-fw"></i></button>
+        </li>
+        <li v-show="user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">
+          <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">登出</button>
+        </li>
+        <li v-show="!user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/login')">
+          <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-neutral-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">登入</button>
+        </li>
       </ul>
     </div>
   </nav>
