@@ -16,6 +16,16 @@ defineRule('required', value => {
   }
   return true
 })
+defineRule('email', value => {
+  if (!value) {
+    return '請輸入 Email'
+  }
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailPattern.test(value)) {
+    return '請輸入有效的 Email'
+  }
+  return true
+})
 defineRule('length', (value, [min, max]) => {
   if (!value || !value.length) {
     return true
