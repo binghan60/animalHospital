@@ -1,0 +1,69 @@
+<script>
+import axios from 'axios'
+import { Field, Form, ErrorMessage } from 'vee-validate'
+export default {
+  inject: ['loadingConfig'],
+  components: {
+    VField: Field,
+    VForm: Form,
+    ErrorMessage,
+  },
+  data() {
+    return {
+      form: {
+        role: 'hospital',
+        account: '',
+      },
+      isLoading: false,
+    }
+  },
+  methods: {
+    async forgetPassword() {
+      try {
+        this.isLoading = true
+        const { role, account } = this.form
+        const payload = { role, account }
+        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/forgetPassword`, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        this.$toast.success(data.message)
+        this.isLoading = false
+      } catch (error) {
+        this.isLoading = false
+        this.$toast.error(error.response.data.message)
+      }
+    },
+  },
+}
+</script>
+<template>
+  <div class="flex items-center justify-center min-h-screen p-6">
+    <div class="w-full h-full max-w-sm min-w-[350px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8 dark:lg:bg-darkPrimary-700 rounded-lg dark:bg-darkPrimary-800">
+      <h2 class="mb-6 text-2xl font-bold text-center text-primary-900 dark:text-darkPrimary-50">忘記密碼</h2>
+      <VForm @submit="forgetPassword">
+        <div class="mb-4">
+          <label for="role" class="text-primary-900 dark:text-darkPrimary-50">請選擇帳號身份</label>
+          <VField id="role" v-model="form.role" name="role" as="select" rules="required" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-500 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none">
+            <option value="hospital">醫院</option>
+            <option value="user">飼主</option>
+          </VField>
+          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="role" />
+        </div>
+        <div class="mb-4">
+          <label for="account" class="text-primary-900 dark:text-darkPrimary-50">帳號</label>
+          <VField id="account" v-model="form.account" type="text" name="account" rules="required|length:4,20" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
+          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="account" />
+        </div>
+
+        <button type="submit" class="w-full px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">送出</button>
+        <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">
+          想起密碼了？
+          <RouterLink to="/login" class="text-primary-600 hover:underline dark:text-darkPrimary-50">登入</RouterLink>
+        </p>
+      </VForm>
+    </div>
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
+  </div>
+</template>
