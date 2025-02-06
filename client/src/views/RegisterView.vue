@@ -34,10 +34,10 @@ export default {
             'Content-Type': 'application/json',
           },
         })
-        this.$toast.success(data.message + ', 1秒後自動跳轉登入頁')
+        this.$toast.success(data.message + ', 3秒後自動跳轉登入頁')
         setTimeout(() => {
           this.$router.push('/login')
-        }, '1000')
+        }, '3000')
       } catch (error) {
         this.$toast.error(error.response.data.message)
       }
@@ -47,8 +47,8 @@ export default {
 </script>
 
 <template>
-  <div class="flex items-center justify-center min-h-screen p-6">
-    <div class="w-full h-full max-w-sm min-w-[330px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8 dark:lg:bg-darkPrimary-700 rounded-lg dark:bg-darkPrimary-800">
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="w-full h-full max-w-sm min-w-[350px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8 dark:lg:bg-darkPrimary-700 rounded-lg dark:bg-darkPrimary-800">
       <h2 class="mb-6 text-2xl font-bold text-center text-primary-900 dark:text-darkPrimary-50">註冊</h2>
       <VForm @submit="register">
         <div class="mb-4">
