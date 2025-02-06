@@ -98,7 +98,10 @@ export default {
           <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="password" />
         </div>
         <button type="submit" class="w-full px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">登入</button>
-        <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">沒有帳號？<RouterLink to="/register" class="text-primary-600 hover:underline dark:text-darkPrimary-50">註冊</RouterLink></p>
+        <div class="flex justify-between">
+          <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">沒有帳號？<RouterLink to="/register" class="text-primary-600 hover:underline dark:text-darkPrimary-50">註冊</RouterLink></p>
+          <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400"><RouterLink to="/forget-password" class="text-primary-600 hover:underline dark:text-darkPrimary-50">忘記密碼</RouterLink></p>
+        </div>
       </VForm>
       <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO帳號</button>
       <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">飼主DEMO帳號</button>
