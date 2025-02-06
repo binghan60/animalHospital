@@ -16,23 +16,28 @@ export default {
       const token = this.getCookieValue('animalHospitalToken')
       const role = this.getCookieValue('animalHospitalRole')
       if (token) {
-        this.isLoading = true
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
-          {},
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+        try {
+          this.isLoading = true
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
+            {},
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
             },
-          },
-        )
-        this.auth(data)
-        const redirectPath = this.redirectPath || '/hospital/animallist'
-        this.$router.push(redirectPath)
-        this.clearRedirectPath()
-        axios.defaults.headers.common.Authorization = `Bearer ${token}`
-        this.isLoading = false
+          )
+          this.auth(data)
+          const redirectPath = this.redirectPath || '/hospital/animallist'
+          this.$router.push(redirectPath)
+          this.clearRedirectPath()
+          axios.defaults.headers.common.Authorization = `Bearer ${token}`
+          this.isLoading = false
+        } catch (error) {
+          // this.$toast.error(error.response.data.message)
+          this.isLoading = false
+        }
       }
     },
     getCookieValue(name) {
