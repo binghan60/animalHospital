@@ -10,6 +10,7 @@ import animalRouter from './routes/animalRouter.js';
 import bloodSugarRouter from './routes/bloodSugarRouter.js';
 import authenticateToken from './middleware/authMiddleware.js';
 import dashBoardRouter from './routes/hospitalDashBoardRouter.js';
+import resetPasswordRouter from './routes/resetPasswordRouter.js';
 
 dotenv.config();
 const app = express();
@@ -19,6 +20,7 @@ app.use(cors());
 app.use('/avatars', express.static(path.join(path.resolve(), 'avatars')));
 app.use('/hospital', hospitalRouter);
 app.use('/user', userRouter);
+app.use('/reset-password', resetPasswordRouter);
 app.use('/animal', authenticateToken, animalRouter);
 app.use('/bloodSugar', authenticateToken, bloodSugarRouter);
 app.use('/dashboard', authenticateToken, dashBoardRouter);
