@@ -34,7 +34,7 @@ export default {
           this.clearRedirectPath()
           axios.defaults.headers.common.Authorization = `Bearer ${token}`
           this.isLoading = false
-        } catch (error) {
+        } catch {
           // this.$toast.error(error.response.data.message)
           this.isLoading = false
         }
