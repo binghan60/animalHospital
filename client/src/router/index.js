@@ -56,6 +56,16 @@ const router = createRouter({
       name: 'register',
       component: () => import('@/views/RegisterView.vue'),
     },
+    {
+      path: '/forget-password',
+      name: 'forget-password',
+      component: () => import('@/views/ForgetPassword.vue'),
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/ResetPassword.vue'),
+    },
   ],
 })
 // 進每個路由都會經過 路由守衛
