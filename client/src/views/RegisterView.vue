@@ -36,7 +36,7 @@ export default {
             'Content-Type': 'application/json',
           },
         })
-        this.$toast.success(data.message + ', 3秒後自動跳轉登入頁')
+        this.$toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
         setTimeout(() => {
           this.$router.push('/login')
         }, '3000')
