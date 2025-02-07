@@ -315,7 +315,7 @@ export default {
             </ul>
           </div>
           <div class="w-full max-w-xs">
-            <input v-model="searchKeyword" type="text" class="w-full px-4 py-2 text-sm placeholder-blue-500 border rounded-md border-primary-200 focus:outline-none focus:ring-1 focus:ring-primary-400 dark:focus:ring-darkPrimary-400 dark:border-darkPrimary-200 dark:bg-darkPrimary-600 dark:text-darkPrimary-50 dark:placeholder-darkPrimary-400" placeholder="搜尋" />
+            <input v-model="searchKeyword" type="text" class="w-full px-4 py-2 text-sm border rounded-md placeholder-primary-500 border-primary-200 focus:outline-none focus:ring-1 focus:ring-primary-400 dark:focus:ring-darkPrimary-400 dark:border-darkPrimary-200 dark:bg-darkPrimary-600 dark:text-darkPrimary-50 dark:placeholder-darkPrimary-400" placeholder="搜尋" />
           </div>
         </div>
       </div>
@@ -536,7 +536,11 @@ export default {
           </div>
           <div class="flex justify-between mt-4 lg:mt-6">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="createFormToggle = false">取消</button>
-            <button type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">確定</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/3 px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">新增中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">新增</button>
           </div>
         </VForm>
       </div>
@@ -629,7 +633,11 @@ export default {
           </div>
           <div class="flex justify-between mt-4 lg:mt-6">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="editFormToggle = false">取消</button>
-            <button type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">確定</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/3 px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">修改中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">修改</button>
           </div>
         </VForm>
       </div>
@@ -652,11 +660,15 @@ export default {
           </div>
           <div class="flex justify-between mt-4 lg:mt-6">
             <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="deleteFormToggle = false">取消</button>
-            <button type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">確定</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/3 px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">刪除中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">刪除</button>
           </div>
         </VForm>
       </div>
     </div>
-    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
   </div>
 </template>
