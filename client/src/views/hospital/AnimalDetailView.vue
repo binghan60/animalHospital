@@ -148,6 +148,7 @@ export default {
         left: '0px',
       },
       isLoading: false,
+      isDelete: false,
       dataDisplay: 'all',
     }
   },
@@ -425,7 +426,7 @@ export default {
     },
     async deleteTask(dataId, taskId) {
       try {
-        this.isLoading = true
+        this.isDelete = true
         const payload = {
           animalId: this.animal.Id,
           taskId,
@@ -440,17 +441,18 @@ export default {
         const range = this.getDateRange('week')
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
-        this.isLoading = false
+        this.isDelete = false
         this.modal.editNotes.toggle = false
         this.$toast.success(data.message)
       } catch (error) {
-        this.isLoading = false
+        this.isDelete = false
         this.$toast.error(error.response.data.message)
       }
     },
     async getWeekBloodSugarData() {
       // 混合周資料
       try {
+        this.isLoading = true
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
           params: {
             animalId: this.animal.Id,
@@ -474,8 +476,10 @@ export default {
           }
           return day
         })
+        this.isLoading = false
       } catch (error) {
         this.$toast.error(error.response.data.message)
+        this.isLoading = false
       }
     },
     async getAverage(startDate, endDate) {
@@ -1017,10 +1021,10 @@ export default {
 <template>
   <div>
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <div class="max-h-[450px] bg-white rounded-lg shadow-lg dark:bg-darkPrimary-700">
+      <div class="bg-white rounded-lg shadow-lg dark:bg-darkPrimary-700 min-h-[300px] lg:max-h-[400px] max-h-[480px]">
         <img class="object-cover w-full h-full p-4 lg:p-6" :src="animal.Info.avatar ? animal.Info.avatar : '/image/sampleAvatar.png'" alt="" />
       </div>
-      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] dark:bg-darkPrimary-700">
+      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
         <div class="w-full h-full">
           <h5 class="mb-3 text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">基本資料</h5>
           <ul class="grid grid-cols-3 list-none gap-x-4 gap-y-3">
@@ -1050,16 +1054,16 @@ export default {
           </ul>
         </div>
       </div>
-      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] dark:bg-darkPrimary-700">
+      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
         <ChartComponent type="line" :chartData="weightChart.data" :chartOptions="weightChart.options"></ChartComponent>
       </div>
-      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] dark:bg-darkPrimary-700">
+      <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
         <ChartComponent type="pie" :chartData="averageChart.data" :chartOptions="averageChart.options"></ChartComponent>
         <div class="grid grid-cols-2 col-span-6 text-center">
           <h2 class="col-span-2 text-primary-900 dark:text-darkPrimary-50">{{ averageChart.title }}</h2>
-          <div :class="['col-span-2 p-2 h-[40px] text-lg font-semibold text-blue-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.combinedAverage))]">{{ Math.ceil(averageChart.averages.combinedAverage) }}</div>
-          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-blue-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.morningAverage))]"><i class="fa-regular fa-sun"></i> {{ Math.ceil(averageChart.averages.morningAverage) }}</div>
-          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-blue-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.eveningAverage))]"><i class="fa-regular fa-moon"></i> {{ Math.ceil(averageChart.averages.eveningAverage) }}</div>
+          <div :class="['col-span-2 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.combinedAverage))]">{{ Math.ceil(averageChart.averages.combinedAverage) }}</div>
+          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.morningAverage))]"><i class="fa-regular fa-sun"></i> {{ Math.ceil(averageChart.averages.morningAverage) }}</div>
+          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.eveningAverage))]"><i class="fa-regular fa-moon"></i> {{ Math.ceil(averageChart.averages.eveningAverage) }}</div>
         </div>
       </div>
     </div>
@@ -1232,8 +1236,12 @@ export default {
               <ErrorMessage name="notes" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
             </div>
             <div class="flex justify-between gap-4">
-              <button type="button" class="px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="closeTaskModal">取消</button>
-              <button type="submit" class="px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">新增</button>
+              <button type="button" class="w-[140px] px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="closeTaskModal">取消</button>
+              <button v-if="isLoading" class="w-[140px] inline-flex items-center justify-center px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+                <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+                <span class="ml-2">新增中... </span>
+              </button>
+              <button v-else type="submit" class="w-[140px] px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">新增</button>
             </div>
           </VForm>
         </div>
@@ -1243,7 +1251,7 @@ export default {
           <VForm @submit="editTask">
             <div class="flex items-center justify-between mb-4">
               <h3 class="mb-4 text-lg font-semibold dark:text-darkPrimary-50">編輯事項 {{ editRecord.date }}</h3>
-              <button type="button" class="h-10 max-h-[60px] w-10 max-w-[60px] select-none rounded-lg text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20" @click="deleteTask(editRecord.recordId, editRecord.taskId)">
+              <button type="button" class="h-10 max-h-[60px] w-10 max-w-[60px] select-none rounded-lg transition-all dark:hover:bg-darkPrimary-600 hover:bg-gray-900/10" @click="deleteTask(editRecord.recordId, editRecord.taskId)">
                 <i class="text-xl text-red-600 dark:text-rose-400 fa-solid fa-trash fa-fw"></i>
               </button>
             </div>
@@ -1268,8 +1276,12 @@ export default {
               <ErrorMessage name="notes" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
             </div>
             <div class="flex justify-between gap-4">
-              <button type="button" class="px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.editNotes.toggle = false">取消</button>
-              <button type="submit" class="px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">修改</button>
+              <button type="button" class="w-[140px] px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.editNotes.toggle = false">取消</button>
+              <button v-if="isLoading" class="w-[140px] inline-flex items-center justify-center px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+                <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+                <span class="ml-2">修改中... </span>
+              </button>
+              <button v-else type="submit" class="w-[140px] px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">修改</button>
             </div>
           </VForm>
         </div>
@@ -1294,9 +1306,13 @@ export default {
             </div>
           </div>
 
-          <div class="flex justify-between mt-4">
-            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.weight.toggle = false">取消</button>
-            <button type="submit" :class="['w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none', { lazyLoading: modal.weight.loading }]">確定</button>
+          <div class="flex justify-between mt-4 space-x-4">
+            <button type="button" class="w-1/2 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md lg:w-1/3 dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.weight.toggle = false">取消</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/2 px-6 py-2 rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">新增中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/2 px-4 py-2 text-white rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">新增體重</button>
           </div>
         </VForm>
       </div>
@@ -1318,9 +1334,13 @@ export default {
           <div class="flex justify-center my-3">
             <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400 dark:bg-lime-600" @click="modal.bloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus fa-fw"></i> 新增欄位</button>
           </div>
-          <div class="flex justify-between">
-            <button type="button" class="w-1/3 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.bloodSugarCurve.toggle = false">取消</button>
-            <button type="submit" :class="['w-1/3 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none', { lazyLoading: modal.bloodSugarCurve.loading }]">確定</button>
+          <div class="flex justify-between space-x-4">
+            <button type="button" class="w-1/2 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md lg:w-1/3 dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.bloodSugarCurve.toggle = false">取消</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/2 px-6 py-2 rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">新增中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/2 px-4 py-2 text-white rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">新增血糖曲線</button>
           </div>
         </VForm>
       </div>
@@ -1358,6 +1378,6 @@ export default {
         <i class="fa-solid fa-chart-line fa-fw"></i>
       </button>
     </div>
-    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
+    <VueLoading :active="isLoading || isDelete" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
   </div>
 </template>
