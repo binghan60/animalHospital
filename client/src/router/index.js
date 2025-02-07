@@ -8,16 +8,18 @@ const router = createRouter({
       path: '/hospital',
       name: 'hospital',
       children: [
-        { path: 'animallist', component: () => import('@/views/hospital/AnimalListView.vue') },
+        { path: 'animallist', meta: { title: '醫院動物列表' }, component: () => import('@/views/hospital/AnimalListView.vue') },
         {
           path: 'animal/:id',
           name: 'animal-detail',
+          meta: { title: '動物詳細資訊' },
           component: () => import('@/views/hospital/AnimalDetailView.vue'),
           props: true,
         },
         {
           path: 'dashboard',
           name: 'dashboard',
+          meta: { title: '管理面板' },
           component: () => import('@/views/hospital/DashboardView.vue'),
           props: true,
         },
@@ -37,11 +39,13 @@ const router = createRouter({
         {
           path: 'animallist',
           name: 'user-animal-list',
+          meta: { title: '飼主動物列表' },
           component: () => import('@/views/user/AnimalListView.vue'),
         },
         {
           path: 'animal/:id',
           name: 'user-animal-detail',
+          meta: { title: '動物詳細資訊' },
           component: () => import('@/views/user/AnimalDetailView.vue'),
           props: true, //將ID透過props傳入，而不是this.$route.params
         },
@@ -50,34 +54,39 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
+      meta: { title: '登入入口' },
       component: () => import('@/views/LoginView.vue'),
     },
     {
       path: '/register',
       name: 'register',
+      meta: { title: '註冊會員' },
       component: () => import('@/views/RegisterView.vue'),
     },
     {
       path: '/forget-password',
       name: 'forget-password',
+      meta: { title: '忘記密碼' },
       component: () => import('@/views/ForgetPassword.vue'),
     },
     {
       path: '/reset-password',
       name: 'reset-password',
+      meta: { title: '重設密碼' },
       component: () => import('@/views/ResetPassword.vue'),
     },
     {
       path: '/member',
       name: 'member-center',
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '會員中心' },
       component: () => import('@/views/MemberCenter.vue'),
     },
-    { path: '/:pathMatch(.*)*', name: 'notFound', component: () => import('@/views/NotFountView.vue') },
+    { path: '/:pathMatch(.*)*', name: 'notFound', meta: { title: '找不到該頁面' }, component: () => import('@/views/NotFountView.vue') },
   ],
 })
 // 進每個路由都會經過 路由守衛
 router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || '動物健康管理系統'
   const store = authStore()
   const user = store.user
   const toast = useToast()
