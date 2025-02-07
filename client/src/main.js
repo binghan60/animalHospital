@@ -18,13 +18,10 @@ defineRule('required', value => {
 })
 defineRule('email', value => {
   if (!value) {
-    return '請輸入 Email'
+    return true
   }
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailPattern.test(value)) {
-    return '請輸入有效的 Email'
-  }
-  return true
+  return emailPattern.test(value) ? true : '請輸入有效的 Email'
 })
 defineRule('length', (value, [min, max]) => {
   if (!value || !value.length) {
@@ -85,6 +82,9 @@ app.provide('loadingConfig', {
   loader: 'dots',
   getColor() {
     return store.isDark ? '#d4d4d4' : '#007BFF'
+  },
+  backgroundColor() {
+    return store.isDark ? '#000000' : '#FCFCFC'
   },
 })
 app.config.globalProperties.$toast = useToast() // 全域註冊 this.$toast 方法
