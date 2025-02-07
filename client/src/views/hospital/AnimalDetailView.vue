@@ -1137,7 +1137,7 @@ export default {
           <div>日</div>
         </div>
         <template v-for="(day, index) in calendar">
-          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none dark:bg-darkPrimary-600 dark:text-darkPrimary-50 bg-primary-200 text-primary-900', { 'bg-primary-400': day.isToday, 'cursor-pointer': day.records?.length }]" @click="day.records?.length ? showTips($event, day?.records) : null">
+          <div v-if="day.day" :key="day.isoDate" :class="['p-2 m-1 rounded-lg select-none dark:bg-darkPrimary-600 dark:text-darkPrimary-50 bg-primary-200 text-primary-900', { 'bg-primary-400 dark:bg-stone-600': day.isToday, 'cursor-pointer': day.records?.length }]" @click="day.records?.length ? showTips($event, day?.records) : null">
             <div class="font-bold text-center">{{ day.month }} / {{ day.day }} {{ day.records?.length > 2 ? '**' : '' }}</div>
             <!-- 早上 -->
             <div class="p-2 mb-2 rounded-md bg-primary-100 hover:bg-primary-300 dark:bg-darkPrimary-500 dark:hover:bg-darkPrimary-400">
