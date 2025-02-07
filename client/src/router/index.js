@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authStore from '@/stores/auth.js'
+import { useToast } from 'vue-toastification'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -66,20 +67,30 @@ const router = createRouter({
       name: 'reset-password',
       component: () => import('@/views/ResetPassword.vue'),
     },
+    {
+      path: '/member',
+      name: 'member-center',
+      meta: { requiresAuth: true },
+      component: () => import('@/views/MemberCenter.vue'),
+    },
+    { path: '/:pathMatch(.*)*', name: 'notFound', component: () => import('@/views/NotFountView.vue') },
   ],
 })
 // 進每個路由都會經過 路由守衛
 router.beforeEach((to, from, next) => {
   const store = authStore()
   const user = store.user
+  const toast = useToast()
   // 檢查是否需要登入
-  if (to.meta.requiresAuth && !user.isLogin) {
+  if (store.redirectPath == null) {
     store.setRedirectPath(to.fullPath)
-    next('/login') // 沒登入轉到LOGIN
+  }
+  if (to.meta.requiresAuth && !user.isLogin) {
+    next('/login')
   } else if (to.meta.roles && !to.meta.roles.includes(user.role)) {
-    // 檢查角色權限
-    console.warn(`權限不足，${user.role} 無法進入 ${to.name}`)
-    next('/login') // 跳轉到LOGIN
+    // 檢查權限
+    toast.warning(`權限不足，無法進入 ${to.name}`, { timeout: 3000 })
+    next('/login')
   } else {
     next()
   }
