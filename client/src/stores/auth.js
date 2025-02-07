@@ -42,9 +42,6 @@ export default defineStore('authStore', {
     clearRedirectPath() {
       this.redirectPath = null
     },
-    setToken(token) {
-      this.token = token
-    },
     toggleTheme() {
       this.isDark = !this.isDark
       document.querySelector('body').classList.toggle('dark', this.isDark)
