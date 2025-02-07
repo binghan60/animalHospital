@@ -68,6 +68,8 @@ export default {
       genderChinese: { male: '男生', female: '女生' },
       typeChinese: { dog: '狗狗', cat: '貓貓', other: '其他' },
       isLoading: false,
+      selectedGender: 0,
+      selectedType: 0,
     }
   },
   methods: {
@@ -76,10 +78,13 @@ export default {
         this.isLoading = true
         const params = {
           hospitalId: this.user._id,
+          gender: this.selectedGender,
+          type: this.selectedType,
         }
         const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/dashboard`, {
           params,
         })
+        console.log(data)
         this.dashboard = data
       } catch (error) {
         this.$toast.error(error.response.data.message)
@@ -1159,6 +1164,14 @@ export default {
     isDark(isDark) {
       this.updateAllChart(isDark)
     },
+    async selectedGender() {
+      await this.getDashBoard()
+      this.updateAllChart(this.isDark)
+    },
+    async selectedType() {
+      await this.getDashBoard()
+      this.updateAllChart(this.isDark)
+    },
   },
   async mounted() {
     await this.getDashBoard()
@@ -1169,6 +1182,45 @@ export default {
 
 <template>
   <div class="grid grid-cols-3 gap-4 text-center">
+    <div class="col-span-3 p-6 bg-white border border-gray-200 rounded-lg shadow-lg dark:border-darkPrimary-400 dark:bg-darkPrimary-600">
+      <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">篩選選項</h2>
+      <div class="flex justify-center mb-8 space-x-4">
+        <label class="rounded-lg">
+          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="0" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-mars fa-fw"></i>所有性別</span>
+        </label>
+        <label class="rounded-lg">
+          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="male" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-mars fa-fw"></i> 男</span>
+        </label>
+        <label class="rounded-lg">
+          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="female" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-venus fa-fw"></i> 女</span>
+        </label>
+      </div>
+      <div class="flex flex-wrap justify-center mb-0 space-x-4 lg:mb-4">
+        <label class="mb-6 rounded-lg lg:mb-0">
+          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="0" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600">所有種類</span>
+        </label>
+        <label class="mb-6 rounded-lg lg:mb-0">
+          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="cat" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-cat fa-fw"></i> 貓咪</span>
+        </label>
+        <label class="mb-6 rounded-lg lg:mb-0">
+          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="dog" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-dog fa-fw"></i> 狗狗</span>
+        </label>
+        <label class="mb-6 rounded-lg lg:mb-0">
+          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="other" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-question fa-fw"></i> 其他</span>
+        </label>
+        <label class="mb-6 rounded-lg lg:mb-0">
+          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="" />
+          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-question fa-fw"></i> 未選擇種類</span>
+        </label>
+      </div>
+    </div>
     <div class="col-span-3 dark:text-darkPrimary-50 text-primary-900">
       <div class="text-4xl">{{ dashboard.stats?.total ? dashboard.stats?.total : '--' }}隻</div>
       <div>目前院內動物數量</div>
@@ -1197,6 +1249,6 @@ export default {
     <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
       <ChartComponent :type="insulinBrand.type" :chartData="insulinBrand.data" :chartOptions="insulinBrand.options"></ChartComponent>
     </div>
-    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
   </div>
 </template>
