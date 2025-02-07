@@ -10,10 +10,10 @@ router.get('/', async (req, res) => {
             return res.status(400).json({ error: 'Invalid hospital ID' });
         }
         const filter = { hospitalId: new mongoose.Types.ObjectId(hospitalId) };
-        if (gender) {
+        if (gender != 0) {
             filter.gender = gender;
         }
-        if (type) {
+        if (type != 0) {
             filter.type = type;
         }
         const totalCount = await Animal.countDocuments(filter); // 總動物數量
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
             {
                 $addFields: {
                     currentWeight: {
-                        $arrayElemAt: ['$weight', -1],
+                        $arrayElemAt: ['$weight.value', -1],
                     },
                     age: {
                         // subtract 計算時間差 new Date()-$birthday
@@ -34,20 +34,14 @@ router.get('/', async (req, res) => {
                     },
                 },
             },
-            // 如果 currentWeight 是一個物件，提取 `value`
-            {
-                $addFields: {
-                    currentWeightValue: '$currentWeight.value', // 提取 `value` 欄位
-                },
-            },
             {
                 $facet: {
                     genderStats: [{ $group: { _id: '$gender', count: { $sum: 1 } } }, { $sort: { _id: -1 } }],
                     weightDistribution: [
                         {
                             $bucket: {
-                                groupBy: '$currentWeightValue', // 使用 `currentWeightValue` 來分組
-                                boundaries: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+                                groupBy: '$currentWeight',
+                                boundaries: [0.1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100000],
                                 default: '未輸入體重',
                                 output: { count: { $sum: 1 } },
                             },
@@ -58,7 +52,7 @@ router.get('/', async (req, res) => {
                         {
                             $bucket: {
                                 groupBy: '$age', // 使用 `age` 來分組
-                                boundaries: [0, 1, 3, 5, 10, 15, 20, 25, 30],
+                                boundaries: [0, 1, 5, 10, 15, 20, 25, 30, 10000],
                                 default: -1, // 設定 -1 為 "未輸入生日"
                                 output: { count: { $sum: 1 } },
                             },
@@ -90,16 +84,16 @@ router.get('/', async (req, res) => {
                                                 else: {
                                                     $switch: {
                                                         branches: [
-                                                            { case: { $lte: ['$$item._id', 5] }, then: '0-5 kg' },
-                                                            { case: { $lte: ['$$item._id', 10] }, then: '6-10 kg' },
-                                                            { case: { $lte: ['$$item._id', 15] }, then: '11-15 kg' },
-                                                            { case: { $lte: ['$$item._id', 20] }, then: '16-20 kg' },
-                                                            { case: { $lte: ['$$item._id', 25] }, then: '21-25 kg' },
-                                                            { case: { $lte: ['$$item._id', 30] }, then: '26-30 kg' },
-                                                            { case: { $lte: ['$$item._id', 35] }, then: '31-35 kg' },
-                                                            { case: { $lte: ['$$item._id', 40] }, then: '36-40 kg' },
-                                                            { case: { $lte: ['$$item._id', 45] }, then: '41-45 kg' },
-                                                            { case: { $lte: ['$$item._id', 50] }, then: '46-50 kg' },
+                                                            { case: { $lt: ['$$item._id', 5] }, then: '0-5 kg' },
+                                                            { case: { $lt: ['$$item._id', 10] }, then: '6-10 kg' },
+                                                            { case: { $lt: ['$$item._id', 15] }, then: '11-15 kg' },
+                                                            { case: { $lt: ['$$item._id', 20] }, then: '16-20 kg' },
+                                                            { case: { $lt: ['$$item._id', 25] }, then: '21-25 kg' },
+                                                            { case: { $lt: ['$$item._id', 30] }, then: '26-30 kg' },
+                                                            { case: { $lt: ['$$item._id', 35] }, then: '31-35 kg' },
+                                                            { case: { $lt: ['$$item._id', 40] }, then: '36-40 kg' },
+                                                            { case: { $lt: ['$$item._id', 45] }, then: '41-45 kg' },
+                                                            { case: { $lt: ['$$item._id', 50] }, then: '46-50 kg' },
                                                         ],
                                                         default: '50 kg以上',
                                                     },
@@ -145,16 +139,17 @@ router.get('/', async (req, res) => {
                                                     $switch: {
                                                         branches: [
                                                             { case: { $eq: ['$$item._id', -1] }, then: '未輸入生日' }, // 處理未輸入生日的情況
-                                                            { case: { $lte: ['$$item._id', 1] }, then: '1歲以下' },
-                                                            { case: { $lte: ['$$item._id', 3] }, then: '1-3歲' },
-                                                            { case: { $lte: ['$$item._id', 5] }, then: '4-5歲' },
-                                                            { case: { $lte: ['$$item._id', 10] }, then: '6-10歲' },
-                                                            { case: { $lte: ['$$item._id', 15] }, then: '11-15歲' },
-                                                            { case: { $lte: ['$$item._id', 20] }, then: '16-20歲' },
-                                                            { case: { $lte: ['$$item._id', 25] }, then: '21-25歲' },
-                                                            { case: { $lte: ['$$item._id', 30] }, then: '26-30歲' },
+                                                            { case: { $lt: ['$$item._id', 1] }, then: '1歲以下' },
+                                                            { case: { $lt: ['$$item._id', 3] }, then: '1-3歲' },
+                                                            { case: { $lt: ['$$item._id', 5] }, then: '4-5歲' },
+                                                            { case: { $lt: ['$$item._id', 10] }, then: '6-10歲' },
+                                                            { case: { $lt: ['$$item._id', 15] }, then: '11-15歲' },
+                                                            { case: { $lt: ['$$item._id', 20] }, then: '16-20歲' },
+                                                            { case: { $lt: ['$$item._id', 25] }, then: '21-25歲' },
+                                                            { case: { $lt: ['$$item._id', 30] }, then: '26-30歲' },
+                                                            { case: { $lt: ['$$item._id', 1000] }, then: '30歲以上' },
                                                         ],
-                                                        default: '30歲以上',
+                                                        default: '未輸入生日',
                                                     },
                                                 },
                                             },
