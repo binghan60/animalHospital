@@ -128,7 +128,6 @@ router.post('/forgetPassword', async (req, res) => {
             },
         });
         const resetLink = `${process.env.VITE_PATH}/reset-password?token=${token}`;
-        s;
         const mailOptions = {
             from: process.env.SMTP_EMAIL,
             to: account.email,
