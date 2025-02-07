@@ -50,8 +50,7 @@ export default {
       }
       return null
     },
-
-    ...mapActions(authStore, ['auth', 'clearRedirectPath', 'setToken', 'toggleTheme']),
+    ...mapActions(authStore, ['auth', 'clearRedirectPath', 'toggleTheme']),
   },
   computed: {
     ...mapState(authStore, ['redirectPath', 'isDark']),
@@ -71,9 +70,9 @@ export default {
 <template>
   <div class="transition-colors bg-primary-50 dark:bg-darkPrimary-800">
     <NavbarComponent></NavbarComponent>
-    <div class="p-4 mx-auto max-w-7xl lg:p-2 min-h-[100vh]">
-      <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" />
-      <RouterView class="lg:mb-16" />
+    <div class="p-4 mx-auto max-w-7xl lg:pt-8 lg:pb-8" style="min-height: calc(100vh - 58px)">
+      <RouterView />
     </div>
+    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
   </div>
 </template>
