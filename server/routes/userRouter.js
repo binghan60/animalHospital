@@ -127,7 +127,7 @@ router.post('/forgetPassword', async (req, res) => {
                 pass: process.env.SMTP_PASSWORD,
             },
         });
-        const resetLink = `http://localhost:5173/reset-password?token=${token}`;
+        const resetLink = `${process.env.VITE_PATH}/reset-password?token=${token}`;
         const mailOptions = {
             from: process.env.SMTP_EMAIL,
             to: account.email,
@@ -147,4 +147,25 @@ router.post('/forgetPassword', async (req, res) => {
         return res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
     }
 });
+router.put('/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { name, email, address, phone } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: '醫院不存在' });
+        }
+        user.name = name || user.name;
+        user.email = email || user.email;
+        user.address = address || user.address;
+        user.phone = phone || user.phone;
+        await user.save();
+        res.json({ message: '更新成功', profile: { ...user.toObject(), role: 'user' } });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '伺服器錯誤' });
+    }
+});
+
 export default router;
