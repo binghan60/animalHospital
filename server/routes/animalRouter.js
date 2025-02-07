@@ -6,8 +6,10 @@ import Animal from '../models/animalModel.js';
 import DiaryBloodRecord from '../models/bloodSugarModel.js';
 import BloodSugarCurve from '../models/bloodSugarCurveModel.js';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 const router = express.Router();
 const upload = multer();
+dotenv.config();
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
