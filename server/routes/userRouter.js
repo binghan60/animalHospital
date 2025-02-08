@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: '帳號已停用' });
         }
         const payload = {
-            userId: user._id,
+            _id: user._id,
             accountType: 'user',
         };
         const token = jwt.sign(payload, process.env.LOGIN_SECRET, { expiresIn: '7d' });
