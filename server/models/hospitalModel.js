@@ -10,7 +10,7 @@ const hospitalSchema = new mongoose.Schema(
         email: { type: String, default: '' },
         isActive: { type: Boolean, default: true },
         lastLogin: { type: Date, default: '' },
-        passwordUpdatedAt: { type: Date, default: Date.now },
+        passwordUpdatedAt: { type: Date },
     },
     {
         timestamps: true,

@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
         name: { type: String, default: '' },
         isActive: { type: Boolean, default: true },
         lastLogin: { type: Date, default: null },
-        passwordUpdatedAt: { type: Date, default: Date.now },
+        passwordUpdatedAt: { type: Date },
     },
     {
         timestamps: true,

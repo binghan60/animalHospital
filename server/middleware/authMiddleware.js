@@ -21,7 +21,7 @@ export default async function authenticateToken(req, res, next) {
             return res.status(401).send({ message: '用戶不存在' });
         }
         const passwordUpdatedAt = Math.floor(new Date(account.passwordUpdatedAt).getTime() / 1000);
-        if (decoded.iat < passwordUpdatedAt) {
+        if (decoded.iat < passwordUpdatedAt && passwordUpdatedAt != undefined) {
             return res.status(444).send({ message: 'Token 已失效，請重新登入' });
         }
         req.user = decoded;
