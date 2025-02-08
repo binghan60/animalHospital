@@ -54,7 +54,7 @@ export default {
     },
     quicklogin() {
       this.loginFrom.account = 'admin'
-      this.loginFrom.password = 'Hank!0688'
+      this.loginFrom.password = 'adminadmin'
       this.loginFrom.role = 'hospital'
     },
     userlogin() {
