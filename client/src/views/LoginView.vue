@@ -3,6 +3,7 @@ import { mapActions, mapState } from 'pinia'
 import authStore from '@/stores/auth'
 import axios from 'axios'
 import { Field, Form, ErrorMessage } from 'vee-validate'
+import { setAuthHeader } from '@/axiosConfig.js'
 export default {
   inject: ['loadingConfig'],
   components: {
@@ -39,7 +40,7 @@ export default {
         this.$toast.success(data.message)
         document.cookie = `animalHospitalToken=${data.token}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
         document.cookie = `animalHospitalRole=${data.role}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
-        axios.defaults.headers.common.Authorization = `Bearer ${data.token}`
+        setAuthHeader(data.token)
         if (role == 'user') {
           this.$router.push('/user/animallist')
         } else {

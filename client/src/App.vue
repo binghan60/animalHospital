@@ -4,6 +4,7 @@ import authStore from '@/stores/auth'
 import { mapState, mapActions } from 'pinia'
 import axios from 'axios'
 import NavbarComponent from '@/components/NavbarComponent.vue'
+import { setAuthHeader } from '@/axiosConfig.js'
 
 export default {
   inject: ['loadingConfig'],
@@ -32,10 +33,9 @@ export default {
           const redirectPath = this.redirectPath || '/hospital/animallist'
           this.$router.push(redirectPath)
           this.clearRedirectPath()
-          axios.defaults.headers.common.Authorization = `Bearer ${token}`
+          setAuthHeader(token)
           this.isLoading = false
         } catch {
-          // this.$toast.error(error.response.data.message)
           this.isLoading = false
         }
       }
@@ -60,9 +60,23 @@ export default {
     if (localStorage.getItem('animalHospitalDarkTheme') === 'true') {
       this.toggleTheme()
     }
-    //axios自動帶token
-    // const token = document.cookie.replace(/(?:(?:^|.*;\s*)Token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-    // axios.defaults.headers.common.Authorization = token;
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 444) {
+          if (!sessionStorage.getItem('hasShownError')) {
+            sessionStorage.setItem('hasShownError', 'true')
+            const store = authStore()
+            this.$toast.warning('密碼已修改，請重新登入')
+            store.clearAuth()
+            this.$router.push('/login')
+          }
+          return Promise.resolve()
+        }
+        sessionStorage.removeItem('hasShownError')
+        return Promise.reject(error)
+      },
+    )
   },
 }
 </script>
