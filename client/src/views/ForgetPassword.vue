@@ -32,7 +32,7 @@ export default {
         this.isLoading = false
       } catch (error) {
         this.isLoading = false
-        this.$toast.error(error.response.data.message)
+        this.$toast.warning(error.response.data.message)
       }
     },
   },
