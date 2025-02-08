@@ -138,6 +138,23 @@ router.post('/forgetPassword', async (req, res) => {
         return res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
     }
 });
+
+router.get('/:id', async (req, res) => {
+    try {
+        const hospitalId = req.params.id;
+        const hospital = await Hospital.findById(hospitalId).lean();
+        if (!hospital) {
+            return res.status(404).json({ message: '找不到該醫院' });
+        }
+        delete hospital.password;
+        delete hospital.passwordUpdatedAt;
+        res.json(hospital);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: '伺服器錯誤' });
+    }
+});
+
 router.put('/:id', async (req, res) => {
     try {
         const hospitalId = req.params.id;
