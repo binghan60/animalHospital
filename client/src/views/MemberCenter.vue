@@ -24,6 +24,24 @@ export default {
     ...mapState(authStore, ['user', 'isDark']),
   },
   methods: {
+    async getProfile() {
+      try {
+        this.isLoading = true
+        const { role } = this.user
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/${role}/${this.user._id}`, { userId: this.user._id })
+        this.profile.name = data.name
+        this.profile.email = data.email
+        this.profile.address = data.address
+        this.profile.phone = data.phone
+        const utcDate = new Date(data.createdAt)
+        const gmtDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000)
+        this.formattedDate = gmtDate.toISOString().replace('T', ' ').substring(0, 10)
+        this.isLoading = false
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+        this.isLoading = false
+      }
+    },
     async updateProfile() {
       try {
         this.isLoading = true
@@ -49,13 +67,7 @@ export default {
     ...mapActions(authStore, ['auth']),
   },
   mounted() {
-    this.profile.name = this.user.name
-    this.profile.email = this.user.email
-    this.profile.address = this.user.address
-    this.profile.phone = this.user.phone
-    const utcDate = new Date(this.user.createdAt)
-    const gmtDate = new Date(utcDate.getTime() + 8 * 60 * 60 * 1000)
-    this.formattedDate = gmtDate.toISOString().replace('T', ' ').substring(0, 10)
+    this.getProfile()
   },
 }
 </script>
