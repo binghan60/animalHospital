@@ -31,6 +31,7 @@ router.post('/', async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
             account.password = hashedPassword;
+            account.passwordUpdatedAt = new Date();
             await account.save();
             await existToken.deleteOne();
             return res.status(200).json({ message: '密碼重設成功' });
