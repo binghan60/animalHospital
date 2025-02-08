@@ -68,6 +68,7 @@ router.post('/login', async (req, res) => {
         }
         const payload = {
             userId: user._id,
+            accountType: 'user',
         };
         const token = jwt.sign(payload, process.env.LOGIN_SECRET, { expiresIn: '7d' });
         const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
@@ -108,6 +109,10 @@ router.post('/forgetPassword', async (req, res) => {
         }
         if (account.email === '') {
             return res.status(404).json({ message: '此帳號未設定email' });
+        }
+        const existToken = await PasswordResetToken.findOne({ accountId: account._id });
+        if (existToken) {
+            return res.status(404).json({ message: '密碼重置信件已寄出，請至信箱查看。' });
         }
         const token = jwt.sign({ accountId: account._id, role: req.body.role }, process.env.RESETPASSWORD_SECRET, { expiresIn: 600 });
         const now = new Date();
