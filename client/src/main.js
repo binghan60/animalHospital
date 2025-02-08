@@ -9,7 +9,7 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import { defineRule } from 'vee-validate'
 import authStore from '@/stores/auth.js'
-
+import '@/axiosConfig.js'
 defineRule('required', value => {
   if (!value?.toString() || !value?.toString().length) {
     return '此欄位為必填，請輸入資料'
