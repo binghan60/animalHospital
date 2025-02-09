@@ -15,8 +15,8 @@ router.get('/average', async (req, res) => {
         const results = await BloodSugar.aggregate([
             {
                 $match: {
-                    animalId: new mongoose.Types.ObjectId(animalId), // 轉換 animalId 為 ObjectId
-                    date: { $gte: start, $lte: end }, // 篩選日期範圍
+                    animalId: new mongoose.Types.ObjectId(animalId),
+                    date: { $gte: start, $lte: end },
                 },
             },
             {
@@ -25,8 +25,16 @@ router.get('/average', async (req, res) => {
                         {
                             $group: {
                                 _id: null,
-                                morningAverage: { $avg: '$morning.bloodSugar' },
-                                eveningAverage: { $avg: '$evening.bloodSugar' },
+                                morningAverage: {
+                                    $avg: {
+                                        $cond: [{ $gt: ['$morning.bloodSugar', 0] }, '$morning.bloodSugar', null],
+                                    },
+                                },
+                                eveningAverage: {
+                                    $avg: {
+                                        $cond: [{ $gt: ['$evening.bloodSugar', 0] }, '$evening.bloodSugar', null],
+                                    },
+                                },
                             },
                         },
                     ],
@@ -38,17 +46,17 @@ router.get('/average', async (req, res) => {
                                 _id: null,
                                 count_1_249: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $lte: ['$morning.bloodSugar', 249] }, { $ne: ['$morning.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $and: [{ $lte: ['$morning.bloodSugar', 249] }, { $gt: ['$morning.bloodSugar', 0] }] }, 1, 0],
                                     },
                                 },
                                 count_250_399: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 250] }, { $lte: ['$morning.bloodSugar', 399] }, { $ne: ['$morning.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 250] }, { $lte: ['$morning.bloodSugar', 399] }] }, 1, 0],
                                     },
                                 },
                                 count_400_plus: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 400] }, { $ne: ['$morning.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $gte: ['$morning.bloodSugar', 400] }, 1, 0],
                                     },
                                 },
                             },
@@ -56,22 +64,21 @@ router.get('/average', async (req, res) => {
                     ],
                     eveningCounts: [
                         {
-                            // 統計晚上血糖分布
                             $group: {
                                 _id: null,
                                 count_1_249: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $lte: ['$evening.bloodSugar', 249] }, { $ne: ['$evening.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $and: [{ $lte: ['$evening.bloodSugar', 249] }, { $gt: ['$evening.bloodSugar', 0] }] }, 1, 0],
                                     },
                                 },
                                 count_250_399: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 250] }, { $lte: ['$evening.bloodSugar', 399] }, { $ne: ['$evening.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 250] }, { $lte: ['$evening.bloodSugar', 399] }] }, 1, 0],
                                     },
                                 },
                                 count_400_plus: {
                                     $sum: {
-                                        $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 400] }, { $ne: ['$evening.bloodSugar', null] }] }, 1, 0],
+                                        $cond: [{ $gte: ['$evening.bloodSugar', 400] }, 1, 0],
                                     },
                                 },
                             },
@@ -85,32 +92,67 @@ router.get('/average', async (req, res) => {
                 // $arrayElemAt: ['$averages', 0]   上面計算好的averages第0筆
                 $project: {
                     averages: {
-                        $mergeObjects: [
-                            {
-                                // 計算早晚、總平均
-                                morningAverage: {
-                                    $avg: [{ $ifNull: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] }],
+                        morningAverage: { $ifNull: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] },
+                        eveningAverage: { $ifNull: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] },
+                        combinedAverage: {
+                            $cond: {
+                                if: {
+                                    $eq: [
+                                        {
+                                            $sum: [
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] }, 1, 0],
+                                                },
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] }, 1, 0],
+                                                },
+                                            ],
+                                        },
+                                        0,
+                                    ],
                                 },
-                                eveningAverage: {
-                                    $avg: [{ $ifNull: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] }],
-                                },
-                                combinedAverage: {
-                                    $avg: [{ $ifNull: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] }, { $ifNull: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] }],
+                                then: 0,
+                                else: {
+                                    $divide: [
+                                        {
+                                            $sum: [
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] }, { $arrayElemAt: ['$averages.morningAverage', 0] }, 0],
+                                                },
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] }, { $arrayElemAt: ['$averages.eveningAverage', 0] }, 0],
+                                                },
+                                            ],
+                                        },
+                                        {
+                                            $sum: [
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.morningAverage', 0] }, 0] }, 1, 0],
+                                                },
+                                                {
+                                                    $cond: [{ $gt: [{ $arrayElemAt: ['$averages.eveningAverage', 0] }, 0] }, 1, 0],
+                                                },
+                                            ],
+                                        },
+                                    ],
                                 },
                             },
-                        ],
+                        },
                     },
-                    morningCounts: { $ifNull: [{ $arrayElemAt: ['$morningCounts', 0] }, { count_1_249: 0, count_250_399: 0, count_400_plus: 0 }] },
-                    eveningCounts: { $ifNull: [{ $arrayElemAt: ['$eveningCounts', 0] }, { count_1_249: 0, count_250_399: 0, count_400_plus: 0 }] },
+                    morningCounts: {
+                        $ifNull: [{ $arrayElemAt: ['$morningCounts', 0] }, { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 }],
+                    },
+                    eveningCounts: {
+                        $ifNull: [{ $arrayElemAt: ['$eveningCounts', 0] }, { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 }],
+                    },
                 },
             },
         ]);
         const defaultData = {
             averages: { morningAverage: 0, eveningAverage: 0, combinedAverage: 0 },
-            morningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
-            eveningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+            morningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+            eveningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
         };
-        // 檢查結果是否為空物件，如果是就使用預設資料
         const isEmptyObject = (obj) => Object.keys(obj).length === 0;
         const data = results[0] && !isEmptyObject(results[0]) ? results[0] : defaultData;
         return res.status(200).send(data);
