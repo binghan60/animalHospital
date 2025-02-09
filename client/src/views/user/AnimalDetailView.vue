@@ -58,11 +58,13 @@ export default {
       },
       averageChart: {
         title: '',
-        averages: {
-          combinedAverage: 0,
-          morning: 0,
-          evening: 0,
-        },
+        averages: [
+          {
+            combinedAverage: 0,
+            morning: 0,
+            evening: 0,
+          },
+        ],
         rawData: {},
         data: {
           labels: [],
@@ -709,6 +711,8 @@ export default {
         return 'fa-solid fa-dog fa-fw'
       } else if (type === 'cat') {
         return 'fa-solid fa-cat fa-fw'
+      } else {
+        return 'fa-solid fa-question'
       }
     },
     getGenderIcon(gender) {
@@ -748,7 +752,6 @@ export default {
       const totalCells = 42 - (42 - mergedData.length - spaceDay >= 7 ? 7 : 0) // 空白超過7天總長-7
       const allDays = [...Array.from({ length: spaceDay }, () => ({ date: null })), ...mergedData, ...Array.from({ length: totalCells - spaceDay - mergedData.length }, () => ({ date: null }))]
       this.calendar = allDays
-      await this.updateBloodSugarCurveChart(this.isDark)
     },
     updateWeekData() {
       //取得起、始日
@@ -954,6 +957,7 @@ export default {
     'newtoday.month': {
       handler() {
         this.updateCalendar()
+        this.updateBloodSugarCurveChart(this.isDark)
         if (this.calendarDisplay == 'month') {
           const range = this.getDateRange('month')
           this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
@@ -1061,9 +1065,9 @@ export default {
         <ChartComponent type="pie" :chartData="averageChart.data" :chartOptions="averageChart.options"></ChartComponent>
         <div class="grid grid-cols-2 col-span-6 text-center">
           <h2 class="col-span-2 text-primary-900 dark:text-darkPrimary-50">{{ averageChart.title }}</h2>
-          <div :class="['col-span-2 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.combinedAverage))]">{{ Math.ceil(averageChart.averages.combinedAverage) }}</div>
-          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.morningAverage))]"><i class="fa-regular fa-sun"></i> {{ Math.ceil(averageChart.averages.morningAverage) }}</div>
-          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages.eveningAverage))]"><i class="fa-regular fa-moon"></i> {{ Math.ceil(averageChart.averages.eveningAverage) }}</div>
+          <div :class="['col-span-2 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages[0].combinedAverage))]">{{ Math.ceil(averageChart.averages[0].combinedAverage) }}</div>
+          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages[0].morningAverage))]"><i class="fa-regular fa-sun"></i> {{ Math.ceil(averageChart.averages[0].morningAverage) }}</div>
+          <div :class="['col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', bloodSugarColor(Math.ceil(averageChart.averages[0].eveningAverage))]"><i class="fa-regular fa-moon"></i> {{ Math.ceil(averageChart.averages[0].eveningAverage) }}</div>
         </div>
       </div>
     </div>
