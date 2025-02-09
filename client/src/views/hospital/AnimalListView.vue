@@ -386,7 +386,9 @@ export default {
                   <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
                   <div class="flex flex-col">
                     <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900 dark:text-darkPrimary-50"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
-                    <p v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null" class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70"><i :class="['fa-solid fa-fw', animalIcon(animal.type)]"></i> {{ convertBirthdayToAge(animal.birthday) }}</p>
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70">
+                      <i :class="['fa-solid fa-fw', animalIcon(animal.type)]"></i> <span v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null">{{ convertBirthdayToAge(animal.birthday) }}</span>
+                    </p>
                   </div>
                 </div>
               </td>
