@@ -11,7 +11,7 @@ export default {
 <template>
   <div class="dark:text-darkPrimary-50">
     <div class="w-full p-4 mx-auto bg-white shadow-lg lg:p-8 dark:bg-darkPrimary-700 rounded-2xl">
-      <h1 class="text-3xl text-center">README</h1>
+      <h1 class="mb-4 text-3xl text-center">README</h1>
 
       <h1 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">網站說明</h1>
       <div class="col-span-2 p-4 rounded-lg lg:mr-2 dark:bg-darkPrimary-500 lg:col-span-1 bg-primary-100">
@@ -97,6 +97,12 @@ export default {
               <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
                 <p class="text-xl">記錄與管理診療紀錄</p>
               </li>
+              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
+                <p class="text-xl">醫院動物統計圖表</p>
+              </li>
+              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
+                <p class="text-xl">授權飼主存取動物資料權限</p>
+              </li>
             </ul>
           </div>
           <div class="col-span-2 p-4 rounded-lg lg:ml-2 dark:bg-darkPrimary-500 bg-primary-100 lg:col-span-1">
@@ -115,7 +121,7 @@ export default {
       </div>
       <div class="text-center">
         <router-link to="/login">
-          <button type="submit" class="w-1/2 px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">立即體驗</button>
+          <button type="submit" class="w-full px-4 py-2 my-6 text-white rounded-md lg:w-1/2 bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">立即體驗</button>
         </router-link>
         <div class="flex justify-center mt-4">
           <a href="https://github.com/binghan60/animalHospital" target="_blank" class="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-full shadow-lg dark:bg-darkPrimary-200">
