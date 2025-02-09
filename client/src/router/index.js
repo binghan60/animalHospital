@@ -52,6 +52,12 @@ const router = createRouter({
       ],
     },
     {
+      path: '/',
+      name: 'Home',
+      meta: { title: '導覽頁' },
+      component: () => import('@/views/HomeView.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       meta: { title: '登入入口' },
