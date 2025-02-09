@@ -10,10 +10,10 @@ router.get('/', async (req, res) => {
             return res.status(400).json({ error: 'Invalid hospital ID' });
         }
         const filter = { hospitalId: new mongoose.Types.ObjectId(hospitalId) };
-        if (gender != 0) {
+        if (gender != '0') {
             filter.gender = gender;
         }
-        if (type != 0) {
+        if (type != '0') {
             filter.type = type;
         }
         const totalCount = await Animal.countDocuments(filter); // 總動物數量
