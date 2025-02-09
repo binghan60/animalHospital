@@ -15,7 +15,7 @@ export default {
 
       <h1 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">網站說明</h1>
       <div class="col-span-2 p-4 rounded-lg lg:mr-2 dark:bg-darkPrimary-500 lg:col-span-1 bg-primary-100">
-        <p class="text-xl text-primary-900 dark:text-darkPrimary-50">動物醫院管理系統，專為動物醫院打造，方便記錄病患資訊與追蹤治療紀錄。內建血糖監測、圖表分析及動物資料共享功能，讓醫生與飼主更輕鬆掌握病況。</p>
+        <p class="text-xl text-primary-900 dark:text-darkPrimary-50">動物健康管理系統，專為動物醫院打造，方便記錄病患資訊與追蹤治療紀錄。內建血糖監測、圖表分析及動物資料共享功能，讓醫生與飼主更輕鬆掌握病況。</p>
       </div>
       <div class="mt-6">
         <h2 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">🛠 使用技術</h2>
