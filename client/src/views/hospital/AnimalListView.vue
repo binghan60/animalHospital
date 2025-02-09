@@ -610,7 +610,7 @@ export default {
             </div>
             <div class="relative grid items-center grid-cols-3">
               <label for="editShareWith" class="text-left text-primary-700 dark:text-darkPrimary-50">資料共享</label>
-              <VField id="editShareWith" v-model="editForm.searchText" name="editShareWith" type="text" placeholder="請輸入用戶暱稱" class="h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <VField id="editShareWith" v-model="editForm.searchText" name="editShareWith" type="text" placeholder="請輸入用戶帳號(手機號碼)" class="h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
               <!-- 顯示過濾結果 -->
               <div v-if="editUserData.length && editForm.searchText" class="absolute left-0 right-0 z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg top-full">
                 <ul class="overflow-y-auto max-h-48">
