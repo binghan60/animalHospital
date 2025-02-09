@@ -42,11 +42,27 @@ export default {
 <template>
   <nav class="transition-colors bg-primary-400 dark:bg-darkPrimary-500 h-[58px]">
     <div class="flex items-center justify-between h-full p-2 mx-auto text-lg text-white max-w-7xl">
-      <RouterLink :to="user.role === 'hospital' ? '/hospital/dashboard' : '/user/animallist'" @click="isMenuOpen = false">
+      <RouterLink v-if="user.role === 'hospital'" to="/hospital/dashboard" @click="isMenuOpen = false">
         <div class="flex items-center text-xl font-bold cursor-pointer">
           <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
           <div class="hidden lg:block">
             <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">{{ user.name }}</button>
+          </div>
+        </div>
+      </RouterLink>
+      <RouterLink v-else-if="user.role === 'user'" to="/user/animallist" @click="isMenuOpen = false">
+        <div class="flex items-center text-xl font-bold cursor-pointer">
+          <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
+          <div class="hidden lg:block">
+            <button role="link" class="block relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">{{ user.name }}</button>
+          </div>
+        </div>
+      </RouterLink>
+      <RouterLink v-else to="/" @click="isMenuOpen = false">
+        <div class="flex items-center text-xl font-bold cursor-pointer">
+          <img class="w-full h-full lg:max-w-[50px] max-w-[40px] pr-2" src="/logo.svg" alt="Logo" />
+          <div class="hidden lg:block">
+            <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100"></button>
           </div>
         </div>
       </RouterLink>
