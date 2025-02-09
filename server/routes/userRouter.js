@@ -136,7 +136,7 @@ router.post('/forgetPassword', async (req, res) => {
         const mailOptions = {
             from: process.env.SMTP_EMAIL,
             to: account.email,
-            subject: '動物醫院管理系統重置密碼',
+            subject: '動物健康管理系統重置密碼',
             html: `
                 <p>您好，${account.account}</p>
                 <p>請點擊以下連結來重置您的密碼：</p>
