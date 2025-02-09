@@ -149,12 +149,12 @@ router.get('/average', async (req, res) => {
             },
         ]);
         const defaultData = {
-            averages: { morningAverage: 0, eveningAverage: 0, combinedAverage: 0 },
+            averages: [{ morningAverage: 0, eveningAverage: 0, combinedAverage: 0 }],
             morningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
             eveningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
         };
-        const isEmptyObject = (obj) => Object.keys(obj).length === 0;
-        const data = results[0] && !isEmptyObject(results[0]) ? results[0] : defaultData;
+        const isEmptyArray = (arr) => Array.isArray(arr) && arr.length === 0;
+        const data = results[0] && !isEmptyArray(results[0].averages) ? results[0] : defaultData;
         return res.status(200).send(data);
     } catch (error) {
         console.error(error);
