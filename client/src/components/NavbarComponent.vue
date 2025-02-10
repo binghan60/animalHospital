@@ -80,10 +80,10 @@ export default {
         <li class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="handleClick">
           <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100"><i v-show="!this.isDark" class="fa-regular fa-sun fa-fw"></i><i v-show="this.isDark" class="fa-regular fa-moon fa-fw"></i></button>
         </li>
-        <li v-show="user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">
+        <li v-if="user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="logOut">
           <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">登出</button>
         </li>
-        <li v-show="!user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/login')">
+        <li v-if="!user.isLogin" class="relative z-10 flex items-center justify-center h-10 transition-colors cursor-pointer select-none lg:z-0 bg-primary-400 dark:bg-darkPrimary-500" @click="chagnePage('/login')">
           <button role="link" class="relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-bottom after:scale-x-0 after:bg-darkPrimary-50 after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.65_0.05_0.36_1)] hover:after:origin-bottom hover:after:scale-x-100">立即登入</button>
         </li>
       </ul>
