@@ -42,8 +42,10 @@ router.post('/create', upload.single('avatar'), async (req, res) => {
             res.status(400).send({ message: '缺少參數：name' });
             return;
         }
+        console.log(birthday);
+        console.log(parseInt(birthday));
 
-        if (typeof birthday === 'number') {
+        if (parseInt(birthday) < 1000) {
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth();
