@@ -15,7 +15,7 @@ router.get('/allUser', async (req, res) => {
         const user = await User.find({}).select('_id account name');
         res.status(200).json(user);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).json({ message: '伺服器錯誤' });
     }
 });

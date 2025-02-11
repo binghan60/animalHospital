@@ -34,7 +34,7 @@ mongoose
     })
     .catch((err) => {
         console.log('資料庫連線失敗');
-        console.log(err.message);
+        console.err(err.message);
     });
 
 const PORT = 3000;
