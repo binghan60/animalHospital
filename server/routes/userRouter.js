@@ -88,7 +88,7 @@ router.post('/tokenLogin', async (req, res) => {
         if (err) {
             return res.status(403).json({ message: '登入失敗' });
         }
-        const user = await User.findById(decoded.userId);
+        const user = await User.findById(decoded._id);
         if (!user) {
             return res.status(400).json({ message: '登入失敗' });
         }
