@@ -380,58 +380,65 @@ export default {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-50 dark:hover:bg-darkPrimary-600" @click="this.$router.push(`/hospital/animal/${animal._id}`)">
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex items-center gap-3">
-                  <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+            <template v-if="showData.length > 0">
+              <tr v-for="animal in showData" :key="animal._id" class="cursor-pointer hover:bg-primary-50 dark:hover:bg-darkPrimary-600" @click="this.$router.push(`/hospital/animal/${animal._id}`)">
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex items-center gap-3">
+                    <img :src="animal.avatar ? animal.avatar : '/image/sampleAvatar.png'" class="relative inline-block h-9 w-9 !rounded-full object-cover object-center" />
+                    <div class="flex flex-col">
+                      <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900 dark:text-darkPrimary-50"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
+                      <p class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70">
+                        <i :class="['fa-solid fa-fw', animalIcon(animal.type)]"></i> <span v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null">{{ convertBirthdayToAge(animal.birthday) }}</span>
+                      </p>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
                   <div class="flex flex-col">
-                    <p class="block font-sans text-sm antialiased font-bold leading-normal text-primary-900 dark:text-darkPrimary-50"><i :class="animal.gender === 'male' ? 'text-primary-600 fa-solid fa-mars fa-fw' : 'text-pink-600 fa-solid fa-venus fa-fw'"></i> {{ animal.name }}</p>
-                    <p class="block font-sans text-sm antialiased font-normal leading-normal dark:text-darkPrimary-50 text-primary-900 opacity-70">
-                      <i :class="['fa-solid fa-fw', animalIcon(animal.type)]"></i> <span v-show="animal.birthday != '1970-01-01T00:00:00.000Z' && animal.birthday != null">{{ convertBirthdayToAge(animal.birthday) }}</span>
-                    </p>
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.weight ? animal.weight + ' 公斤' : '' }}</p>
                   </div>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.weight ? animal.weight + ' 公斤' : '' }}</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.bloodType ? animal.bloodType + ' 型' : '' }}</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="flex flex-col">
-                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.breed }}</p>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <div class="w-max">
-                  <div :class="[animal.sterilized ? 'text-green-900' : 'text-red-900', animal.sterilized ? 'bg-green-700/20 dark:bg-green-700/50' : 'bg-red-500/20 dark:bg-red-500/50']" class="relative grid items-center px-2 py-1 font-sans text-xs font-bold uppercase rounded-md select-none whitespace-nowrap dark:text-darkPrimary-50">
-                    <span>{{ animal.sterilized ? '是' : '否' }}</span>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex flex-col">
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.bloodType ? animal.bloodType + ' 型' : '' }}</p>
                   </div>
-                </div>
-              </td>
-              <td class="p-4 border-b border-primary-50">
-                <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ new Date(animal.admissionDate).toISOString().slice(0, 10) }}</p>
-              </td>
-              <td class="text-center border-b border-primary-50" @click="editToggle($event, animal._id)">
-                <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                  <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                    <i class="text-xl text-primary-900 fa-solid fa-pen-to-square fa-fw dark:text-darkPrimary-50"></i>
-                  </span>
-                </button>
-              </td>
-              <td class="text-center border-b border-primary-50" @click="deleteToggle($event, animal)">
-                <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
-                  <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                    <i class="text-xl text-red-400 fa-solid fa-trash fa-fw"></i>
-                  </span>
-                </button>
-              </td>
-            </tr>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="flex flex-col">
+                    <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ animal.breed }}</p>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <div class="w-max">
+                    <div :class="[animal.sterilized ? 'text-green-900' : 'text-red-900', animal.sterilized ? 'bg-green-700/20 dark:bg-green-700/50' : 'bg-red-500/20 dark:bg-red-500/50']" class="relative grid items-center px-2 py-1 font-sans text-xs font-bold uppercase rounded-md select-none whitespace-nowrap dark:text-darkPrimary-50">
+                      <span>{{ animal.sterilized ? '是' : '否' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-primary-50">
+                  <p class="block font-sans text-sm antialiased font-normal leading-normal text-primary-900 dark:text-darkPrimary-50">{{ new Date(animal.admissionDate).toISOString().slice(0, 10) }}</p>
+                </td>
+                <td class="text-center border-b border-primary-50" @click="editToggle($event, animal._id)">
+                  <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                    <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+                      <i class="text-xl text-primary-900 fa-solid fa-pen-to-square fa-fw dark:text-darkPrimary-50"></i>
+                    </span>
+                  </button>
+                </td>
+                <td class="text-center border-b border-primary-50" @click="deleteToggle($event, animal)">
+                  <button class="relative h-12 max-h-[60px] w-12 max-w-[60px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                    <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+                      <i class="text-xl text-red-400 fa-solid fa-trash fa-fw"></i>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+            </template>
+            <template v-else>
+              <tr class="cursor-pointer hover:bg-primary-50 dark:hover:bg-darkPrimary-600">
+                <td colspan="8" class="p-4 text-center border-b border-primary-50 dark:text-darkPrimary-50">查無動物</td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
