@@ -39,7 +39,6 @@ export default {
           this.$router.push('/login')
         }, '3000')
       } catch (error) {
-        console.log(error)
         this.$toast.error(error.response.data.message)
         this.isLoading = false
       }
