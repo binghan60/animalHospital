@@ -61,8 +61,8 @@ export default {
         averages: [
           {
             combinedAverage: 0,
-            morning: 0,
-            evening: 0,
+            morningAverage: 0,
+            eveningAverage: 0,
           },
         ],
         rawData: {},
