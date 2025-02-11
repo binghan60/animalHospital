@@ -18,7 +18,7 @@ input[type='number'] {
 
 .scrollbar {
   -ms-overflow-style: none;
-  scrollbar-width: thin; /*滾動條瘦身*/
+  scrollbar-width: none; /*滾動條瘦身*/
 }
 .lazyLoading {
   pointer-events: none;
