@@ -638,7 +638,7 @@ export default {
                 const data = context.chart.data.datasets[0]?.data || []
                 const total = data.reduce((sum, val) => sum + (val || 0), 0)
                 if (!total || !value) {
-                  return '0%'
+                  return ''
                 }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
@@ -688,7 +688,7 @@ export default {
                 const data = context.chart.data.datasets[0]?.data || []
                 const total = data.reduce((sum, val) => sum + (val || 0), 0)
                 if (!total || !value) {
-                  return '0%'
+                  return ''
                 }
                 const percentage = ((value / total) * 100).toFixed(1)
                 return `${percentage}%`
