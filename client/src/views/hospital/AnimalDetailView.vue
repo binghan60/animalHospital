@@ -498,7 +498,7 @@ export default {
         this.$$toast.error(error.response.data.message)
       }
     },
-    convertBirthdayToAge(dateString) {
+    convertBirthdayToAge(dateString = new Date()) {
       const today = new Date()
       const birth = new Date(dateString)
       let years = today.getFullYear() - birth.getFullYear()
@@ -1040,7 +1040,9 @@ export default {
             </li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">生日：</li>
             <li v-if="animal.Info.birthday !== null && animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
+
             <li v-else class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50"></li>
+
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">性別：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
               <i :class="getGenderIcon(animal.Info.gender)"></i>
