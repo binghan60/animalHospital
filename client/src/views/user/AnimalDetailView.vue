@@ -61,8 +61,8 @@ export default {
         averages: [
           {
             combinedAverage: 0,
-            morning: 0,
-            evening: 0,
+            morningAverage: 0,
+            eveningAverage: 0,
           },
         ],
         rawData: {},
@@ -498,7 +498,7 @@ export default {
         this.$$toast.error(error.response.data.message)
       }
     },
-    convertBirthdayToAge(dateString) {
+    convertBirthdayToAge(dateString = new Date()) {
       const today = new Date()
       const birth = new Date(dateString)
       let years = today.getFullYear() - birth.getFullYear()
@@ -1040,7 +1040,9 @@ export default {
             </li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">生日：</li>
             <li v-if="animal.Info.birthday !== null && animal.Info.birthday !== '1970-01-01T00:00:00.000Z'" class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.birthday ? new Date(animal.Info.birthday).toISOString().slice(0, 10) : '' }} ({{ convertBirthdayToAge(animal.Info.birthday).years }}歲 {{ convertBirthdayToAge(animal.Info.birthday).months > 0 ? convertBirthdayToAge(animal.Info.birthday).months + '個月' : '' }})</li>
+
             <li v-else class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50"></li>
+
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">性別：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
               <i :class="getGenderIcon(animal.Info.gender)"></i>
@@ -1072,7 +1074,7 @@ export default {
       </div>
     </div>
     <!-- 日曆 -->
-    <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
+    <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1000px] min-h-[800px]">
       <!-- 切換按鈕 -->
       <div class="grid items-center justify-around grid-cols-5 lg:grid-cols-4">
         <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-2 lg:col-span-1">
@@ -1193,13 +1195,13 @@ export default {
         <div class="col-span-2 py-3 text-2xl font-bold text-center select-none text-primary-900 lg:col-span-7 dark:text-darkPrimary-50">{{ weekRange }}</div>
         <div class="overflow-x-auto">
           <div class="flex gap-2 lg:grid lg:grid-cols-7">
-            <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm min-h-[1000px]', day.isToday ? 'border-primary-500 dark:border-indigo-500 border-2 bg-primary-50 dark:bg-darkPrimary-600' : 'bg-white dark:bg-darkPrimary-600']" class="shrink-0 w-[150px] lg:w-auto">
+            <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm overflow-hidden h-[900px]', day.isToday ? 'border-primary-500 dark:border-indigo-500 border-2 bg-primary-50 dark:bg-darkPrimary-600' : 'bg-white dark:bg-darkPrimary-600']" class="shrink-0 w-[150px] lg:w-auto">
               <!-- 日期與星期 -->
               <div class="mb-2 text-sm font-semibold text-center text-gray-700 dark:text-darkPrimary-50">{{ day.date }} ({{ day.day }})</div>
               <!-- 新增事項按鈕 -->
               <button type="button" class="w-full px-2 py-1.5 mb-2 text-sm text-white rounded-md bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 hover:dark:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-primary-300" @click="openTaskModal(day.date)">+ 新增事項</button>
               <!-- 事項清單 -->
-              <ul class="space-y-2">
+              <ul class="h-[800px] space-y-2 overflow-hidden overflow-y-auto scrollbar">
                 <li v-for="(task, index) in day.records" :key="index" :class="['p-3 text-sm  border rounded-lg', task.author === this.user._id ? 'bg-gray-100 cursor-pointer hover:bg-primary-100 dark:bg-darkPrimary-600' : 'bg-amber-50 dark:bg-darkPrimary-500 select-none cursor-not-allowed']" @click="task.author === this.user._id ? openEditTaskModal(day.date, day._id, task._id, task.time, task.bloodSugar, task.insulin, task.notes, day.notes) : null">
                   <div class="flex justify-between mb-1 text-gray-800 dark:text-darkPrimary-50">
                     <div>🕒{{ task.time }}</div>

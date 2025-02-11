@@ -1074,7 +1074,7 @@ export default {
       </div>
     </div>
     <!-- 日曆 -->
-    <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1200px] min-h-[800px]">
+    <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1000px] min-h-[800px]">
       <!-- 切換按鈕 -->
       <div class="grid items-center justify-around grid-cols-5 lg:grid-cols-4">
         <div class="w-full flex items-center justify-center h-[50px] space-x-4 col-span-2 lg:col-span-1">
@@ -1195,13 +1195,13 @@ export default {
         <div class="col-span-2 py-3 text-2xl font-bold text-center select-none text-primary-900 lg:col-span-7 dark:text-darkPrimary-50">{{ weekRange }}</div>
         <div class="overflow-x-auto">
           <div class="flex gap-2 lg:grid lg:grid-cols-7">
-            <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm min-h-[1000px]', day.isToday ? 'border-primary-500 dark:border-indigo-500 border-2 bg-primary-50 dark:bg-darkPrimary-600' : 'bg-white dark:bg-darkPrimary-600']" class="shrink-0 w-[150px] lg:w-auto">
+            <div v-for="day in weekData" :key="day.date" :class="['p-4 border rounded-lg shadow-sm overflow-hidden h-[900px]', day.isToday ? 'border-primary-500 dark:border-indigo-500 border-2 bg-primary-50 dark:bg-darkPrimary-600' : 'bg-white dark:bg-darkPrimary-600']" class="shrink-0 w-[150px] lg:w-auto">
               <!-- 日期與星期 -->
               <div class="mb-2 text-sm font-semibold text-center text-gray-700 dark:text-darkPrimary-50">{{ day.date }} ({{ day.day }})</div>
               <!-- 新增事項按鈕 -->
               <button type="button" class="w-full px-2 py-1.5 mb-2 text-sm text-white rounded-md bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 hover:dark:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-primary-300" @click="openTaskModal(day.date)">+ 新增事項</button>
               <!-- 事項清單 -->
-              <ul class="space-y-2">
+              <ul class="h-[800px] space-y-2 overflow-hidden overflow-y-auto scrollbar">
                 <li v-for="(task, index) in day.records" :key="index" :class="['p-3 text-sm  border rounded-lg', task.author === this.user._id ? 'bg-gray-100 cursor-pointer hover:bg-primary-100 dark:bg-darkPrimary-600' : 'bg-amber-50 dark:bg-darkPrimary-500 select-none cursor-not-allowed']" @click="task.author === this.user._id ? openEditTaskModal(day.date, day._id, task._id, task.time, task.bloodSugar, task.insulin, task.notes, day.notes) : null">
                   <div class="flex justify-between mb-1 text-gray-800 dark:text-darkPrimary-50">
                     <div>🕒{{ task.time }}</div>
