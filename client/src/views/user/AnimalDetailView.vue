@@ -1231,7 +1231,7 @@ export default {
             </div>
             <div class="mb-4">
               <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">血糖</label>
-              <VField v-model="newRecord.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="text" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <VField v-model="newRecord.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="number" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
               <ErrorMessage name="bloodSugar" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
             </div>
             <div class="mb-4">
@@ -1271,7 +1271,7 @@ export default {
             </div>
             <div class="mb-4">
               <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">血糖</label>
-              <VField v-model="editRecord.task.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="text" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <VField v-model="editRecord.task.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="number" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
               <ErrorMessage name="bloodSugar" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
             </div>
             <div class="mb-4">
