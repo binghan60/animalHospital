@@ -1054,7 +1054,10 @@ export default {
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">品種：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.breed }}</li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">結紮：</li>
-            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50" v-html="animal.Info.sterilized ? `<i class='text-green-500 fa-solid fa-check fa-fw'></i>` : `<i class='text-red-600 fa-solid fa-x fa-fw'></i>`"></li>
+            <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
+              <i v-show="animal.Info.sterilized" class="text-green-500 fa-solid fa-check fa-fw"></i>
+              <i v-show="!animal.Info.sterilized" class="text-red-600 fa-solid fa-x fa-fw"></i>
+            </li>
             <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">胰島素：</li>
             <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animal.Info.insulinBrand }}</li>
           </ul>
