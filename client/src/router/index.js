@@ -101,15 +101,15 @@ router.beforeEach((to, from, next) => {
     store.setRedirectPath(to.fullPath)
   }
   if (to.meta.requiresAuth && !user.isLogin) {
-    next('/login')
+    return next('/login')
   } else if (to.meta.roles && !to.meta.roles.includes(user.role)) {
     // 檢查權限
     toast.warning(`權限不足，無法進入 ${to.name}`, { timeout: 3000 })
     if (user.role == 'user') {
-      next('/user/animallist')
+      return next('/user/animallist')
     }
     if (user.role == 'hospital') {
-      next('/hospital/animallist')
+      return next('/hospital/animallist')
     }
   } else {
     next()
