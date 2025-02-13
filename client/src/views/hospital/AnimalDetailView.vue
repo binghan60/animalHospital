@@ -439,13 +439,13 @@ export default {
             'content-Type': 'application/json',
           },
         })
+        this.isDelete = false
+        this.$toast.success(data.message)
         await this.getWeekBloodSugarData()
         const range = this.getDateRange('week')
         this.updateAverageChartByRange(range.startDate, range.endDate, range.title)
         this.updateCalendar()
-        this.isDelete = false
         this.modal.editNotes.toggle = false
-        this.$toast.success(data.message)
       } catch (error) {
         this.isDelete = false
         this.$toast.error(error.response.data.message)
