@@ -1,84 +1,81 @@
-<script>
-import { RouterView } from 'vue-router'
-import authStore from '@/stores/auth'
-import { mapState, mapActions } from 'pinia'
+<script setup>
+import { ref, inject, onMounted } from 'vue'
+import { RouterView, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 import axios from 'axios'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import { setAuthHeader } from '@/axiosConfig.js'
+import { useToast } from 'vue-toastification'
 
-export default {
-  inject: ['loadingConfig'],
-  components: { NavbarComponent, RouterView },
-  data() {
-    return { isLoading: false }
-  },
-  methods: {
-    async autoLogin() {
-      const token = this.getCookieValue('animalHospitalToken')
-      const role = this.getCookieValue('animalHospitalRole')
-      if (token) {
-        try {
-          this.isLoading = true
-          const { data } = await axios.post(
-            `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
-            {},
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          )
-          this.auth(data)
-          const redirectPath = this.redirectPath || '/hospital/animallist'
-          this.$router.push(redirectPath)
-          this.clearRedirectPath()
-          setAuthHeader(token)
-          this.isLoading = false
-        } catch {
-          this.isLoading = false
-        }
-      }
-    },
-    getCookieValue(name) {
-      const cookies = document.cookie.split('; ')
-      for (const cookie of cookies) {
-        const [key, value] = cookie.split('=')
-        if (key === name) {
-          return decodeURIComponent(value)
-        }
-      }
-      return null
-    },
-    ...mapActions(authStore, ['auth', 'clearRedirectPath', 'toggleTheme']),
-  },
-  computed: {
-    ...mapState(authStore, ['redirectPath', 'isDark']),
-  },
-  async mounted() {
-    await this.autoLogin()
-    if (localStorage.getItem('animalHospitalDarkTheme') === 'true') {
-      this.toggleTheme()
+const loadingConfig = inject('loadingConfig')
+const router = useRouter()
+const authStore = useAuthStore()
+const toast = useToast()
+const isLoading = ref(false)
+const { redirectPath } = storeToRefs(authStore)
+const { auth, clearRedirectPath, toggleTheme } = authStore
+// 方法
+function getCookieValue(name) {
+  const cookies = document.cookie.split('; ')
+  for (const cookie of cookies) {
+    const [key, value] = cookie.split('=')
+    if (key === name) {
+      return decodeURIComponent(value)
     }
-    axios.interceptors.response.use(
-      response => response,
-      error => {
-        if (error.response && error.response.status === 444) {
-          if (!sessionStorage.getItem('hasShownError')) {
-            sessionStorage.setItem('hasShownError', 'true')
-            const store = authStore()
-            this.$toast.warning('密碼已修改，請重新登入')
-            store.clearAuth()
-            this.$router.push('/login')
-          }
-          return Promise.resolve()
-        }
-        sessionStorage.removeItem('hasShownError')
-        return Promise.reject(error)
-      },
-    )
-  },
+  }
+  return null
 }
+async function autoLogin() {
+  const token = getCookieValue('animalHospitalToken')
+  const role = getCookieValue('animalHospitalRole')
+  if (token) {
+    try {
+      isLoading.value = true
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_PATH}/${role}/tokenLogin`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      auth(data)
+      const redirectTo = redirectPath.value || '/hospital/animallist'
+      router.push(redirectTo)
+      clearRedirectPath()
+      setAuthHeader(token)
+      isLoading.value = false
+    } catch {
+      isLoading.value = false
+    }
+  }
+}
+onMounted(async () => {
+  if (localStorage.getItem('animalHospitalDarkTheme') === 'true') {
+    toggleTheme()
+  }
+  await autoLogin()
+  axios.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response && error.response.status === 444) {
+        if (!sessionStorage.getItem('hasShownError')) {
+          sessionStorage.setItem('hasShownError', 'true')
+          const store = useAuthStore()
+          toast.warning('密碼已修改，請重新登入')
+          store.clearAuth()
+          router.push('/login')
+        }
+        return Promise.resolve()
+      }
+      sessionStorage.removeItem('hasShownError')
+      return Promise.reject(error)
+    },
+  )
+})
 </script>
 
 <template>
