@@ -1,12 +1,4 @@
-<script>
-export default {
-  data() {
-    return {}
-  },
-  methods: {},
-  mounted() {},
-}
-</script>
+<script setup></script>
 
 <template>
   <div class="dark:text-darkPrimary-50">
