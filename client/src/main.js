@@ -54,7 +54,7 @@ defineRule('atLeastOneFieldRule', (value, [field1, field2]) => {
   }
   return '至少填寫一個欄位'
 })
-const options = {
+const toastOptions = {
   position: 'bottom-center',
   timeout: 1500,
   closeOnClick: true,
@@ -73,7 +73,7 @@ const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
-app.use(Toast, options)
+app.use(Toast, toastOptions)
 app.component('VueLoading', Loading) // 全域註冊 VueLoading 元件
 const store = authStore()
 app.provide('loadingConfig', {
@@ -87,5 +87,5 @@ app.provide('loadingConfig', {
     return store.isDark ? '#000000' : '#FCFCFC'
   },
 })
-app.config.globalProperties.$toast = useToast() // 全域註冊 this.$toast 方法
+app.config.globalProperties.$toast = useToast()
 app.mount('#app')

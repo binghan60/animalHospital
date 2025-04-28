@@ -1,51 +1,60 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-export default defineStore('authStore', {
-  state: () => ({
-    user: {
-      __v: '',
-      role: '',
-      _id: '',
-      name: '',
-      email: '',
-      message: '',
-      isLogin: false,
-      isActive: '',
-      token: '',
-      expiresAt: '',
-      createdAt: '',
-      updatedAt: '',
-    },
-    redirectPath: null,
+export const useAuthStore = defineStore('authStore', () => {
+  const user = ref({
+    __v: '',
+    role: '',
+    _id: '',
+    name: '',
+    email: '',
+    message: '',
+    isLogin: false,
+    isActive: '',
     token: '',
-    isDark: false,
-  }),
-  actions: {
-    auth(user) {
-      this.user = user
-      this.user.isLogin = true
-    },
-    clearAuth() {
-      if (this.user.isLogin) {
-        this.user = {}
-        this.redirectPath = null
-        document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        return 1
-      } else {
-        return 0
-      }
-    },
-    setRedirectPath(path) {
-      this.redirectPath = path
-    },
-    clearRedirectPath() {
-      this.redirectPath = null
-    },
-    toggleTheme() {
-      this.isDark = !this.isDark
-      document.querySelector('body').classList.toggle('dark', this.isDark)
-      localStorage.setItem('animalHospitalDarkTheme', JSON.stringify(this.isDark))
-    },
-  },
+    expiresAt: '',
+    createdAt: '',
+    updatedAt: '',
+  })
+  const redirectPath = ref(null)
+  const token = ref('')
+  const isDark = ref(false)
+  function auth(userData) {
+    user.value = userData
+    user.value.isLogin = true
+  }
+  function clearAuth() {
+    if (user.value.isLogin) {
+      user.value = {}
+      redirectPath.value = null
+      document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      return 1
+    } else {
+      return 0
+    }
+  }
+  function setRedirectPath(path) {
+    redirectPath.value = path
+  }
+  function clearRedirectPath() {
+    redirectPath.value = null
+  }
+  function toggleTheme() {
+    isDark.value = !isDark.value
+    document.querySelector('body').classList.toggle('dark', isDark.value)
+    localStorage.setItem('animalHospitalDarkTheme', JSON.stringify(isDark.value))
+  }
+  return {
+    user,
+    redirectPath,
+    token,
+    isDark,
+    auth,
+    clearAuth,
+    setRedirectPath,
+    clearRedirectPath,
+    toggleTheme,
+  }
 })
+export default useAuthStore
