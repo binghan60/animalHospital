@@ -1,41 +1,33 @@
-<script>
+<script setup>
+import { ref } from 'vue'
 import axios from 'axios'
 import { Field, Form, ErrorMessage } from 'vee-validate'
-export default {
-  inject: ['loadingConfig'],
-  components: {
-    VField: Field,
-    VForm: Form,
-    ErrorMessage,
-  },
-  data() {
-    return {
-      form: {
-        role: 'hospital',
-        account: '',
+import { useToast } from 'vue-toastification'
+const toast = useToast()
+const VField = Field
+const VForm = Form
+const form = ref({
+  role: 'hospital',
+  account: '',
+})
+const isLoading = ref(false)
+// 方法
+const forgetPassword = async () => {
+  try {
+    isLoading.value = true
+    const { role, account } = form.value
+    const payload = { role, account }
+    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/forgetPassword`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-      isLoading: false,
-    }
-  },
-  methods: {
-    async forgetPassword() {
-      try {
-        this.isLoading = true
-        const { role, account } = this.form
-        const payload = { role, account }
-        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/forgetPassword`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        this.$toast.success(data.message)
-        this.isLoading = false
-      } catch (error) {
-        this.isLoading = false
-        this.$toast.warning(error.response.data.message)
-      }
-    },
-  },
+    })
+    toast.success(data.message)
+    isLoading.value = false
+  } catch (error) {
+    isLoading.value = false
+    toast.warning(error.response.data.message)
+  }
 }
 </script>
 <template>
