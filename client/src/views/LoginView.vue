@@ -57,10 +57,11 @@ export default {
       this.loginFrom.password = 'adminadmin'
       this.loginFrom.role = 'hospital'
     },
-    userlogin() {
+    async userlogin() {
       this.loginFrom.account = '0952123259'
       this.loginFrom.password = 'admin'
       this.loginFrom.role = 'user'
+      await this.login()
     },
     ...mapActions(authStore, ['auth']),
   },
@@ -108,8 +109,8 @@ export default {
           <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400"><RouterLink to="/forget-password" class="text-primary-600 hover:underline dark:text-darkPrimary-50">忘記密碼</RouterLink></p>
         </div>
       </VForm>
-      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-amber-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO帳號</button>
-      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-green-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">飼主DEMO帳號</button>
+      <!-- <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-orange-500 rounded-md dark:bg-amber-600 hover:dark:bg-amber-700 hover:bg-orange-600 outline-1 focus:outline-2 focus:outline-amber-500 focus:outline-offset-2 focus:outline-none" @click="quicklogin">醫院DEMO帳號</button> -->
+      <button type="submit" class="w-full px-4 py-2 my-2 text-white bg-green-600 rounded-md dark:bg-lime-600 hover:dark:bg-lime-700 hover:bg-green-700 outline-1 focus:outline-2 focus:outline-green-500 focus:outline-offset-2 focus:outline-none" @click="userlogin">牛奶看病帳號</button>
     </div>
     <!-- <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" /> -->
   </div>
