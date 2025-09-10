@@ -59,6 +59,7 @@ const userlogin = () => {
   loginFrom.value.account = '0952123259'
   loginFrom.value.password = 'admin'
   loginFrom.value.role = 'user'
+  login()
 }
 </script>
 <template>
