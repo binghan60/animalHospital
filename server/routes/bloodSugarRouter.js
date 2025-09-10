@@ -283,19 +283,35 @@ router.get('/getCurve', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(animalId)) {
         return res.status(400).json({ message: 'Invalid animalId' });
     }
-    if (!startDate || !endDate) {
-        return res.status(400).send({ message: 'startDate and endDate are required' });
-    }
+    
     try {
-        const data = await BloodSugarCurve.find({
-            animalId,
-            date: { $gte: startDate, $lte: endDate },
-        })
+        let query = { animalId };
+        
+        // If date range is provided, filter by date range; otherwise return all data
+        if (startDate && endDate) {
+            if (isNaN(new Date(startDate)) || isNaN(new Date(endDate))) {
+                return res.status(400).send({ message: 'Invalid date format' });
+            }
+            query.date = { $gte: startDate, $lte: endDate };
+        }
+        
+        const data = await BloodSugarCurve.find(query)
             .sort({ date: 1 })
             .lean();
-        return res.status(201).send({ data: data.map((x) => ({ date: x.date, records: x.records })) });
+            
+        return res.status(200).send({ 
+            data: data.map((x) => ({ 
+                date: x.date, 
+                records: x.records,
+                _id: x._id,
+                createdAt: x.createdAt,
+                updatedAt: x.updatedAt
+            })),
+            total: data.length,
+            message: startDate && endDate ? 'Filtered data retrieved successfully' : 'All data retrieved successfully'
+        });
     } catch (error) {
-        console.error('Error creating or updating blood sugar record:', error);
+        console.error('Error retrieving blood sugar curve data:', error);
         if (error.name === 'ValidationError') {
             return res.status(400).json({ message: 'Validation Error', errors: error.errors });
         }
@@ -332,6 +348,84 @@ router.post('/createCurve', async (req, res) => {
         if (error.name === 'ValidationError') {
             return res.status(400).json({ message: 'Validation Error', errors: error.errors });
         }
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+router.put('/updateCurve/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { animalId, date, records } = req.body;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid curve ID' });
+        }
+        
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            return res.status(400).json({ message: 'Invalid animalId' });
+        }
+        
+        const existingCurve = await BloodSugarCurve.findById(id);
+        if (!existingCurve) {
+            return res.status(404).json({ message: 'Blood sugar curve not found' });
+        }
+        
+        // 驗證 animalId 是否一致
+        if (animalId != existingCurve.animalId) {
+            return res.status(403).json({ message: 'This account is not authorized' });
+        }
+        
+        // 更新資料
+        if (date) {
+            existingCurve.date = new Date(date);
+        }
+        if (records) {
+            existingCurve.records = records;
+        }
+        
+        const updatedCurve = await existingCurve.save();
+        return res.status(200).json({ 
+            message: '血糖曲線更新成功', 
+            data: updatedCurve 
+        });
+        
+    } catch (error) {
+        console.error('Error updating blood sugar curve:', error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: 'Validation Error', errors: error.errors });
+        }
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+router.delete('/deleteCurve/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { animalId } = req.body;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid curve ID' });
+        }
+        
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            return res.status(400).json({ message: 'Invalid animalId' });
+        }
+        
+        const existingCurve = await BloodSugarCurve.findById(id);
+        if (!existingCurve) {
+            return res.status(404).json({ message: 'Blood sugar curve not found' });
+        }
+        
+        // 驗證 animalId 是否一致
+        if (animalId != existingCurve.animalId) {
+            return res.status(403).json({ message: 'This account is not authorized' });
+        }
+        
+        await BloodSugarCurve.findByIdAndDelete(id);
+        return res.status(200).json({ message: '血糖曲線刪除成功' });
+        
+    } catch (error) {
+        console.error('Error deleting blood sugar curve:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 });

@@ -17,7 +17,7 @@
             <ul class="pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
               <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
                 <img class="w-10 mr-2" src="/image/VueLogo.png" alt="" />
-                <p class="text-xl">Vue3 option API</p>
+                <p class="text-xl">Vue3</p>
               </li>
               <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
                 <img class="w-10 mr-2" src="/image/PiniaLogo.png" alt="" />

@@ -13,7 +13,7 @@ const router = createRouter({
           path: 'animal/:id',
           name: 'animal-detail',
           meta: { title: '動物詳細資訊' },
-          component: () => import('@/views/hospital/AnimalDetailView.vue'),
+          component: () => import('@/views/hospital/AnimalDetailView_New.vue'),
           props: true,
         },
         {
@@ -46,7 +46,7 @@ const router = createRouter({
           path: 'animal/:id',
           name: 'user-animal-detail',
           meta: { title: '動物詳細資訊' },
-          component: () => import('@/views/user/AnimalDetailView.vue'),
+          component: () => import('@/views/hospital/AnimalDetailView_New.vue'),
           props: true, //將ID透過props傳入，而不是this.$route.params
         },
       ],

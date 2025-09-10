@@ -194,6 +194,93 @@ router.post('/createWeight', async (req, res) => {
         res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
     }
 });
+
+router.put('/updateWeight/:animalId/:weightId', async (req, res) => {
+    try {
+        const { animalId, weightId } = req.params;
+        const { date, value } = req.body;
+        
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            return res.status(400).json({ message: '無效的動物ID' });
+        }
+        
+        if (!mongoose.Types.ObjectId.isValid(weightId)) {
+            return res.status(400).json({ message: '無效的體重記錄ID' });
+        }
+        
+        if (value !== undefined && (typeof value !== 'number' || value <= 0)) {
+            return res.status(400).json({ message: '體重值無效，請輸入大於 0 的數字' });
+        }
+        
+        const animal = await Animal.findById(animalId);
+        if (!animal) {
+            return res.status(404).json({ message: '找不到對應的動物' });
+        }
+        
+        const weightRecord = animal.weight.id(weightId);
+        if (!weightRecord) {
+            return res.status(404).json({ message: '找不到對應的體重記錄' });
+        }
+        
+        // 更新體重記錄
+        if (date) {
+            weightRecord.date = new Date(date);
+        }
+        if (value !== undefined) {
+            weightRecord.value = value;
+        }
+        
+        // 重新排序
+        animal.weight.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        const updatedAnimal = await animal.save();
+        res.status(200).json({ 
+            message: '體重記錄更新成功', 
+            weight: updatedAnimal.weight 
+        });
+        
+    } catch (error) {
+        console.error('更新體重記錄時發生錯誤:', error);
+        res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
+    }
+});
+
+router.delete('/deleteWeight/:animalId/:weightId', async (req, res) => {
+    try {
+        const { animalId, weightId } = req.params;
+        
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            return res.status(400).json({ message: '無效的動物ID' });
+        }
+        
+        if (!mongoose.Types.ObjectId.isValid(weightId)) {
+            return res.status(400).json({ message: '無效的體重記錄ID' });
+        }
+        
+        const animal = await Animal.findById(animalId);
+        if (!animal) {
+            return res.status(404).json({ message: '找不到對應的動物' });
+        }
+        
+        const weightRecord = animal.weight.id(weightId);
+        if (!weightRecord) {
+            return res.status(404).json({ message: '找不到對應的體重記錄' });
+        }
+        
+        // 刪除體重記錄
+        animal.weight.pull(weightId);
+        
+        const updatedAnimal = await animal.save();
+        res.status(200).json({ 
+            message: '體重記錄刪除成功', 
+            weight: updatedAnimal.weight 
+        });
+        
+    } catch (error) {
+        console.error('刪除體重記錄時發生錯誤:', error);
+        res.status(500).json({ message: '伺服器錯誤，請稍後再試' });
+    }
+});
 router.delete('/delete/:animalId', async (req, res) => {
     try {
         const { animalId } = req.params;
