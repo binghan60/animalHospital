@@ -1,73 +1,64 @@
-<script>
-import { mapActions, mapState } from 'pinia'
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import authStore from '@/stores/auth'
 import axios from 'axios'
-import { Field, Form, ErrorMessage } from 'vee-validate'
+import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
 import { setAuthHeader } from '@/axiosConfig.js'
-export default {
-  inject: ['loadingConfig'],
-  components: {
-    VField: Field,
-    VForm: Form,
-    ErrorMessage,
-  },
-  data() {
-    return {
-      loginFrom: {
-        role: 'hospital',
-        account: '',
-        password: '',
-        showPassword: false,
+import { useToast } from 'vue-toastification'
+
+const router = useRouter()
+
+const toast = useToast()
+const store = authStore()
+const { auth } = store
+const loginFrom = ref({
+  role: 'hospital',
+  account: '',
+  password: '',
+  showPassword: false,
+})
+
+const isLoading = ref(false)
+// 方法定義
+const togglePassword = () => {
+  loginFrom.value.showPassword = !loginFrom.value.showPassword
+}
+const login = async () => {
+  const { account, password, role } = loginFrom.value
+  try {
+    isLoading.value = true
+    const payload = { account, password }
+    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/login`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
       },
-      isLoading: false,
+    })
+    auth(data)
+    toast.success(data.message)
+    document.cookie = `animalHospitalToken=${data.token}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
+    document.cookie = `animalHospitalRole=${data.role}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
+    setAuthHeader(data.token)
+    if (role == 'user') {
+      router.push('/user/animallist')
+    } else {
+      router.push('/hospital/animallist')
     }
-  },
-  methods: {
-    togglePassword() {
-      this.loginFrom.showPassword = !this.loginFrom.showPassword
-    },
-    async login() {
-      const { account, password, role } = this.loginFrom
-      try {
-        this.isLoading = true
-        const payload = { account, password }
-        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/login`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        this.auth(data)
-        this.$toast.success(data.message)
-        document.cookie = `animalHospitalToken=${data.token}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
-        document.cookie = `animalHospitalRole=${data.role}; Path=/; expires=${new Date(data.expiresAt).toUTCString()}`
-        setAuthHeader(data.token)
-        if (role == 'user') {
-          this.$router.push('/user/animallist')
-        } else {
-          this.$router.push('/hospital/animallist')
-        }
-        this.isLoading = false
-      } catch (error) {
-        this.isLoading = false
-        this.$toast.error(error.response.data.message)
-      }
-    },
-    quicklogin() {
-      this.loginFrom.account = 'admin'
-      this.loginFrom.password = 'adminadmin'
-      this.loginFrom.role = 'hospital'
-    },
-    async userlogin() {
-      this.loginFrom.account = '0952123259'
-      this.loginFrom.password = 'admin'
-      this.loginFrom.role = 'user'
-      await this.login()
-    },
-    ...mapActions(authStore, ['auth']),
-  },
-  computed: {
-    ...mapState(authStore, ['isDark']),
-  },
+    isLoading.value = false
+  } catch (error) {
+    isLoading.value = false
+    toast.error(error.response.data.message)
+  }
+}
+const quicklogin = () => {
+  loginFrom.value.account = 'admin'
+  loginFrom.value.password = 'adminadmin'
+  loginFrom.value.role = 'hospital'
+}
+const userlogin = () => {
+  loginFrom.value.account = '0952123259'
+  loginFrom.value.password = 'admin'
+  loginFrom.value.role = 'user'
 }
 </script>
 <template>

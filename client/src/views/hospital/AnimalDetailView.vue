@@ -53,8 +53,20 @@ export default {
       },
       bloodSugarCurveChart: {
         rawData: [],
+        allData: [],
+        filteredData: [],
         data: [],
         options: [],
+        dateFilter: {
+          startDate: '',
+          endDate: '',
+        },
+        yearMonthStats: {
+          years: [],
+          months: [],
+          selectedYear: null,
+          selectedMonth: null,
+        },
       },
       averageChart: {
         title: '',
@@ -101,10 +113,26 @@ export default {
       calendar: Array.from({ length: 42 }, () => ({ loading: true })),
       modal: {
         weight: { value: '', date: new Date().toISOString().split('T')[0], toggle: false, loading: false },
+        editWeight: { id: '', value: '', date: '', toggle: false, loading: false },
+        deleteWeightConfirm: { toggle: false, weightId: '', weightDate: '', weightValue: '', loading: false },
+        weightList: { toggle: false },
         bloodSugarCurve: {
           fields: [{ time: '', value: '' }],
           date: new Date().toISOString().split('T')[0],
           toggle: false,
+          loading: false,
+        },
+        editBloodSugarCurve: {
+          id: '',
+          fields: [{ time: '', value: '' }],
+          date: new Date().toISOString().split('T')[0],
+          toggle: false,
+          loading: false,
+        },
+        deleteConfirm: {
+          toggle: false,
+          curveId: '',
+          curveDate: '',
           loading: false,
         },
         addNotes: { toggle: false, loading: false },
@@ -211,6 +239,66 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
+    openEditWeightModal(weightRecord) {
+      this.modal.editWeight.id = weightRecord._id
+      this.modal.editWeight.value = weightRecord.value
+      this.modal.editWeight.date = new Date(weightRecord.date).toISOString().split('T')[0]
+      this.modal.editWeight.toggle = true
+    },
+    async updateWeight() {
+      try {
+        this.isLoading = true
+        this.modal.editWeight.loading = true
+        const { id, value, date } = this.modal.editWeight
+        const payload = { value: parseFloat(value), date }
+        
+        await axios.put(`${import.meta.env.VITE_API_PATH}/animal/updateWeight/${this.animal.Id}/${id}`, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        
+        await this.getAnimalInfo()
+        this.modal.editWeight.toggle = false
+        this.modal.editWeight.value = ''
+        this.modal.editWeight.date = ''
+        this.modal.editWeight.id = ''
+        this.isLoading = false
+        this.modal.editWeight.loading = false
+        this.$toast.success('體重記錄更新成功')
+      } catch (error) {
+        this.isLoading = false
+        this.modal.editWeight.loading = false
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    openDeleteWeightConfirmModal(weightRecord) {
+      this.modal.deleteWeightConfirm.weightId = weightRecord._id
+      this.modal.deleteWeightConfirm.weightDate = new Date(weightRecord.date).toISOString().split('T')[0]
+      this.modal.deleteWeightConfirm.weightValue = weightRecord.value
+      this.modal.deleteWeightConfirm.toggle = true
+    },
+    async confirmDeleteWeight() {
+      try {
+        this.modal.deleteWeightConfirm.loading = true
+        
+        await axios.delete(`${import.meta.env.VITE_API_PATH}/animal/deleteWeight/${this.animal.Id}/${this.modal.deleteWeightConfirm.weightId}`, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        
+        await this.getAnimalInfo()
+        this.modal.deleteWeightConfirm.toggle = false
+        this.modal.deleteWeightConfirm.loading = false
+        this.$toast.success('體重記錄刪除成功')
+      } catch (error) {
+        this.modal.deleteWeightConfirm.loading = false
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    cancelDeleteWeight() {
+      this.modal.deleteWeightConfirm.toggle = false
+      this.modal.deleteWeightConfirm.weightId = ''
+      this.modal.deleteWeightConfirm.weightDate = ''
+      this.modal.deleteWeightConfirm.weightValue = ''
+    },
     async createBloodSugarCurve() {
       try {
         this.isLoading = true
@@ -226,6 +314,7 @@ export default {
           headers: { 'Content-Type': 'application/json' },
         })
         await this.updateBloodSugarCurveChart(this.isDark)
+        await this.getAllBloodSugarCurveData()
         this.modal.bloodSugarCurve.toggle = false
         this.modal.bloodSugarCurve.fields = [{ time: '', value: '' }]
         this.isLoading = false
@@ -236,6 +325,72 @@ export default {
         this.modal.bloodSugarCurve.loading = false
         this.$toast.error(error.response.data.message)
       }
+    },
+    async updateBloodSugarCurve() {
+      try {
+        this.isLoading = true
+        this.modal.editBloodSugarCurve.loading = true
+        const { id, date, fields } = this.modal.editBloodSugarCurve
+        const payload = {
+          animalId: this.animal.Id,
+          date,
+          records: fields,
+        }
+        await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/updateCurve/${id}`, payload, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        await this.updateBloodSugarCurveChart(this.isDark)
+        await this.getAllBloodSugarCurveData()
+        this.modal.editBloodSugarCurve.toggle = false
+        this.modal.editBloodSugarCurve.fields = [{ time: '', value: '' }]
+        this.isLoading = false
+        this.modal.editBloodSugarCurve.loading = false
+        this.$toast.success('血糖曲線更新成功')
+      } catch (error) {
+        this.isLoading = false
+        this.modal.editBloodSugarCurve.loading = false
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    openDeleteConfirmModal(curve) {
+      this.modal.deleteConfirm.curveId = curve._id
+      this.modal.deleteConfirm.curveDate = new Date(curve.date).toISOString().split('T')[0]
+      this.modal.deleteConfirm.toggle = true
+    },
+    async confirmDeleteBloodSugarCurve() {
+      try {
+        this.modal.deleteConfirm.loading = true
+        const payload = {
+          animalId: this.animal.Id,
+        }
+        await axios.delete(`${import.meta.env.VITE_API_PATH}/bloodSugar/deleteCurve/${this.modal.deleteConfirm.curveId}`, {
+          data: payload,
+          headers: { 'Content-Type': 'application/json' },
+        })
+        await this.updateBloodSugarCurveChart(this.isDark)
+        await this.getAllBloodSugarCurveData()
+        this.modal.editBloodSugarCurve.toggle = false
+        this.modal.deleteConfirm.toggle = false
+        this.modal.deleteConfirm.loading = false
+        this.$toast.success('血糖曲線刪除成功')
+      } catch (error) {
+        this.modal.deleteConfirm.loading = false
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    cancelDeleteBloodSugarCurve() {
+      this.modal.deleteConfirm.toggle = false
+      this.modal.deleteConfirm.curveId = ''
+      this.modal.deleteConfirm.curveDate = ''
+    },
+    openEditBloodSugarCurveModal(curve) {
+      this.modal.editBloodSugarCurve.id = curve._id
+      this.modal.editBloodSugarCurve.date = new Date(curve.date).toISOString().split('T')[0]
+      this.modal.editBloodSugarCurve.fields = curve.records.map(record => ({
+        time: record.time,
+        value: record.value
+      }))
+      this.modal.editBloodSugarCurve.toggle = true
     },
     async updateBloodSugarCurveChart(isDark) {
       try {
@@ -369,6 +524,267 @@ export default {
         this.$toast.error(error.response.data.message)
       }
     },
+    async getAllBloodSugarCurveData() {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
+          params: {
+            animalId: this.animal.Id,
+          },
+        })
+        // 將資料按日期從新到舊排序
+        this.bloodSugarCurveChart.allData = data.data.sort((a, b) => new Date(b.date) - new Date(a.date))
+        this.calculateYearMonthStats()
+        this.generateBloodSugarCurveInterface()
+      } catch (error) {
+        this.$toast.error(error.response.data.message)
+      }
+    },
+    calculateYearMonthStats() {
+      const yearStats = {}
+      const monthStats = {}
+      
+      // 統計每年和每月的資料筆數
+      this.bloodSugarCurveChart.allData.forEach(item => {
+        const date = new Date(item.date)
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const yearMonth = `${year}-${String(month).padStart(2, '0')}`
+        
+        // 統計年份
+        if (!yearStats[year]) {
+          yearStats[year] = 0
+        }
+        yearStats[year]++
+        
+        // 統計月份
+        if (!monthStats[yearMonth]) {
+          monthStats[yearMonth] = 0
+        }
+        monthStats[yearMonth]++
+      })
+      
+      // 轉換為陣列格式並排序
+      this.bloodSugarCurveChart.yearMonthStats.years = Object.keys(yearStats)
+        .map(year => ({
+          year: parseInt(year),
+          count: yearStats[year]
+        }))
+        .sort((a, b) => b.year - a.year) // 最新年份在前
+      
+      // 檢查當前年月是否有資料，如果有則預設選中
+      this.checkAndSelectCurrentMonth(monthStats)
+      
+      // 如果有選中的年份，計算該年份的月份統計
+      if (this.bloodSugarCurveChart.yearMonthStats.selectedYear) {
+        this.updateMonthStatsForYear(this.bloodSugarCurveChart.yearMonthStats.selectedYear)
+      }
+    },
+    checkAndSelectCurrentMonth(monthStats) {
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const currentMonth = now.getMonth() + 1
+      const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
+      
+      // 檢查當前年月是否有資料
+      if (monthStats[currentYearMonth] && monthStats[currentYearMonth] > 0) {
+        // 預設選中當前年月
+        this.bloodSugarCurveChart.yearMonthStats.selectedYear = currentYear
+        this.bloodSugarCurveChart.yearMonthStats.selectedMonth = currentMonth
+        this.selectMonth(currentYear, currentMonth)
+      }
+    },
+    updateMonthStatsForYear(selectedYear) {
+      const monthStats = {}
+      
+      // 統計選中年份的每月資料
+      this.bloodSugarCurveChart.allData
+        .filter(item => new Date(item.date).getFullYear() === selectedYear)
+        .forEach(item => {
+          const month = new Date(item.date).getMonth() + 1
+          if (!monthStats[month]) {
+            monthStats[month] = 0
+          }
+          monthStats[month]++
+        })
+      
+      // 生成12個月的完整列表
+      this.bloodSugarCurveChart.yearMonthStats.months = Array.from({ length: 12 }, (_, index) => {
+        const month = index + 1
+        return {
+          month,
+          monthName: `${month}月`,
+          count: monthStats[month] || 0
+        }
+      })
+    },
+    selectYear(year) {
+      this.bloodSugarCurveChart.yearMonthStats.selectedYear = year
+      this.bloodSugarCurveChart.yearMonthStats.selectedMonth = null
+      this.updateMonthStatsForYear(year)
+      
+      // 設定日期篩選為該年份
+      this.bloodSugarCurveChart.dateFilter.startDate = `${year}-01-01`
+      this.bloodSugarCurveChart.dateFilter.endDate = `${year}-12-31`
+      this.filterBloodSugarCurveByDate()
+    },
+    selectMonth(year, month) {
+      this.bloodSugarCurveChart.yearMonthStats.selectedMonth = month
+      
+      // 計算該月的最後一天
+      const lastDay = new Date(year, month, 0).getDate()
+      
+      // 設定日期篩選為該月份
+      this.bloodSugarCurveChart.dateFilter.startDate = `${year}-${String(month).padStart(2, '0')}-01`
+      this.bloodSugarCurveChart.dateFilter.endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      this.filterBloodSugarCurveByDate()
+    },
+    clearYearMonthSelection() {
+      this.bloodSugarCurveChart.yearMonthStats.selectedYear = null
+      this.bloodSugarCurveChart.yearMonthStats.selectedMonth = null
+      this.bloodSugarCurveChart.yearMonthStats.months = []
+      this.bloodSugarCurveChart.dateFilter.startDate = ''
+      this.bloodSugarCurveChart.dateFilter.endDate = ''
+      this.filterBloodSugarCurveByDate()
+    },
+    generateBloodSugarCurveInterface() {
+      // 預設顯示全部資料
+      this.bloodSugarCurveChart.filteredData = this.bloodSugarCurveChart.allData
+      this.updateBloodSugarCurveChartDisplay(this.isDark)
+    },
+    updateBloodSugarCurveChartDisplay(isDark) {
+      const bloodSugarCurveSetting = isDark
+        ? this.bloodSugarCurveChart.filteredData.map(x => {
+            return {
+              data: {
+                labels: x.records.map(y => y.time),
+                datasets: [
+                  {
+                    label: '血糖',
+                    data: x.records.map(y => y.value),
+                    borderColor: 'rgb(212 212 212)',
+                    backgroundColor: 'rgb(115 115 115)',
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                  },
+                ],
+              },
+              option: {
+                fill: true,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    font: {
+                      size: 20,
+                      weight: 'bold',
+                    },
+                    color: 'rgb(229, 229, 229)',
+                    display: true,
+                    text: `${new Date(x.date).toISOString().split('T')[0]}血糖曲線`,
+                    padding: {
+                      bottom: 30,
+                    },
+                  },
+                  legend: {
+                    display: false,
+                  },
+                  datalabels: {
+                    display: true,
+                    color: 'rgb(229 229 229)',
+                    font: {
+                      weight: 'bold',
+                      size: 14,
+                    },
+                    anchor: 'center',
+                    align: 'top',
+                  },
+                },
+                scales: {
+                  x: {
+                    ticks: {
+                      color: 'rgb(212 212 212)',
+                    },
+                    grid: {
+                      color: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  },
+                  y: {
+                    ticks: {
+                      color: 'rgb(212 212 212)',
+                    },
+                    grid: {
+                      color: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  },
+                },
+              },
+            }
+          })
+        : this.bloodSugarCurveChart.filteredData.map(x => {
+            return {
+              data: {
+                labels: x.records.map(y => y.time),
+                datasets: [
+                  {
+                    label: '血糖',
+                    data: x.records.map(y => y.value),
+                    borderColor: 'rgb(147 197 253)',
+                    backgroundColor: 'rgb(219 234 254)',
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                  },
+                ],
+              },
+              option: {
+                fill: true,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    font: {
+                      size: 20,
+                      weight: 'bold',
+                    },
+                    display: true,
+                    text: `${new Date(x.date).toISOString().split('T')[0]}血糖曲線`,
+                    padding: {
+                      bottom: 30,
+                    },
+                  },
+                  legend: {
+                    display: false,
+                  },
+                  datalabels: {
+                    display: true,
+                    color: '#3b82f6',
+                    font: {
+                      weight: 'bold',
+                      size: 14,
+                    },
+                    anchor: 'center',
+                    align: 'top',
+                  },
+                },
+              },
+            }
+          })
+      this.bloodSugarCurveChart.chart = bloodSugarCurveSetting
+    },
+    filterBloodSugarCurveByDate() {
+      if (!this.bloodSugarCurveChart.dateFilter.startDate || !this.bloodSugarCurveChart.dateFilter.endDate) {
+        this.bloodSugarCurveChart.filteredData = this.bloodSugarCurveChart.allData
+      } else {
+        const startDate = new Date(this.bloodSugarCurveChart.dateFilter.startDate)
+        const endDate = new Date(this.bloodSugarCurveChart.dateFilter.endDate)
+        this.bloodSugarCurveChart.filteredData = this.bloodSugarCurveChart.allData
+          .filter(item => {
+            const itemDate = new Date(item.date)
+            return itemDate >= startDate && itemDate <= endDate
+          })
+          .sort((a, b) => new Date(b.date) - new Date(a.date)) // 確保篩選後也是最新在前
+      }
+      this.updateBloodSugarCurveChartDisplay(this.isDark)
+    },
     async createTask() {
       try {
         this.isLoading = true
@@ -495,7 +911,7 @@ export default {
         })
         return data
       } catch (error) {
-        this.$$toast.error(error.response.data.message)
+        this.$toast.error(error.response.data.message)
       }
     },
     convertBirthdayToAge(dateString = new Date()) {
@@ -967,6 +1383,7 @@ export default {
     isDark(dark) {
       this.updateWeightChart(dark)
       this.updateBloodSugarCurveChart(dark)
+      this.updateBloodSugarCurveChartDisplay(dark)
       this.updateAverageChart(dark)
     },
     weekData: {
@@ -1019,6 +1436,7 @@ export default {
     this.selectedMonth = this.newtoday.date.getMonth()
     this.selectedYear = this.newtoday.date.getFullYear()
     this.calendarDisplay = 'week'
+    await this.getAllBloodSugarCurveData()
   },
 }
 </script>
@@ -1064,7 +1482,19 @@ export default {
         </div>
       </div>
       <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
-        <ChartComponent type="line" :chartData="weightChart.data" :chartOptions="weightChart.options"></ChartComponent>
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">體重走勢圖</h4>
+          <button
+            type="button"
+            class="px-3 py-1 text-sm text-white rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            @click="modal.weightList = { toggle: true }"
+          >
+            <i class="fa-solid fa-list fa-fw"></i> 管理記錄
+          </button>
+        </div>
+        <div class="h-[250px]">
+          <ChartComponent type="line" :chartData="weightChart.data" :chartOptions="weightChart.options"></ChartComponent>
+        </div>
       </div>
       <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
         <ChartComponent type="pie" :chartData="averageChart.data" :chartOptions="averageChart.options"></ChartComponent>
@@ -1296,8 +1726,128 @@ export default {
         </div>
       </div>
     </div>
-    <div v-for="chart in bloodSugarCurveChart.chart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-6 p-4 h-[350px] w-full dark:bg-darkPrimary-700">
-      <ChartComponent type="line" :chartData="chart.data" :chartOptions="chart.option"></ChartComponent>
+    
+    <!-- 血糖曲線控制面板 -->
+    <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-6 p-4">
+      <div class="flex flex-col gap-4 mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <h3 class="text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">血糖曲線圖表</h3>
+          
+          <!-- 資料統計 -->
+          <div class="text-sm text-gray-600 dark:text-darkPrimary-300">
+            顯示 {{ bloodSugarCurveChart.filteredData.length }} / {{ bloodSugarCurveChart.allData.length }} 筆記錄
+          </div>
+        </div>
+
+        <!-- 年份月份選擇器 -->
+        <div v-show="bloodSugarCurveChart.yearMonthStats.years.length > 0" class="border-t pt-4 dark:border-darkPrimary-500">
+          <!-- 年份選擇 -->
+          <div class="mb-4">
+            <h4 class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50 mb-2">選擇年份：</h4>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                :class="[
+                  'px-3 py-1 text-sm rounded-full border transition-all',
+                  bloodSugarCurveChart.yearMonthStats.selectedYear === null
+                    ? 'bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white border-primary-500 dark:border-indigo-600'
+                    : 'bg-gray-100 hover:bg-gray-200 dark:bg-darkPrimary-600 dark:hover:bg-darkPrimary-500 text-primary-900 dark:text-darkPrimary-50 border-gray-300 dark:border-darkPrimary-400'
+                ]"
+                @click="clearYearMonthSelection"
+              >
+                全部年份
+              </button>
+              <button
+                v-for="yearData in bloodSugarCurveChart.yearMonthStats.years"
+                :key="yearData.year"
+                type="button"
+                :class="[
+                  'relative px-3 py-1 text-sm rounded-full border transition-all',
+                  bloodSugarCurveChart.yearMonthStats.selectedYear === yearData.year
+                    ? 'bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white border-primary-500 dark:border-indigo-600'
+                    : 'bg-white hover:bg-gray-50 dark:bg-darkPrimary-600 dark:hover:bg-darkPrimary-500 text-primary-900 dark:text-darkPrimary-50 border-gray-300 dark:border-darkPrimary-400'
+                ]"
+                @click="selectYear(yearData.year)"
+              >
+                <span>{{ yearData.year }}</span>
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                  {{ yearData.count }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 月份選擇 -->
+          <div v-show="bloodSugarCurveChart.yearMonthStats.selectedYear && bloodSugarCurveChart.yearMonthStats.months.length > 0" class="mb-4">
+            <h4 class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50 mb-2">
+              選擇月份 ({{ bloodSugarCurveChart.yearMonthStats.selectedYear }}年)：
+            </h4>
+            <div class="grid grid-cols-3 lg:grid-cols-6 gap-3">
+              <button
+                v-for="monthData in bloodSugarCurveChart.yearMonthStats.months"
+                :key="monthData.month"
+                type="button"
+                :class="[
+                  'relative px-3 py-2 text-sm rounded-full border transition-all',
+                  monthData.count === 0
+                    ? 'bg-gray-100 dark:bg-darkPrimary-600 text-gray-400 dark:text-darkPrimary-400 border-gray-200 dark:border-darkPrimary-500 cursor-not-allowed'
+                    : bloodSugarCurveChart.yearMonthStats.selectedMonth === monthData.month
+                      ? 'bg-primary-500 hover:bg-primary-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white border-primary-500 dark:border-indigo-600'
+                      : 'bg-white hover:bg-gray-50 dark:bg-darkPrimary-600 dark:hover:bg-darkPrimary-500 text-primary-900 dark:text-darkPrimary-50 border-gray-300 dark:border-darkPrimary-400'
+                ]"
+                :disabled="monthData.count === 0"
+                @click="monthData.count > 0 ? selectMonth(bloodSugarCurveChart.yearMonthStats.selectedYear, monthData.month) : null"
+              >
+                <span>{{ monthData.monthName }}</span>
+                <span 
+                  v-if="monthData.count > 0"
+                  class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none"
+                >
+                  {{ monthData.count }}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 血糖曲線圖表 -->
+    <div v-if="bloodSugarCurveChart.filteredData.length === 0" class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-8 text-center">
+      <div class="text-gray-500 dark:text-darkPrimary-400">
+        <i class="fa-solid fa-chart-line fa-3x mb-4"></i>
+        <p class="text-lg">目前沒有血糖曲線資料</p>
+        <p class="text-sm mt-2">請點擊右下角的圖表按鈕新增血糖曲線</p>
+      </div>
+    </div>
+    
+    <div v-for="(chart, index) in bloodSugarCurveChart.chart" :key="chart.date" class="rounded-lg overflow-hidden shadow-lg bg-white mt-4 p-4 w-full dark:bg-darkPrimary-700">
+      <!-- 圖表標題和編輯按鈕 -->
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">
+          {{ new Date(bloodSugarCurveChart.filteredData[index].date).toISOString().split('T')[0] }} 血糖曲線
+        </h4>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="px-3 py-1 text-sm text-white rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            @click="openEditBloodSugarCurveModal(bloodSugarCurveChart.filteredData[index])"
+          >
+            <i class="fa-solid fa-edit fa-fw"></i> 編輯
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1 text-sm text-white rounded-md bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+            @click="openDeleteConfirmModal(bloodSugarCurveChart.filteredData[index])"
+          >
+            <i class="fa-solid fa-trash fa-fw"></i> 刪除
+          </button>
+        </div>
+      </div>
+      <!-- 圖表區域 -->
+      <div class="h-[300px]">
+        <ChartComponent type="line" :chartData="chart.data" :chartOptions="chart.option"></ChartComponent>
+      </div>
     </div>
     <!-- 體重視窗 -->
     <div v-show="modal.weight.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown.stop="modal.weight.toggle = false">
@@ -1354,6 +1904,242 @@ export default {
         </VForm>
       </div>
     </div>
+    
+    <!-- 編輯血糖曲線視窗 -->
+    <div v-show="modal.editBloodSugarCurve.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.editBloodSugarCurve.toggle = false">
+      <div class="bg-white p-4 lg:p-8 rounded-xl shadow-2xl text-center w-[90%] max-w-2xl dark:bg-darkPrimary-700" @mousedown.stop>
+        <VForm @submit="updateBloodSugarCurve">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">編輯血糖曲線</h2>
+            <button 
+              type="button" 
+              class="h-10 max-h-[60px] w-10 max-w-[60px] select-none rounded-lg transition-all dark:hover:bg-darkPrimary-600 hover:bg-gray-900/10" 
+              @click="openDeleteConfirmModal({ _id: modal.editBloodSugarCurve.id, date: modal.editBloodSugarCurve.date })"
+            >
+              <i class="text-xl text-red-600 dark:text-rose-400 fa-solid fa-trash fa-fw"></i>
+            </button>
+          </div>
+          
+          <VField v-model="modal.editBloodSugarCurve.date" name="editBloodSugarCurveDate" rules="required" type="date" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" />
+          <ErrorMessage name="editBloodSugarCurveDate" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          
+          <div v-for="(field, index) in modal.editBloodSugarCurve.fields" :key="index" class="my-4 space-y-4">
+            <div class="grid grid-cols-[2fr_2fr_0.5fr] gap-4 items-center border p-2 rounded-md shadow-md">
+              <input v-model="field.time" type="time" name="editSugarCurveTime" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <input v-model="field.value" type="number" name="editSugarCurveBloodSugar" placeholder="血糖" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+              <button type="button" class="px-2 py-1 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600" @click="modal.editBloodSugarCurve.fields.splice(index, 1)">X</button>
+            </div>
+          </div>
+          
+          <div class="flex justify-center my-3">
+            <button type="button" class="flex items-center px-6 py-2 font-medium text-white transition-all bg-green-500 rounded-lg shadow-md hover:bg-green-400 dark:bg-lime-600" @click="modal.editBloodSugarCurve.fields.push({ time: '', value: '' })"><i class="mr-2 fa-solid fa-plus fa-fw"></i> 新增欄位</button>
+          </div>
+          
+          <div class="flex justify-between space-x-4">
+            <button type="button" class="w-1/2 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md lg:w-1/3 dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.editBloodSugarCurve.toggle = false">取消</button>
+            <button v-if="isLoading" class="inline-flex items-center justify-center w-1/2 px-6 py-2 rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">更新中... </span>
+            </button>
+            <button v-else type="submit" class="w-1/2 px-4 py-2 text-white rounded-md lg:w-1/3 bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">更新血糖曲線</button>
+          </div>
+        </VForm>
+      </div>
+    </div>
+    
+    <!-- 體重記錄管理視窗 -->
+    <div v-show="modal.weightList.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.weightList.toggle = false">
+      <div class="bg-white p-6 rounded-xl shadow-2xl w-[90%] max-w-2xl max-h-[80vh] overflow-hidden dark:bg-darkPrimary-700" @mousedown.stop>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">體重記錄管理</h3>
+          <button 
+            type="button"
+            class="h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-darkPrimary-600 flex items-center justify-center"
+            @click="modal.weightList.toggle = false"
+          >
+            <i class="fa-solid fa-x text-gray-500 dark:text-darkPrimary-300"></i>
+          </button>
+        </div>
+        
+        <div class="overflow-y-auto max-h-[60vh]">
+          <div v-if="animal.Info.weight && animal.Info.weight.length > 0" class="space-y-2">
+            <div 
+              v-for="weightRecord in animal.Info.weight.slice().reverse()" 
+              :key="weightRecord._id"
+              class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-darkPrimary-600 dark:border-darkPrimary-500"
+            >
+              <div class="flex-1">
+                <div class="font-medium text-primary-900 dark:text-darkPrimary-50">
+                  {{ weightRecord.value }} 公斤
+                </div>
+                <div class="text-sm text-gray-600 dark:text-darkPrimary-300">
+                  {{ new Date(weightRecord.date).toISOString().split('T')[0] }}
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-white rounded-md bg-blue-500 hover:bg-blue-600"
+                  @click="openEditWeightModal(weightRecord)"
+                >
+                  <i class="fa-solid fa-edit fa-fw"></i> 編輯
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-white rounded-md bg-red-500 hover:bg-red-600"
+                  @click="openDeleteWeightConfirmModal(weightRecord)"
+                >
+                  <i class="fa-solid fa-trash fa-fw"></i> 刪除
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8 text-gray-500 dark:text-darkPrimary-400">
+            <i class="fa-solid fa-weight-scale fa-3x mb-4"></i>
+            <p>目前沒有體重記錄</p>
+          </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t dark:border-darkPrimary-500">
+          <button
+            type="button"
+            class="w-full px-4 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700"
+            @click="modal.weightList.toggle = false; modal.weight.toggle = true"
+          >
+            <i class="fa-solid fa-plus fa-fw"></i> 新增體重記錄
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 編輯體重視窗 -->
+    <div v-show="modal.editWeight.toggle" class="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.editWeight.toggle = false">
+      <div class="bg-white p-6 rounded-xl shadow-2xl text-center w-[90%] max-w-md dark:bg-darkPrimary-700" @mousedown.stop>
+        <VForm @submit="updateWeight">
+          <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">編輯體重記錄</h2>
+          
+          <div class="grid grid-cols-1 gap-4 mb-4">
+            <div>
+              <label class="block mb-1 text-sm font-medium text-left dark:text-darkPrimary-50">日期</label>
+              <VField v-model="modal.editWeight.date" name="editWeightDate" rules="required" type="date" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400" />
+              <ErrorMessage name="editWeightDate" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+            </div>
+            <div>
+              <label class="block mb-1 text-sm font-medium text-left dark:text-darkPrimary-50">體重 (公斤)</label>
+              <VField v-model="modal.editWeight.value" name="editWeightValue" rules="required" type="number" step="0.1" placeholder="輸入體重" class="w-full h-10 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400" />
+              <ErrorMessage name="editWeightValue" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+            </div>
+          </div>
+
+          <div class="flex justify-between space-x-4">
+            <button type="button" class="w-1/2 px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modal.editWeight.toggle = false">取消</button>
+            <button v-if="modal.editWeight.loading" class="inline-flex items-center justify-center w-1/2 px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">更新中...</span>
+            </button>
+            <button v-else type="submit" class="w-1/2 px-4 py-2 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700">更新體重</button>
+          </div>
+        </VForm>
+      </div>
+    </div>
+    
+    <!-- 刪除體重確認對話框 -->
+    <div v-show="modal.deleteWeightConfirm.toggle" class="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-70" @mousedown="cancelDeleteWeight">
+      <div class="bg-white p-6 rounded-xl shadow-2xl text-center w-[90%] max-w-md dark:bg-darkPrimary-700" @mousedown.stop>
+        <div class="mb-4">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+            <i class="fa-solid fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-darkPrimary-50 mb-2">確認刪除體重記錄</h3>
+          <p class="text-sm text-gray-600 dark:text-darkPrimary-300 mb-2">
+            您確定要刪除以下體重記錄嗎？
+          </p>
+          <div class="text-base font-medium text-primary-600 dark:text-indigo-400">
+            {{ modal.deleteWeightConfirm.weightDate }}
+          </div>
+          <div class="text-lg font-bold text-primary-600 dark:text-indigo-400">
+            {{ modal.deleteWeightConfirm.weightValue }} 公斤
+          </div>
+          <p class="text-xs text-red-600 dark:text-red-400 mt-2">
+            ⚠️ 此操作無法復原
+          </p>
+        </div>
+        
+        <div class="flex justify-center gap-4">
+          <button 
+            type="button"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-darkPrimary-600 dark:text-darkPrimary-50 dark:hover:bg-darkPrimary-500 transition-all"
+            @click="cancelDeleteWeight"
+          >
+            取消
+          </button>
+          <button 
+            v-if="modal.deleteWeightConfirm.loading"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 text-white disabled:opacity-50 disabled:cursor-not-allowed" 
+            disabled
+          >
+            <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+            <span class="ml-2">刪除中...</span>
+          </button>
+          <button 
+            v-else
+            type="button"
+            class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 transition-all"
+            @click="confirmDeleteWeight"
+          >
+            確認刪除
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 刪除確認對話框 -->
+    <div v-show="modal.deleteConfirm.toggle" class="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-70" @mousedown="cancelDeleteBloodSugarCurve">
+      <div class="bg-white p-6 rounded-xl shadow-2xl text-center w-[90%] max-w-md dark:bg-darkPrimary-700" @mousedown.stop>
+        <div class="mb-4">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+            <i class="fa-solid fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-darkPrimary-50 mb-2">確認刪除血糖曲線</h3>
+          <p class="text-sm text-gray-600 dark:text-darkPrimary-300 mb-2">
+            您確定要刪除以下血糖曲線嗎？
+          </p>
+          <p class="text-base font-medium text-primary-600 dark:text-indigo-400">
+            {{ modal.deleteConfirm.curveDate }}
+          </p>
+          <p class="text-xs text-red-600 dark:text-red-400 mt-2">
+            ⚠️ 此操作無法復原
+          </p>
+        </div>
+        
+        <div class="flex justify-center gap-4">
+          <button 
+            type="button"
+            class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-darkPrimary-600 dark:text-darkPrimary-50 dark:hover:bg-darkPrimary-500 transition-all"
+            @click="cancelDeleteBloodSugarCurve"
+          >
+            取消
+          </button>
+          <button 
+            v-if="modal.deleteConfirm.loading"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 text-white disabled:opacity-50 disabled:cursor-not-allowed" 
+            disabled
+          >
+            <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+            <span class="ml-2">刪除中...</span>
+          </button>
+          <button 
+            v-else
+            type="button"
+            class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 transition-all"
+            @click="confirmDeleteBloodSugarCurve"
+          >
+            確認刪除
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <div v-show="modal.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modal.tips.toggle = false">
       <div class="relative rounded-lg shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
         <button class="absolute top-0 right-0 group flex h-6 w-6 select-none items-center justify-center rounded-lg bg-white leading-8 text-zinc-950 shadow-[0_-1px_0_0px_#d4d4d8_inset,0_0_0_1px_#f4f4f5_inset,0_0.5px_0_1.5px_#fff_inset] hover:bg-zinc-50 hover:via-zinc-900 hover:to-zinc-800 active:shadow-[-1px_0px_1px_0px_#e4e4e7_inset,1px_0px_1px_0px_#e4e4e7_inset,0px_0.125rem_1px_0px_#d4d4d8_inset]" aria-label="Change language" @click="modal.tips.toggle = false">

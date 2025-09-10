@@ -1,52 +1,45 @@
-<script>
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { Field, Form, ErrorMessage } from 'vee-validate'
-export default {
-  components: {
-    VField: Field,
-    VForm: Form,
-    ErrorMessage,
-  },
-  data() {
-    return {
-      registerForm: {
-        role: 'hospital',
-        account: '',
-        name: '',
-        password: '',
-        confirmPassword: '',
-        showPassword: false,
-        showConfirmPassword: false,
-      },
-      isLoading: false,
+import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
+import { useToast } from 'vue-toastification'
+const router = useRouter()
+const toast = useToast()
+const registerForm = ref({
+  role: 'hospital',
+  account: '',
+  name: '',
+  password: '',
+  confirmPassword: '',
+  showPassword: false,
+  showConfirmPassword: false,
+})
+const isLoading = ref(false)
+// 方法
+async function register() {
+  try {
+    isLoading.value = true
+    const { account, name, password, role } = registerForm.value
+    const payload = {
+      account,
+      password,
+      name,
     }
-  },
-  methods: {
-    async register() {
-      try {
-        this.isLoading = true
-        const { account, name, password, role } = this.registerForm
-        const payload = {
-          account,
-          password,
-          name,
-        }
-        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/register`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        this.$toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
-        setTimeout(() => {
-          this.$router.push('/login')
-        }, '3000')
-        this.isLoading = false
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-        this.isLoading = true
-      }
-    },
-  },
+    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/register`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
+    setTimeout(() => {
+      router.push('/login')
+    }, 3000)
+    isLoading.value = false
+  } catch (error) {
+    toast.error(error.response.data.message)
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -105,7 +98,7 @@ export default {
           <VField id="name" v-model="registerForm.name" rules="length:1,20" type="text" name="name" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="請輸入暱稱" autocomplete="off" />
           <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="name" />
         </div>
-        <button v-if="isLoading" class="inline-flex items-center justify-center w-full px-4 py-2 mt-4 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
+        <button v-if="isLoading" class="inline-flex items-center justify-center w-full px-4 py-2 mt-4 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled>
           <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
           <span class="ml-2">註冊中... </span>
         </button>

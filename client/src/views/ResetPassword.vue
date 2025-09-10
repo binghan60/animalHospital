@@ -1,53 +1,47 @@
-<script>
+<script setup>
+import { ref, inject, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { Field, Form, ErrorMessage } from 'vee-validate'
+import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
+import { useToast } from 'vue-toastification'
 
-export default {
-  inject: ['loadingConfig'],
-  components: {
-    VField: Field,
-    VForm: Form,
-    ErrorMessage,
-  },
-  data() {
-    return {
-      resetForm: {
-        password: '',
-        showPassword: false,
-        showConfirmPassword: false,
-      },
-      token: '',
-      isLoading: false,
+const loadingConfig = inject('loadingConfig')
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const resetForm = ref({
+  password: '',
+  showPassword: false,
+  showConfirmPassword: false,
+})
+const token = ref('')
+const isLoading = ref(false)
+// 方法
+async function resetPassword() {
+  try {
+    isLoading.value = true
+    const payload = {
+      token: route.query.token,
+      password: resetForm.value.password,
     }
-  },
-  methods: {
-    async resetPassword() {
-      try {
-        this.isLoading = true
-        const payload = {
-          token: this.$route.query.token,
-          password: this.resetForm.password,
-        }
-        const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/reset-password`, payload, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        this.isLoading = false
-        this.$toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
-        setTimeout(() => {
-          this.$router.push('/login')
-        }, '3000')
-      } catch (error) {
-        this.$toast.error(error.response.data.message)
-        this.isLoading = false
-      }
-    },
-  },
-  mounted() {
-    this.token = this.$route.query.token
-  },
+    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/reset-password`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    isLoading.value = false
+    toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
+    setTimeout(() => {
+      router.push('/login')
+    }, 3000)
+  } catch (error) {
+    toast.error(error.response.data.message)
+    isLoading.value = false
+  }
 }
+onMounted(() => {
+  token.value = route.query.token
+})
 </script>
 <template>
   <div class="flex items-center justify-center min-h-screen">

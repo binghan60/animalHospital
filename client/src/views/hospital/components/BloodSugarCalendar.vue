@@ -1,0 +1,341 @@
+<template>
+  <div class="rounded-lg shadow-lg bg-white dark:bg-darkPrimary-700 mt-4 p-2 lg:p-4 lg:min-h-[1000px] min-h-[800px]">
+    <!-- 日曆控制器 -->
+    <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:dataDisplay="dataDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="prevMonth" @nextMonth="nextMonth" />
+
+    <!-- 月視圖 -->
+    <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :bloodSugarColor="bloodSugarColor" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" />
+
+    <!-- 週視圖 -->
+    <WeekView v-show="calendarDisplay === 'week'" :weekData="weekData" :weekRange="weekRange" :user="user" @openTaskModal="openTaskModal" @openEditTaskModal="openEditTaskModal" />
+
+    <!-- 新增事項模態框 -->
+    <div v-show="modals.addNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @mousedown="closeTaskModal">
+      <div class="p-6 bg-white rounded-md shadow-lg w-96 dark:bg-darkPrimary-700" @mousedown.stop>
+        <VForm @submit="createTaskAndEmit">
+          <h3 class="mb-4 text-lg font-semibold dark:text-darkPrimary-50">新增事項 {{ newRecord.date }}</h3>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">時間</label>
+            <VField v-model="newRecord.time" rules="required" name="time" type="time" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" />
+            <ErrorMessage name="time" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">血糖</label>
+            <VField v-model="newRecord.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="number" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="bloodSugar" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">胰島素</label>
+            <VField v-model="newRecord.insulin" name="insulin" rules="atLeastOneFieldRule:@bloodSugar,@notes" type="text" placeholder="輸入胰島素(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="insulin" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">備註</label>
+            <VField v-model="newRecord.notes" name="notes" rules="atLeastOneFieldRule:@bloodSugar,@insulin" type="text" placeholder="輸入備註(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="notes" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="flex justify-between gap-4">
+            <button type="button" class="w-[140px] px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="closeTaskModal">取消</button>
+            <button v-if="isLoading" class="w-[140px] inline-flex items-center justify-center px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled>
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">新增中... </span>
+            </button>
+            <button v-else type="submit" class="w-[140px] px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">新增</button>
+          </div>
+        </VForm>
+      </div>
+    </div>
+
+    <!-- 編輯事項模態框 -->
+    <div v-show="modals.editNotes.toggle" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @mousedown="modals.editNotes.toggle = false">
+      <div class="p-6 bg-white rounded-md shadow-lg w-96 dark:bg-darkPrimary-700" @mousedown.stop>
+        <VForm @submit="editTaskAndEmit">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="mb-4 text-lg font-semibold dark:text-darkPrimary-50">編輯事項 {{ editRecord.date }}</h3>
+            <button type="button" class="h-10 max-h-[60px] w-10 max-w-[60px] select-none rounded-lg transition-all dark:hover:bg-darkPrimary-600 hover:bg-gray-900/10" @click="deleteTaskAndEmit(editRecord.recordId, editRecord.taskId)">
+              <i class="text-xl text-red-600 dark:text-rose-400 fa-solid fa-trash fa-fw"></i>
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">時間</label>
+            <VField v-model="editRecord.task.time" rules="required" name="time" type="time" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" />
+            <ErrorMessage name="time" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">血糖</label>
+            <VField v-model="editRecord.task.bloodSugar" name="bloodSugar" rules="atLeastOneFieldRule:@insulin,@notes" type="number" placeholder="輸入血糖(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="bloodSugar" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">胰島素</label>
+            <VField v-model="editRecord.task.insulin" name="insulin" rules="atLeastOneFieldRule:@bloodSugar,@notes" type="text" placeholder="輸入胰島素(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="insulin" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium dark:text-darkPrimary-50">備註</label>
+            <VField v-model="editRecord.task.notes" name="notes" rules="atLeastOneFieldRule:@bloodSugar,@insulin" type="text" placeholder="輸入備註(選填)" class="w-full h-8 col-span-2 pl-3 border rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-600 text-primary-900 outline-1 outline-primary-100 border-primary-100 dark:border-darkPrimary-500 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" autocomplete="off" />
+            <ErrorMessage name="notes" class="mt-1 text-sm text-red-500 dark:text-rose-400" />
+          </div>
+
+          <div class="flex justify-between gap-4">
+            <button type="button" class="w-[140px] px-6 py-2 text-gray-700 transition-all bg-gray-300 rounded-lg shadow-md dark:bg-darkPrimary-50 hover:dark:bg-darkPrimary-400 hover:bg-gray-400" @click="modals.editNotes.toggle = false">取消</button>
+            <button v-if="isLoading" class="w-[140px] inline-flex items-center justify-center px-6 py-2 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled>
+              <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
+              <span class="ml-2">修改中... </span>
+            </button>
+            <button v-else type="submit" class="w-[140px] px-6 py-2 text-white rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-indigo-600 dark:hover:bg-indigo-700">修改</button>
+          </div>
+        </VForm>
+      </div>
+    </div>
+
+    <!-- 手機版提示模態框 -->
+    <div v-show="modals.tips.toggle" class="fixed inset-0 z-20 flex items-center justify-center bg-black bg-opacity-70" @mousedown="modals.tips.toggle = false">
+      <div class="relative rounded-lg shadow-2xl text-center w-[90%] max-w-2xl" @mousedown.stop>
+        <button class="absolute top-0 right-0 group flex h-6 w-6 select-none items-center justify-center rounded-lg bg-white leading-8 text-zinc-950 shadow-[0_-1px_0_0px_#d4d4d8_inset,0_0_0_1px_#f4f4f5_inset,0_0.5px_0_1.5px_#fff_inset] hover:bg-zinc-50 hover:via-zinc-900 hover:to-zinc-800 active:shadow-[-1px_0px_1px_0px_#e4e4e7_inset,1px_0px_1px_0px_#e4e4e7_inset,0px_0.125rem_1px_0px_#d4d4d8_inset]" aria-label="Close modal" @click="modals.tips.toggle = false">
+          <span class="flex items-center group-active:[transform:translate3d(0,1px,0)]">
+            <i class="fa-solid fa-x fa-fw"></i>
+          </span>
+        </button>
+        <table class="w-full text-sm text-left text-gray-500 bg-white border-collapse rounded-md shadow-lg dark:bg-darkPrimary-500">
+          <thead class="font-semibold text-center border-b bg-primary-100 dark:bg-darkPrimary-600 border-primary-200 dark:border-darkPrimary-400 text-primary-600 dark:text-darkPrimary-50">
+            <tr>
+              <th class="px-2 py-2">時間</th>
+              <th class="px-2 py-2">血糖值</th>
+              <th class="px-2 py-2">胰島素</th>
+              <th class="px-2 py-2">備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="data in hoverData" :key="data.id" class="border-b border-primary-200 dark:bg-darkPrimary-500 dark:border-darkPrimary-400 hover:bg-primary-50 text-primary-900 dark:text-darkPrimary-50">
+              <td class="px-2 py-4">{{ data?.time }}</td>
+              <td class="px-2 py-4">{{ data?.bloodSugar || '無' }}</td>
+              <td class="px-2 py-4">{{ data?.insulin || '無' }}</td>
+              <td class="px-2 py-4">{{ data?.notes || '無' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { watch, onMounted, computed } from 'vue'
+import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
+import { useBloodSugarCalendar } from '../composables/useBloodSugarCalendar'
+import CalendarControls from './CalendarControls.vue'
+import MonthView from './MonthView.vue'
+import WeekView from './WeekView.vue'
+
+const props = defineProps({
+  animalId: {
+    type: String,
+    required: true,
+  },
+  user: {
+    type: Object,
+    required: true,
+  },
+})
+
+// 使用血糖日曆 composable
+const {
+  // 狀態
+  isLoading,
+  newtoday,
+  calendar,
+  weekData,
+  weekRange,
+  calendarDisplay,
+  dataDisplay,
+  years,
+  months,
+  selectedYear,
+  selectedMonth,
+  modals,
+  newRecord,
+  editRecord,
+  showTooltip,
+  hoverData,
+  tooltipStyle,
+
+  // 方法
+  getWeekBloodSugarData,
+  createTask,
+  editTask,
+  deleteTask,
+  bloodSugarColor,
+  showTips,
+  openTaskModal,
+  closeTaskModal,
+  openEditTaskModal,
+  updateCalendar,
+  updateWeekData,
+  prevWeek,
+  nextWeek,
+  prevMonth,
+  nextMonth,
+  goToFirstWeekOfSelectedMonth,
+} = useBloodSugarCalendar(
+  props.animalId,
+  computed(() => props.user),
+)
+
+// 監聽日期變化
+watch(
+  () => newtoday.date,
+  () => {
+    const date = newtoday.date
+    newtoday.year = date.getFullYear()
+    newtoday.month = date.getMonth()
+    newtoday.day = date.getDate()
+    newtoday.lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  },
+)
+
+watch(
+  () => newtoday.month,
+  async () => {
+    await updateCalendar()
+    if (calendarDisplay.value === 'month') {
+      // 這裡可以更新月視圖的平均血糖圖表
+    }
+  },
+)
+
+// 監聽週資料變化，當導航到新週時更新資料
+watch(
+  () => weekRange.value,
+  async () => {
+    if (calendarDisplay.value === 'week') {
+      await getWeekBloodSugarData()
+    }
+  },
+)
+
+// 監聽日曆顯示模式變化
+watch(
+  () => calendarDisplay.value,
+  async newMode => {
+    if (newMode === 'week') {
+      await getWeekBloodSugarData()
+    } else if (newMode === 'month') {
+      await updateCalendar()
+    }
+  },
+)
+
+// 移除會造成無限迴圈的 watch
+// watch(() => weekData.value, () => {
+//   getWeekBloodSugarData()
+//   if (calendarDisplay.value === 'week') {
+//     // 這裡可以更新週視圖的平均血糖圖表
+//   }
+// }, { deep: true })
+
+watch(
+  () => dataDisplay.value,
+  newValue => {
+    weekData.value = weekData.value.map(day => {
+      let filteredRecords
+      if (newValue === 'all') {
+        filteredRecords = day.records
+      } else if (newValue === 'user') {
+        filteredRecords = day.records.filter(x => x.author === props.user._id)
+      } else if (newValue === 'other') {
+        filteredRecords = day.records.filter(x => x.author !== props.user._id)
+      }
+      return {
+        ...day,
+        records: filteredRecords,
+      }
+    })
+  },
+)
+
+// 初始化
+onMounted(async () => {
+  newtoday.date = new Date()
+  updateWeekData()
+  selectedYear.value = newtoday.date.getFullYear()
+  selectedMonth.value = newtoday.date.getMonth()
+  calendarDisplay.value = 'week'
+
+  // 初始載入週資料
+  await getWeekBloodSugarData()
+})
+
+const emit = defineEmits(['bloodSugarChanged', 'dateRangeChanged'])
+
+// 計算目前顯示模式的日期範圍並發出事件
+const emitCurrentDateRange = () => {
+  if (calendarDisplay.value === 'week') {
+    const startDate = weekData.value[0]?.date
+    const endDate = weekData.value[6]?.date
+    if (startDate && endDate) emit('dateRangeChanged', { type: 'week', startDate, endDate })
+  } else if (calendarDisplay.value === 'month') {
+    const y = newtoday.year
+    const m = newtoday.month + 1
+    const startDate = `${y}-${String(m).padStart(2, '0')}-01`
+    const endDate = `${y}-${String(m).padStart(2, '0')}-${String(newtoday.lastDay).padStart(2, '0')}`
+    emit('dateRangeChanged', { type: 'month', startDate, endDate })
+  }
+}
+
+// 包裝函式：新增後發出事件
+const createTaskAndEmit = async () => {
+  await createTask()
+  emit('bloodSugarChanged')
+  emitCurrentDateRange()
+}
+
+// 包裝函式：修改後發出事件
+const editTaskAndEmit = async () => {
+  await editTask()
+  emit('bloodSugarChanged')
+  emitCurrentDateRange()
+}
+
+// 包裝函式：刪除後發出事件
+const deleteTaskAndEmit = async (recordId, taskId) => {
+  await deleteTask(recordId, taskId)
+  emit('bloodSugarChanged')
+  emitCurrentDateRange()
+}
+
+// 監聽日曆顯示模式變化
+watch(
+  () => calendarDisplay.value,
+  async newMode => {
+    if (newMode === 'week') {
+      await getWeekBloodSugarData()
+    } else if (newMode === 'month') {
+      await updateCalendar()
+    }
+    emitCurrentDateRange()
+  },
+)
+
+// 初始化
+onMounted(async () => {
+  newtoday.date = new Date()
+  updateWeekData()
+  selectedYear.value = newtoday.date.getFullYear()
+  selectedMonth.value = newtoday.date.getMonth()
+  calendarDisplay.value = 'week'
+
+  // 初始載入週資料
+  await getWeekBloodSugarData()
+  emitCurrentDateRange()
+})
+</script>
