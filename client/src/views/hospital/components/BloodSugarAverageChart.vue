@@ -1,38 +1,52 @@
 <template>
-  <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
-    <ChartComponent 
-      type="pie" 
-      :chartData="chartConfig.data" 
-      :chartOptions="chartConfig.options"
-    />
-    <div class="grid grid-cols-2 col-span-6 text-center">
-      <h2 class="col-span-2 text-primary-900 dark:text-darkPrimary-50">{{ chartTitle }}</h2>
-      <div 
-        :class="[
-          'col-span-2 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', 
-          bloodSugarColor(Math.ceil(averages.combinedAverage))
-        ]"
-      >
-        {{ Math.ceil(averages.combinedAverage) }}
+  <v-card class="blood-sugar-chart-card">
+    <v-card-title class="pb-2 text-center">
+      <v-icon icon="mdi-chart-donut" class="mr-2" color="primary" />
+      {{ chartTitle }}
+    </v-card-title>
+
+    <v-card-text class="pt-2">
+      <div class="chart-container">
+        <ChartComponent :key="chartConfig.uniqueKey || ((isDark.value ? 'dark' : 'light') + '-' + chartConfig.data?.labels?.length)" type="pie" :chartData="chartConfig.data" :chartOptions="chartConfig.options" />
       </div>
-      <div 
-        :class="[
-          'col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', 
-          bloodSugarColor(Math.ceil(averages.morningAverage))
-        ]"
-      >
-        <i class="fa-regular fa-sun"></i> {{ Math.ceil(averages.morningAverage) }}
+
+      <div class="spacer"></div>
+
+      <div class="sugar-values-grid">
+        <!-- 總平均 -->
+        <v-card :class="['sugar-card', 'combined', bloodSugarColorClass(Math.ceil(averages.combinedAverage))]" variant="tonal">
+          <v-card-text class="pa-2 text-center">
+            <div class="text-h6 font-weight-bold">
+              {{ Math.ceil(averages.combinedAverage) }}
+            </div>
+            <div class="text-caption">總平均</div>
+          </v-card-text>
+        </v-card>
+
+        <!-- 早上平均 -->
+        <v-card :class="['sugar-card', bloodSugarColorClass(Math.ceil(averages.morningAverage))]" variant="tonal">
+          <v-card-text class="pa-2 text-center">
+            <div class="text-body-1 font-weight-bold">
+              <v-icon icon="mdi-weather-sunny" size="small" class="mr-1" />
+              {{ Math.ceil(averages.morningAverage) }}
+            </div>
+            <div class="text-caption">早上</div>
+          </v-card-text>
+        </v-card>
+
+        <!-- 晚上平均 -->
+        <v-card :class="['sugar-card', bloodSugarColorClass(Math.ceil(averages.eveningAverage))]" variant="tonal">
+          <v-card-text class="pa-2 text-center">
+            <div class="text-body-1 font-weight-bold">
+              <v-icon icon="mdi-weather-night" size="small" class="mr-1" />
+              {{ Math.ceil(averages.eveningAverage) }}
+            </div>
+            <div class="text-caption">晚上</div>
+          </v-card-text>
+        </v-card>
       </div>
-      <div 
-        :class="[
-          'col-span-1 p-2 h-[40px] text-lg font-semibold text-primary-600 dark:text-darkPrimary-50', 
-          bloodSugarColor(Math.ceil(averages.eveningAverage))
-        ]"
-      >
-        <i class="fa-regular fa-moon"></i> {{ Math.ceil(averages.eveningAverage) }}
-      </div>
-    </div>
-  </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -47,13 +61,13 @@ const props = defineProps({
     default: () => ({
       averages: [{ morningAverage: 0, eveningAverage: 0, combinedAverage: 0 }],
       morningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
-      eveningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 }
-    })
+      eveningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+    }),
   },
   title: {
     type: String,
-    default: '平均血糖'
-  }
+    default: '平均血糖',
+  },
 })
 
 // 注入深色模式狀態
@@ -64,11 +78,13 @@ const { getAverageChartConfig, bloodSugarColor } = useChartConfig(isDark)
 
 // 計算平均值
 const averages = computed(() => {
-  return props.averageData.averages?.[0] || { 
-    morningAverage: 0, 
-    eveningAverage: 0, 
-    combinedAverage: 0 
-  }
+  return (
+    props.averageData.averages?.[0] || {
+      morningAverage: 0,
+      eveningAverage: 0,
+      combinedAverage: 0,
+    }
+  )
 })
 
 // 計算圖表標題
@@ -78,6 +94,87 @@ const chartTitle = computed(() => {
 
 // 計算圖表配置
 const chartConfig = computed(() => {
-  return getAverageChartConfig(props.averageData, props.title)
+  // 讓主題切換觸發重算
+  const themeKey = isDark.value ? 'dark' : 'light'
+  const timestamp = Date.now()
+  const config = getAverageChartConfig(props.averageData, props.title)
+  return {
+    ...config,
+    uniqueKey: `${themeKey}-${timestamp}`
+  }
 })
+
+// 血糖顏色類別（適用於 Vuetify）
+const bloodSugarColorClass = value => {
+  if (value >= 400) return 'text-red-darken-2'
+  if (value >= 250) return 'text-orange-darken-2'
+  return 'text-green-darken-2'
+}
 </script>
+
+<style scoped>
+.blood-sugar-chart-card {
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .blood-sugar-chart-card {
+    height: 420px;
+    background-color: rgb(var(--v-theme-surface)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+}
+
+.blood-sugar-chart-card .v-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-container {
+  height: 160px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .chart-container {
+    height: 180px;
+  }
+}
+
+.spacer {
+  height: 16px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .spacer {
+    height: 20px;
+  }
+}
+
+.sugar-values-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sugar-card.combined {
+  grid-column: 1 / -1;
+}
+
+.sugar-card {
+  min-height: 50px;
+}
+
+@media (min-width: 1024px) {
+  .sugar-card {
+    min-height: 60px;
+  }
+}
+</style>

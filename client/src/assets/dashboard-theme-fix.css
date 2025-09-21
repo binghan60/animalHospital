@@ -1,0 +1,22 @@
+/* Dashboard 頁面主題修正 */
+
+/* 確保所有儀表板卡片使用主題變數 */
+.v-container .v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+/* Dialog 中的卡片 */
+.v-dialog .v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+/* 血糖曲線控制面板 */
+.blood-sugar-curve-panel .v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}

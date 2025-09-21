@@ -1,10 +1,11 @@
 <script>
-import axios from 'axios'
+import { useAppToast } from '@/utils/appToast'
+
+import { getDashboard } from '@/api'
 import authStore from '@/stores/auth'
 import { mapState } from 'pinia'
 import ChartComponent from '@/components/ChartComponent.vue'
 export default {
-  inject: ['loadingConfig'],
   components: { ChartComponent },
   data() {
     return {
@@ -81,12 +82,10 @@ export default {
           gender: this.selectedGender,
           type: this.selectedType,
         }
-        const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/dashboard`, {
-          params,
-        })
+        const data = await getDashboard(params)
         this.dashboard = data
       } catch (error) {
-        this.$toast.error(error.response.data.message)
+        require('@/utils/appToast').useAppToast().error(error, '載入儀表板資料失敗')
       } finally {
         this.isLoading = false
       }
@@ -1180,74 +1179,131 @@ export default {
 </script>
 
 <template>
-  <div class="grid grid-cols-3 gap-4 text-center">
-    <div class="col-span-3 p-6 bg-white border border-gray-200 rounded-lg shadow-lg dark:border-darkPrimary-400 dark:bg-darkPrimary-600">
-      <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-darkPrimary-50">篩選選項</h2>
-      <div class="flex justify-center mb-8 space-x-4">
-        <label class="rounded-lg">
-          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="0" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-mars fa-fw"></i>所有性別</span>
-        </label>
-        <label class="rounded-lg">
-          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="male" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-mars fa-fw"></i> 男</span>
-        </label>
-        <label class="rounded-lg">
-          <input v-model="selectedGender" type="radio" class="hidden peer" name="gender" value="female" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-venus fa-fw"></i> 女</span>
-        </label>
-      </div>
-      <div class="flex flex-wrap justify-center mb-0 space-x-4 lg:mb-4">
-        <label class="mb-6 rounded-lg lg:mb-0">
-          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="0" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600">所有種類</span>
-        </label>
-        <label class="mb-6 rounded-lg lg:mb-0">
-          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="cat" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-cat fa-fw"></i> 貓咪</span>
-        </label>
-        <label class="mb-6 rounded-lg lg:mb-0">
-          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="dog" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-dog fa-fw"></i> 狗狗</span>
-        </label>
-        <label class="mb-6 rounded-lg lg:mb-0">
-          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="other" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-question fa-fw"></i> 其他</span>
-        </label>
-        <label class="mb-6 rounded-lg lg:mb-0">
-          <input v-model="selectedType" type="radio" class="hidden peer" name="type" value="" />
-          <span class="px-2 py-2 transition-all rounded-lg shadow-md cursor-pointer lg:px-4 lg:py-2 text-primary-800 dark:text-darkPrimary-50 dark:bg-darkPrimary-500 bg-primary-100 peer-checked:bg-primary-500 dark:peer-checked:bg-darkPrimary-200 peer-checked:text-white dark:hover:bg-darkPrimary-500 dark:peer-checked:text-darkPrimary-600"><i class="fa-solid fa-question fa-fw"></i> 未選擇種類</span>
-        </label>
-      </div>
-    </div>
-    <div class="col-span-3 dark:text-darkPrimary-50 text-primary-900">
-      <div class="text-4xl">{{ dashboard.stats?.total ? dashboard.stats?.total : '--' }}隻</div>
-      <div>目前院內動物數量</div>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="gender.type" :chartData="gender.data" :chartOptions="gender.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="weight.type" :chartData="weight.data" :chartOptions="weight.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="age.type" :chartData="age.data" :chartOptions="age.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="sterilized.type" :chartData="sterilized.data" :chartOptions="sterilized.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="breed.type" :chartData="breed.data" :chartOptions="breed.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="bloodType.type" :chartData="bloodType.data" :chartOptions="bloodType.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="type.type" :chartData="type.data" :chartOptions="type.options"></ChartComponent>
-    </div>
-    <div class="bg-white lg:col-span-1 col-span-3 p-2 h-[300px] border border-gray-50 rounded-lg shadow-lg dark:bg-darkPrimary-700 dark:border-darkPrimary-600">
-      <ChartComponent :type="insulinBrand.type" :chartData="insulinBrand.data" :chartOptions="insulinBrand.options"></ChartComponent>
-    </div>
-    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
-  </div>
+  <v-container fluid>
+    <!-- 篩選選項 -->
+    <v-card class="mb-6">
+      <v-card-title class="text-center">
+        <h2 class="text-h5 font-weight-bold">篩選選項</h2>
+      </v-card-title>
+      <v-card-text>
+        <!-- 性別篩選 -->
+        <div class="text-center mb-6">
+          <v-chip-group v-model="selectedGender" selected-class="text-white" color="primary" mandatory>
+            <v-chip value="0">
+              <v-icon icon="mdi-gender-male-female" start />
+              所有性別
+            </v-chip>
+            <v-chip value="male">
+              <v-icon icon="mdi-gender-male" start />
+              男
+            </v-chip>
+            <v-chip value="female">
+              <v-icon icon="mdi-gender-female" start />
+              女
+            </v-chip>
+          </v-chip-group>
+        </div>
+        <!-- 動物種類篩選 -->
+        <div class="text-center">
+          <v-chip-group v-model="selectedType" selected-class="text-white" color="secondary" mandatory>
+            <v-chip value="0">所有種類</v-chip>
+            <v-chip value="cat">
+              <v-icon icon="mdi-cat" start />
+              貓咪
+            </v-chip>
+            <v-chip value="dog">
+              <v-icon icon="mdi-dog" start />
+              狗狗
+            </v-chip>
+            <v-chip value="other">
+              <v-icon icon="mdi-help-circle" start />
+              其他
+            </v-chip>
+            <v-chip value="">
+              <v-icon icon="mdi-help-circle-outline" start />
+              未選擇種類
+            </v-chip>
+          </v-chip-group>
+        </div>
+      </v-card-text>
+    </v-card>
+    <!-- 統計顯示 -->
+    <v-card class="text-center mb-6">
+      <v-card-text>
+        <div class="text-h2 font-weight-bold mb-2">{{ dashboard.stats?.total ? dashboard.stats?.total : '--' }}隻</div>
+        <div class="text-h6">目前院內動物數量</div>
+      </v-card-text>
+    </v-card>
+    <!-- 圖表網格 -->
+    <v-row>
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="gender.type" :chartData="gender.data" :chartOptions="gender.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="weight.type" :chartData="weight.data" :chartOptions="weight.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="age.type" :chartData="age.data" :chartOptions="age.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="sterilized.type" :chartData="sterilized.data" :chartOptions="sterilized.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="breed.type" :chartData="breed.data" :chartOptions="breed.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="bloodType.type" :chartData="bloodType.data" :chartOptions="bloodType.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="type.type" :chartData="type.data" :chartOptions="type.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="4">
+        <v-card elevation="2" height="350">
+          <v-card-text class="pa-2">
+            <ChartComponent :type="insulinBrand.type" :chartData="insulinBrand.data" :chartOptions="insulinBrand.options"></ChartComponent>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Loading overlay -->
+    <v-overlay :model-value="isLoading" class="align-center justify-center">
+      <v-progress-circular color="primary" indeterminate size="64"></v-progress-circular>
+    </v-overlay>
+  </v-container>
 </template>

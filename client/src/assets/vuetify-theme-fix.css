@@ -1,0 +1,45 @@
+/* Vuetify 主題同步修正 */
+
+/* 確保所有 v-card 使用主題變數 */
+.v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+/* 確保所有 v-list 使用主題變數 */
+.v-list {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+/* v-list-item 使用主題變數 */
+.v-list-item {
+  background-color: transparent !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+.v-list-item:hover {
+  background-color: rgba(var(--v-theme-on-surface), 0.08) !important;
+}
+
+/* v-dialog 和 modal 的背景 */
+.v-dialog .v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+}
+
+/* v-card-title, v-card-text, v-card-actions 繼承顏色 */
+.v-card-title,
+.v-card-text,
+.v-card-actions {
+  color: inherit !important;
+}
+
+/* v-list-item-title, v-list-item-subtitle 繼承顏色 */
+.v-list-item-title,
+.v-list-item-subtitle {
+  color: inherit !important;
+}

@@ -1,22 +1,23 @@
 <script setup>
-import { ref, inject, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
-import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
-import { useToast } from 'vue-toastification'
+import { Form as VForm } from 'vee-validate'
+import { useAppToast } from '@/utils/appToast'
+import { resetPassword as apiResetPassword } from '@/api'
+import VuTextField from '@/components/form/VuTextField.vue'
 
-const loadingConfig = inject('loadingConfig')
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toast = useAppToast()
 const resetForm = ref({
   password: '',
+  confirmPassword: '',
   showPassword: false,
   showConfirmPassword: false,
 })
 const token = ref('')
 const isLoading = ref(false)
-// 方法
+
 async function resetPassword() {
   try {
     isLoading.value = true
@@ -24,60 +25,65 @@ async function resetPassword() {
       token: route.query.token,
       password: resetForm.value.password,
     }
-    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/reset-password`, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const data = await apiResetPassword(payload)
     isLoading.value = false
-    toast.success(data.message + ', 3秒後自動跳轉登入頁', { timeout: 3000 })
+    toast.success(data.message + ', 3秒後自動跳轉登入頁')
     setTimeout(() => {
       router.push('/login')
     }, 3000)
   } catch (error) {
-    toast.error(error.response.data.message)
+    toast.error(error, '重設密碼失敗')
     isLoading.value = false
   }
 }
+
 onMounted(() => {
   token.value = route.query.token
 })
 </script>
 <template>
-  <div class="flex items-center justify-center min-h-screen">
-    <div class="w-full h-full max-w-sm min-w-[350px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8 dark:lg:bg-darkPrimary-700 rounded-lg dark:bg-darkPrimary-800">
-      <h2 class="mb-6 text-2xl font-bold text-center text-primary-900 dark:text-darkPrimary-50">重設密碼</h2>
-      <VForm @submit="resetPassword">
-        <div class="mb-4">
-          <label for="password" class="text-primary-900 dark:text-darkPrimary-50">新密碼*</label>
-          <div class="relative flex items-center mt-2">
-            <VField id="password" v-model="resetForm.password" :type="resetForm.showPassword ? 'text' : 'password'" rules="required|length:4,20" name="password" class="w-full h-8 pl-3 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
-            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="resetForm.showPassword = !resetForm.showPassword">
-              <i v-show="!resetForm.showPassword" class="fa-solid fa-eye-slash fa-fw dark:text-darkPrimary-400"></i>
-              <i v-show="resetForm.showPassword" class="fa-solid fa-eye text-primary-600 fa-fw dark:text-darkPrimary-50"></i>
-            </button>
-          </div>
-          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="password" />
-        </div>
-        <div class="mb-4">
-          <label for="confirmPassword" class="text-primary-900 dark:text-darkPrimary-50">確認密碼*</label>
-          <div class="relative flex items-center mt-2">
-            <VField id="confirmPassword" :type="resetForm.showConfirmPassword ? 'text' : 'password'" rules="required|length:4,20|confirmed:@password" name="confirmPassword" class="w-full h-8 pl-3 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="••••••••" autocomplete="off" />
-            <button type="button" tabindex="-1" class="absolute flex items-center justify-center h-full text-gray-500 right-3 hover:text-primary-600" @click="resetForm.showConfirmPassword = !resetForm.showConfirmPassword">
-              <i v-show="!resetForm.showConfirmPassword" class="fa-solid fa-eye-slash fa-fw dark:text-darkPrimary-400"></i>
-              <i v-show="resetForm.showConfirmPassword" class="fa-solid fa-eye text-primary-600 fa-fw dark:text-darkPrimary-50"></i>
-            </button>
-          </div>
-          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="confirmPassword" />
-        </div>
+  <v-container class="fill-height" fluid>
+    <v-row align="center" justify="center">
+      <v-col cols="12" sm="8" md="4">
+        <v-card elevation="6">
+          <v-card-title class="text-h5 text-center">重設密碼</v-card-title>
+          <v-card-text>
+            <VForm @submit="resetPassword">
+              <!-- 新密碼 -->
+              <VuTextField
+                name="password"
+                label="新密碼"
+                :type="resetForm.showPassword ? 'text' : 'password'"
+                rules="required|length:4,20"
+                v-model="resetForm.password"
+                :appendInnerIcon="resetForm.showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @clickAppendInner="resetForm.showPassword = !resetForm.showPassword"
+                autocomplete="off"
+                class="mb-3"
+              />
 
-        <button type="submit" class="w-full px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">重設密碼</button>
-        <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">
-          已經有帳號？
-          <RouterLink to="/login" class="text-primary-600 hover:underline dark:text-darkPrimary-50">登入</RouterLink>
-        </p>
-      </VForm>
-    </div>
-    <VueLoading :active="isLoading" :height="loadingConfig.height" :width="loadingConfig.width" :loader="loadingConfig.loader" :color="loadingConfig.getColor()" :backgroundColor="loadingConfig.backgroundColor()" />
-  </div>
+              <!-- 確認密碼 -->
+              <VuTextField
+                name="confirmPassword"
+                label="確認密碼"
+                :type="resetForm.showConfirmPassword ? 'text' : 'password'"
+                rules="required|length:4,20|confirmed:@password"
+                v-model="resetForm.confirmPassword"
+                :appendInnerIcon="resetForm.showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @clickAppendInner="resetForm.showConfirmPassword = !resetForm.showConfirmPassword"
+                autocomplete="off"
+                class="mb-3"
+              />
+
+              <v-btn type="submit" color="primary" block :loading="isLoading">重設密碼</v-btn>
+            </VForm>
+
+            <div class="d-flex justify-center mt-4">
+              <RouterLink to="/login">已經有帳號？前往登入</RouterLink>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>

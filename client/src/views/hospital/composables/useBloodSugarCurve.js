@@ -1,10 +1,13 @@
-import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { ref, reactive, computed, onUnmounted } from 'vue'
+import { getCurve, createCurve, updateCurve, deleteCurve } from '@/api'
+import { useAppToast } from '@/utils/appToast'
 
 export function useBloodSugarCurve(animalId) {
-  const toast = useToast()
+  const toast = useAppToast()
   const isLoading = ref(false)
+  let destroyed = false
+  onUnmounted(() => { destroyed = true })
+  const isAuthActive = () => !sessionStorage.getItem('manualLogout')
 
   // 血糖曲線資料
   const bloodSugarCurveChart = reactive({
@@ -51,15 +54,14 @@ export function useBloodSugarCurve(animalId) {
   // 獲取所有血糖曲線資料
   const getAllBloodSugarCurveData = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/getCurve`, {
-        params: { animalId },
-      })
+      if (!isAuthActive() || destroyed) return
+      const data = await getCurve({ animalId })
       // 將資料按日期從新到舊排序
       bloodSugarCurveChart.allData = data.data.sort((a, b) => new Date(b.date) - new Date(a.date))
       calculateYearMonthStats()
       generateBloodSugarCurveInterface()
     } catch (error) {
-      toast.error(error.response?.data?.message || '獲取血糖曲線失敗')
+      toast.error(error, '獲取血糖曲線失敗')
     }
   }
 
@@ -205,25 +207,25 @@ export function useBloodSugarCurve(animalId) {
   }
 
   // 創建血糖曲線
-  const createBloodSugarCurve = async () => {
+  const createBloodSugarCurve = async (input = null) => {
     try {
       isLoading.value = true
       modals.bloodSugarCurve.loading = true
-      const { date, fields } = modals.bloodSugarCurve
+      const date = input?.date ?? modals.bloodSugarCurve.date
+      const fields = input?.fields ?? modals.bloodSugarCurve.fields
       const payload = {
         animalId,
         date,
         records: fields,
       }
-      await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/createCurve`, payload, {
-        headers: { 'Content-Type': 'application/json' },
-      })
+      if (!isAuthActive() || destroyed) { isLoading.value = false; modals.bloodSugarCurve.loading = false; return }
+      await createCurve(payload)
       await getAllBloodSugarCurveData()
       modals.bloodSugarCurve.toggle = false
       modals.bloodSugarCurve.fields = [{ time: '', value: '' }]
       toast.success('新增血糖曲線成功')
     } catch (error) {
-      toast.error(error.response?.data?.message || '新增血糖曲線失敗')
+      toast.error(error, '新增血糖曲線失敗')
     } finally {
       isLoading.value = false
       modals.bloodSugarCurve.loading = false
@@ -242,25 +244,26 @@ export function useBloodSugarCurve(animalId) {
   }
 
   // 更新血糖曲線
-  const updateBloodSugarCurve = async () => {
+  const updateBloodSugarCurve = async (input = null) => {
     try {
       isLoading.value = true
       modals.editBloodSugarCurve.loading = true
-      const { id, date, fields } = modals.editBloodSugarCurve
+      const id = input?.id ?? modals.editBloodSugarCurve.id
+      const date = input?.date ?? modals.editBloodSugarCurve.date
+      const fields = input?.fields ?? modals.editBloodSugarCurve.fields
       const payload = {
         animalId,
         date,
         records: fields,
       }
-      await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/updateCurve/${id}`, payload, {
-        headers: { 'Content-Type': 'application/json' },
-      })
+      if (!isAuthActive() || destroyed) { isLoading.value = false; modals.editBloodSugarCurve.loading = false; return }
+      await updateCurve(id, payload)
       await getAllBloodSugarCurveData()
       modals.editBloodSugarCurve.toggle = false
       modals.editBloodSugarCurve.fields = [{ time: '', value: '' }]
       toast.success('血糖曲線更新成功')
     } catch (error) {
-      toast.error(error.response?.data?.message || '更新血糖曲線失敗')
+      toast.error(error, '更新血糖曲線失敗')
     } finally {
       isLoading.value = false
       modals.editBloodSugarCurve.loading = false
@@ -279,16 +282,34 @@ export function useBloodSugarCurve(animalId) {
     try {
       modals.deleteConfirm.loading = true
       const payload = { animalId }
-      await axios.delete(`${import.meta.env.VITE_API_PATH}/bloodSugar/deleteCurve/${modals.deleteConfirm.curveId}`, {
-        data: payload,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      if (!isAuthActive() || destroyed) { modals.deleteConfirm.loading = false; return }
+      await deleteCurve(modals.deleteConfirm.curveId, payload)
       await getAllBloodSugarCurveData()
       modals.editBloodSugarCurve.toggle = false
       modals.deleteConfirm.toggle = false
       toast.success('血糖曲線刪除成功')
     } catch (error) {
-      toast.error(error.response?.data?.message || '刪除血糖曲線失敗')
+      toast.error(error, '刪除血糖曲線失敗')
+    } finally {
+      modals.deleteConfirm.loading = false
+    }
+  }
+
+  // 允許以參數形式刪除（配合外層傳入 id）
+  const deleteBloodSugarCurve = async (curveId = null) => {
+    try {
+      const id = curveId ?? modals.deleteConfirm.curveId
+      if (!id) throw new Error('Missing curve id')
+      modals.deleteConfirm.loading = true
+      const payload = { animalId }
+      if (!isAuthActive() || destroyed) { modals.deleteConfirm.loading = false; return }
+      await deleteCurve(id, payload)
+      await getAllBloodSugarCurveData()
+      modals.editBloodSugarCurve.toggle = false
+      modals.deleteConfirm.toggle = false
+      toast.success('血糖曲線刪除成功')
+    } catch (error) {
+      toast.error(error, '刪除血糖曲線失敗')
     } finally {
       modals.deleteConfirm.loading = false
     }
@@ -312,6 +333,7 @@ export function useBloodSugarCurve(animalId) {
     openEditBloodSugarCurveModal,
     openDeleteConfirmModal,
     confirmDeleteBloodSugarCurve,
+    deleteBloodSugarCurve,
     createBloodSugarCurve,
     updateBloodSugarCurve,
     cancelDeleteBloodSugarCurve,

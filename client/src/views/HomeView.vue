@@ -1,126 +1,204 @@
 <script setup></script>
 
 <template>
-  <div class="dark:text-darkPrimary-50">
-    <div class="w-full p-4 mx-auto bg-white shadow-lg lg:p-8 dark:bg-darkPrimary-700 rounded-2xl">
-      <h1 class="mb-4 text-3xl text-center">README</h1>
+  <v-container>
+    <v-card elevation="4">
+      <v-card-text class="pa-6">
+        <h1 class="text-h3 text-center mb-6">README</h1>
 
-      <h1 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">網站說明</h1>
-      <div class="col-span-2 p-4 rounded-lg lg:mr-2 dark:bg-darkPrimary-500 lg:col-span-1 bg-primary-100">
-        <p class="text-xl text-primary-900 dark:text-darkPrimary-50">動物健康管理系統，專為動物醫院打造，方便記錄病患資訊與追蹤治療紀錄。內建血糖監測、圖表分析及動物資料共享功能，讓醫生與飼主更輕鬆掌握病況。</p>
-      </div>
-      <div class="mt-6">
-        <h2 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">🛠 使用技術</h2>
-        <div class="grid grid-cols-2 space-y-4 lg:space-y-0">
-          <div class="col-span-2 p-4 rounded-lg lg:mr-2 dark:bg-darkPrimary-500 lg:col-span-1 bg-primary-100">
-            <h3 class="text-2xl">前端</h3>
-            <ul class="pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/VueLogo.png" alt="" />
-                <p class="text-xl">Vue3</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/PiniaLogo.png" alt="" />
-                <p class="text-xl">Pinia</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/TailwindLogo.png" alt="" />
-                <p class="text-xl">Tailwind CSS</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/ChartjsLogo.png" alt="" />
-                <p class="text-xl">Chart.js</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="object-cover w-10 mr-2" src="/image/AxiosLogo.svg" alt="" />
-                <p class="text-xl">Axios</p>
-              </li>
-            </ul>
-          </div>
-          <div class="col-span-2 p-4 rounded-lg lg:ml-2 dark:bg-darkPrimary-500 lg:col-span-1 bg-primary-100">
-            <h3 class="text-2xl">後端</h3>
-            <ul class="pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/NodejsLogo.png" alt="" />
-                <p class="text-xl">Nodejs express</p>
-              </li>
+        <h2 class="text-h4 font-weight-bold mb-4">網站說明</h2>
+        <v-card color="primary" variant="tonal" class="mb-6">
+          <v-card-text>
+            <p class="text-h6">動物健康管理系統，專為動物醫院打造，方便記錄病患資訊與追蹤治療紀錄。內建血糖監測、圖表分析及動物資料共享功能，讓醫生與飼主更輕鬆掌握病況。</p>
+          </v-card-text>
+        </v-card>
+        <h2 class="text-h4 font-weight-bold mb-4">🛠 使用技術</h2>
+        <v-row class="mb-6">
+          <v-col cols="12" lg="6">
+            <v-card color="primary" variant="tonal">
+              <v-card-title class="text-h5">前端</v-card-title>
+              <v-card-text>
+                <v-list>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/VueLogo.png" alt="Vue3" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Vue3</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/PiniaLogo.png" alt="Pinia" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Pinia</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <v-icon icon="mdi-palette" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Vuetify</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/ChartjsLogo.png" alt="Chart.js" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Chart.js</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/AxiosLogo.svg" alt="Axios" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Axios</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" lg="6">
+            <v-card color="primary" variant="tonal">
+              <v-card-title class="text-h5">後端</v-card-title>
+              <v-card-text>
+                <v-list>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/NodejsLogo.png" alt="Node.js" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Node.js Express</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/MongoDBLogo.png" alt="MongoDB" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">MongoDB</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <template #prepend>
+                      <v-avatar>
+                        <img src="/image/CloudinaryLogo.png" alt="Cloudinary" />
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-h6">Cloudinary</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+        <h2 class="text-h4 font-weight-bold mb-4">✨ 功能介紹</h2>
+        
+        <!-- 通用功能 -->
+        <v-card color="info" variant="tonal" class="mb-4">
+          <v-card-title class="text-h5">通用功能</v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" sm="6" md="4" v-for="feature in generalFeatures" :key="feature">
+                <v-chip color="info" variant="outlined" class="ma-1">{{ feature }}</v-chip>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
 
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/MongoDBLogo.png" alt="" />
-                <p class="text-xl">MongoDB</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <img class="w-10 mr-2" src="/image/CloudinaryLogo.png" alt="" />
-                <p class="text-xl">Cloudinary</p>
-              </li>
-            </ul>
+        <v-row class="mb-6">
+          <!-- 醫院功能 -->
+          <v-col cols="12" lg="6">
+            <v-card color="success" variant="tonal">
+              <v-card-title class="text-h5">🏥 醫院身分</v-card-title>
+              <v-card-text>
+                <v-list>
+                  <v-list-item v-for="feature in hospitalFeatures" :key="feature">
+                    <template #prepend>
+                      <v-icon icon="mdi-check-circle" color="success" />
+                    </template>
+                    <v-list-item-title>{{ feature }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          
+          <!-- 飼主功能 -->
+          <v-col cols="12" lg="6">
+            <v-card color="warning" variant="tonal">
+              <v-card-title class="text-h5">🐾 飼主身分</v-card-title>
+              <v-card-text>
+                <v-list>
+                  <v-list-item v-for="feature in ownerFeatures" :key="feature">
+                    <template #prepend>
+                      <v-icon icon="mdi-check-circle" color="warning" />
+                    </template>
+                    <v-list-item-title>{{ feature }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- 行動呼籲 -->
+        <div class="text-center">
+          <v-btn
+            color="primary"
+            size="x-large"
+            class="my-6"
+            to="/login"
+          >
+            立即體驗
+          </v-btn>
+          
+          <div class="d-flex justify-center mt-4">
+            <v-btn
+              icon
+              size="large"
+              href="https://github.com/binghan60/animalHospital"
+              target="_blank"
+              color="grey-darken-1"
+            >
+              <v-avatar size="48">
+                <img src="/image/GithubLogo.png" alt="GitHub" />
+              </v-avatar>
+            </v-btn>
           </div>
         </div>
-      </div>
-      <div class="mt-6">
-        <h2 class="my-2 text-2xl font-bold text-primary-900 dark:text-darkPrimary-50">✨ 功能介紹</h2>
-        <div class="grid grid-cols-2 space-y-4 lg:space-y-0">
-          <div class="col-span-2 p-4 mb-0 rounded-lg lg:mb-4 lg:mr-2 dark:bg-darkPrimary-500 bg-primary-100">
-            <h3 class="text-2xl">通用功能</h3>
-            <ul class="grid grid-cols-2 pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
-              <li class="flex items-center col-span-2 p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 lg:col-span-1 hover:bg-primary-200">
-                <p class="text-xl">會員註冊、登入、Jwt登入</p>
-              </li>
-              <li class="flex items-center col-span-2 p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 lg:col-span-1 hover:bg-primary-200">
-                <p class="text-xl">忘記密碼</p>
-              </li>
-              <li class="flex items-center col-span-2 p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 lg:col-span-1 hover:bg-primary-200">
-                <p class="text-xl">全響應式設計(RWD)</p>
-              </li>
-              <li class="flex items-center col-span-2 p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 lg:col-span-1 hover:bg-primary-200">
-                <p class="text-xl">資料共享</p>
-              </li>
-              <li class="flex items-center col-span-2 p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 lg:col-span-1 hover:bg-primary-200">
-                <p class="text-xl">暗色模式</p>
-              </li>
-            </ul>
-          </div>
-          <div class="col-span-2 p-4 rounded-lg lg:mr-2 dark:bg-darkPrimary-500 bg-primary-100 lg:col-span-1">
-            <h3 class="text-2xl">🏥 醫院身分</h3>
-            <ul class="pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">新增、編輯病患資料</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">記錄與管理診療紀錄</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">醫院動物統計圖表</p>
-              </li>
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">授權飼主存取動物資料權限</p>
-              </li>
-            </ul>
-          </div>
-          <div class="col-span-2 p-4 rounded-lg lg:ml-2 dark:bg-darkPrimary-500 bg-primary-100 lg:col-span-1">
-            <h3 class="text-2xl">🐾 飼主身分</h3>
-            <ul class="pl-2 mt-2 space-y-2 text-primary-900 dark:text-darkPrimary-50">
-              <li class="flex items-center p-4 py-2 rounded-lg dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">查看寵物病歷</p>
-              </li>
-
-              <li class="flex items-center p-4 py-2 rounded-lg cursor-pointer dark:hover:bg-darkPrimary-400 hover:bg-primary-200">
-                <p class="text-xl">記錄血糖與體重變化</p>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="text-center">
-        <router-link to="/login">
-          <button type="submit" class="w-full px-4 py-2 my-6 text-white rounded-md lg:w-1/2 bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">立即體驗</button>
-        </router-link>
-        <div class="flex justify-center mt-4">
-          <a href="https://github.com/binghan60/animalHospital" target="_blank" class="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-full shadow-lg dark:bg-darkPrimary-200">
-            <img class="w-20" src="/image/GithubLogo.png" alt="GitHub" />
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      generalFeatures: [
+        '會員註冊、登入、JWT登入',
+        '忘記密碼',
+        '全響應式設計(RWD)',
+        '資料共享',
+        '暗色模式'
+      ],
+      hospitalFeatures: [
+        '新增、編輯病患資料',
+        '記錄與管理診療紀錄',
+        '醫院動物統計圖表',
+        '授權飼主存取動物資料權限'
+      ],
+      ownerFeatures: [
+        '查看寵物病歷',
+        '記錄血糖與體重變化'
+      ]
+    }
+  }
+}
+</script>

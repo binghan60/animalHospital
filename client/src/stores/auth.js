@@ -1,34 +1,38 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { clearAuthHeader } from '@/axiosConfig.js'
+
+const initialUser = {
+  __v: '',
+  role: '',
+  _id: '',
+  name: '',
+  email: '',
+  message: '',
+  isLogin: false,
+  isActive: '',
+  token: '',
+  expiresAt: '',
+  createdAt: '',
+  updatedAt: '',
+}
 
 export const useAuthStore = defineStore('authStore', () => {
-  const user = ref({
-    __v: '',
-    role: '',
-    _id: '',
-    name: '',
-    email: '',
-    message: '',
-    isLogin: false,
-    isActive: '',
-    token: '',
-    expiresAt: '',
-    createdAt: '',
-    updatedAt: '',
-  })
+  const user = ref({ ...initialUser })
   const redirectPath = ref(null)
   const token = ref('')
-  const isDark = ref(false)
+  const isDark = ref(JSON.parse(localStorage.getItem('animalHospitalDarkTheme') || 'false'))
   function auth(userData) {
     user.value = userData
     user.value.isLogin = true
   }
   function clearAuth() {
     if (user.value.isLogin) {
-      user.value = {}
+      user.value = { ...initialUser }
       redirectPath.value = null
       document.cookie = 'animalHospitalToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
       document.cookie = 'animalHospitalRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      try { clearAuthHeader() } catch {}
       return 1
     } else {
       return 0

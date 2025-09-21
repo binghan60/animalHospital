@@ -1,9 +1,12 @@
-import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { ref, reactive, onUnmounted } from 'vue'
+import { useAppToast } from '@/utils/appToast'
+import { getDiary, createBloodSugar, updateBloodSugar, deleteBloodSugarTask } from '@/api'
 
 export function useBloodSugarCalendar(animalId, user) {
-  const toast = useToast()
+  const toast = useAppToast()
+  let destroyed = false
+  onUnmounted(() => { destroyed = true })
+  const isAuthActive = () => !sessionStorage.getItem('manualLogout') && !!(user?.value?.isLogin)
   const isLoading = ref(false)
   const isDelete = ref(false)
 
@@ -13,7 +16,7 @@ export function useBloodSugarCalendar(animalId, user) {
     year: new Date().getFullYear(),
     month: new Date().getMonth(),
     day: new Date().getDate(),
-    lastDay: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
+    lastDay: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(),
   })
 
   // 日曆資料
@@ -21,15 +24,13 @@ export function useBloodSugarCalendar(animalId, user) {
   const weekData = ref([])
   const weekRange = ref('')
   const calendarDisplay = ref('week')
-  const dataDisplay = ref('all')
-
   // 年份月份選擇
   const years = ref([
     { value: 2023, label: '2023年' },
     { value: 2024, label: '2024年' },
     { value: 2025, label: '2025年' },
   ])
-  
+
   const months = ref([
     { value: 0, label: '1月' },
     { value: 1, label: '2月' },
@@ -56,20 +57,20 @@ export function useBloodSugarCalendar(animalId, user) {
   })
 
   // 記錄相關
-  const newRecord = reactive({ 
-    date: '', 
-    time: '', 
-    bloodSugar: '', 
-    insulin: '', 
-    notes: '' 
+  const newRecord = reactive({
+    date: '',
+    time: '',
+    bloodSugar: '',
+    insulin: '',
+    notes: '',
   })
-  
-  const editRecord = reactive({ 
-    date: '', 
-    recordId: '', 
-    taskId: '', 
-    task: { time: '', bloodSugar: '', insulin: '', notes: '' }, 
-    notes: '' 
+
+  const editRecord = reactive({
+    date: '',
+    recordId: '',
+    taskId: '',
+    task: { time: '', bloodSugar: '', insulin: '', notes: '' },
+    notes: '',
   })
 
   // 提示相關
@@ -90,19 +91,19 @@ export function useBloodSugarCalendar(animalId, user) {
   const getDiaryBloodSugar = async () => {
     try {
       isLoading.value = true
+      if (!isAuthActive() || destroyed) { isLoading.value = false; return [] }
       const { year, month, lastDay } = newtoday
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
-        params: {
-          animalId,
-          startDate: `${year}-${String(month + 1).padStart(2, '0')}-01`,
-          endDate: `${year}-${String(month + 1).padStart(2, '0')}-${lastDay}`,
-        },
+      const data = await getDiary({
+        animalId,
+        startDate: `${year}-${String(month + 1).padStart(2, '0')}-01`,
+        endDate: `${year}-${String(month + 1).padStart(2, '0')}-${lastDay}`,
       })
+      if (destroyed) return []
       isLoading.value = false
       return data
     } catch (error) {
       isLoading.value = false
-      toast.error(error.response?.data?.message || '獲取血糖日記失敗')
+      toast.error(error, '獲取血糖日記失敗')
       return []
     }
   }
@@ -111,39 +112,33 @@ export function useBloodSugarCalendar(animalId, user) {
   const getWeekBloodSugarData = async () => {
     try {
       isLoading.value = true
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/bloodSugar/diary`, {
-        params: {
-          animalId,
-          startDate: weekData.value[0]?.date,
-          endDate: weekData.value[6]?.date,
-        },
+      if (!isAuthActive() || destroyed) { isLoading.value = false; return }
+      const data = await getDiary({
+        animalId,
+        startDate: weekData.value[0]?.date,
+        endDate: weekData.value[6]?.date,
       })
-      
+
+      if (destroyed) return
       // 創建新的週資料陣列，避免直接修改響應式資料
       const updatedWeekData = weekData.value.map(day => {
         const diaryEntry = data.find(entry => new Date(entry.date).toISOString().slice(0, 10) === day.date)
         if (diaryEntry) {
-          let filteredRecords = diaryEntry.records
-          if (dataDisplay.value === 'user') {
-            filteredRecords = diaryEntry.records.filter(x => x.author === user.value._id)
-          } else if (dataDisplay.value === 'other') {
-            filteredRecords = diaryEntry.records.filter(x => x.author != user.value._id)
-          }
-          
+          const filteredRecords = diaryEntry.records
           return {
             ...day,
             _id: diaryEntry._id,
-            records: filteredRecords
+            records: filteredRecords,
           }
         }
         return { ...day, records: [] }
       })
-      
+
       // 一次性更新整個週資料
       weekData.value = updatedWeekData
       isLoading.value = false
     } catch (error) {
-      toast.error(error.response?.data?.message || '獲取週血糖資料失敗')
+      toast.error(error, '獲取週血糖資料失敗')
       isLoading.value = false
     }
   }
@@ -167,17 +162,16 @@ export function useBloodSugarCalendar(animalId, user) {
         ],
         notes: '',
       }
-      
-      const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/bloodSugar/create`, payload, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-      
+
+      if (!isAuthActive() || destroyed) { isLoading.value = false; return }
+      const data = await createBloodSugar(payload)
+
       await getWeekBloodSugarData()
       updateCalendar()
       closeTaskModal()
       toast.success(data.message)
     } catch (error) {
-      toast.error(error.response?.data?.message || '創建血糖任務失敗')
+      toast.error(error, '創建血糖任務失敗')
     } finally {
       isLoading.value = false
     }
@@ -193,15 +187,16 @@ export function useBloodSugarCalendar(animalId, user) {
         task: editRecord.task,
         notes: editRecord.notes,
       }
-      
-      const { data } = await axios.put(`${import.meta.env.VITE_API_PATH}/bloodSugar/update/${editRecord.recordId}`, payload)
-      
+
+      if (!isAuthActive() || destroyed) { isLoading.value = false; return }
+      const data = await updateBloodSugar(editRecord.recordId, payload)
+
       await getWeekBloodSugarData()
       updateCalendar()
       modals.editNotes.toggle = false
       toast.success(data.message)
     } catch (error) {
-      toast.error(error.response?.data?.message || '編輯血糖任務失敗')
+      toast.error(error, '編輯血糖任務失敗')
     } finally {
       isLoading.value = false
     }
@@ -212,25 +207,23 @@ export function useBloodSugarCalendar(animalId, user) {
     try {
       isDelete.value = true
       const payload = { animalId, taskId }
-      
-      const { data } = await axios.delete(`${import.meta.env.VITE_API_PATH}/bloodSugar/task/${dataId}`, {
-        data: payload,
-        headers: { 'content-Type': 'application/json' },
-      })
-      
+
+      if (!isAuthActive() || destroyed) { isDelete.value = false; return }
+      const data = await deleteBloodSugarTask(dataId, payload)
+
       await getWeekBloodSugarData()
       updateCalendar()
       modals.editNotes.toggle = false
       toast.success(data.message)
     } catch (error) {
-      toast.error(error.response?.data?.message || '刪除血糖任務失敗')
+      toast.error(error, '刪除血糖任務失敗')
     } finally {
       isDelete.value = false
     }
   }
 
   // 血糖顏色判斷
-  const bloodSugarColor = (value) => {
+  const bloodSugarColor = value => {
     if (value === '') {
       return 'bg-white dark:bg-darkPrimary-600'
     }
@@ -275,18 +268,18 @@ export function useBloodSugarCalendar(animalId, user) {
   }
 
   // 開啟任務模態框
-  const openTaskModal = (date) => {
+  const openTaskModal = date => {
     const now = new Date()
     const hours = String(now.getHours()).padStart(2, '0')
     const minutes = String(now.getMinutes()).padStart(2, '0')
     const formattedTime = `${hours}:${minutes}`
-    
-    Object.assign(newRecord, { 
-      date, 
-      time: formattedTime, 
-      bloodSugar: '', 
-      insulin: '', 
-      notes: '' 
+
+    Object.assign(newRecord, {
+      date,
+      time: formattedTime,
+      bloodSugar: '',
+      insulin: '',
+      notes: '',
     })
     modals.addNotes.toggle = true
   }
@@ -320,7 +313,7 @@ export function useBloodSugarCalendar(animalId, user) {
     const { year, month, lastDay } = newtoday
     const now = new Date()
     now.setHours(8, 0, 0, 0)
-    
+
     const container = Array.from({ length: lastDay }, (v, i) => {
       const date = new Date(`${year}-${String(month + 1).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`).toISOString()
       return {
@@ -334,7 +327,7 @@ export function useBloodSugarCalendar(animalId, user) {
         isToday: date === now.toISOString() ? true : false,
       }
     })
-    
+
     const diaryData = await getDiaryBloodSugar()
     const mergedData = container.map(day => {
       const diaryEntry = diaryData.find(diary => diary.date === day.date)
@@ -343,16 +336,12 @@ export function useBloodSugarCalendar(animalId, user) {
       }
       return day
     })
-    
+
     const firstDay = new Date(year, month, 1).getDay()
     const spaceDay = (firstDay + 6) % 7
     const totalCells = 42 - (42 - mergedData.length - spaceDay >= 7 ? 7 : 0)
-    const allDays = [
-      ...Array.from({ length: spaceDay }, () => ({ date: null })), 
-      ...mergedData, 
-      ...Array.from({ length: totalCells - spaceDay - mergedData.length }, () => ({ date: null }))
-    ]
-    
+    const allDays = [...Array.from({ length: spaceDay }, () => ({ date: null })), ...mergedData, ...Array.from({ length: totalCells - spaceDay - mergedData.length }, () => ({ date: null }))]
+
     calendar.value = allDays
   }
 
@@ -368,7 +357,7 @@ export function useBloodSugarCalendar(animalId, user) {
   }
 
   // 獲取週開始日期
-  const getStartOfWeek = (date) => {
+  const getStartOfWeek = date => {
     const startOfWeek = new Date(date)
     const day = startOfWeek.getDay()
     const diff = startOfWeek.getDate() - (day === 0 ? 6 : day - 1)
@@ -378,12 +367,12 @@ export function useBloodSugarCalendar(animalId, user) {
   }
 
   // 獲取週資料
-  const getWeekData = (startOfWeek) => {
+  const getWeekData = startOfWeek => {
     const weekData = []
     const daysOfWeek = ['一', '二', '三', '四', '五', '六', '日']
     const now = new Date()
     now.setHours(8, 0, 0, 0)
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek)
       date.setDate(startOfWeek.getDate() + i)
@@ -471,7 +460,6 @@ export function useBloodSugarCalendar(animalId, user) {
     weekData,
     weekRange,
     calendarDisplay,
-    dataDisplay,
     years,
     months,
     selectedYear,
@@ -499,6 +487,6 @@ export function useBloodSugarCalendar(animalId, user) {
     nextWeek,
     prevMonth,
     nextMonth,
-    goToFirstWeekOfSelectedMonth
+    goToFirstWeekOfSelectedMonth,
   }
 }

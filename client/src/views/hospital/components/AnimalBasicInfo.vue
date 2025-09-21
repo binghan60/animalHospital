@@ -1,54 +1,74 @@
 <template>
-  <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
-    <div class="w-full h-full">
-      <h5 class="mb-3 text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">基本資料</h5>
-      <ul class="grid grid-cols-3 list-none gap-x-4 gap-y-3">
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">姓名：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animalInfo.name }}</li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">種類：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
-          <i :class="getIconClass(animalInfo.type)"></i>
-        </li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">生日：</li>
-        <li 
-          v-if="animalInfo.birthday !== null && animalInfo.birthday !== '1970-01-01T00:00:00.000Z'" 
-          class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50"
-        >
-          {{ animalInfo.birthday ? new Date(animalInfo.birthday).toISOString().slice(0, 10) : '' }} 
-          ({{ convertBirthdayToAge(animalInfo.birthday).years }}歲 
-          {{ convertBirthdayToAge(animalInfo.birthday).months > 0 ? convertBirthdayToAge(animalInfo.birthday).months + '個月' : '' }})
-        </li>
-        <li v-else class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50"></li>
+  <v-card class="animal-basic-info-card" :class="{ 'theme-surface': true }">
+    <v-card-title class="pb-2 flex-shrink-0">
+      <v-icon icon="mdi-information" class="mr-2" color="primary" />
+      基本資料
+    </v-card-title>
 
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">性別：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
-          <i :class="getGenderIcon(animalInfo.gender)"></i>
-        </li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">血型：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
-          {{ animalInfo.bloodType ? animalInfo.bloodType + ' 型' : '' }}
-        </li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">體重：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ weightValue }}</li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">品種：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animalInfo.breed }}</li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">結紮：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">
-          <i v-show="animalInfo.sterilized" class="text-green-500 fa-solid fa-check fa-fw"></i>
-          <i v-show="!animalInfo.sterilized" class="text-red-600 fa-solid fa-x fa-fw"></i>
-        </li>
-        
-        <li class="text-sm font-medium text-primary-900 dark:text-darkPrimary-50">胰島素：</li>
-        <li class="col-span-2 text-sm text-gray-800 dark:text-darkPrimary-50">{{ animalInfo.insulinBrand }}</li>
-      </ul>
-    </div>
-  </div>
+    <v-card-text class="pt-2 overflow-y-auto flex-grow-1">
+      <v-list density="compact" class="pa-0">
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">姓名：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">{{ animalInfo.name }}</v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">種類：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">
+            <v-icon :icon="getVuetifyIcon(animalInfo.type)" class="mr-1" />
+            {{ getTypeText(animalInfo.type) }}
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item v-if="animalInfo.birthday !== null && animalInfo.birthday !== '1970-01-01T00:00:00.000Z'" class="px-0 py-1">
+          <v-list-item-title class="info-label">生日：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">
+            {{ animalInfo.birthday ? new Date(animalInfo.birthday).toISOString().slice(0, 10) : '' }}
+            ({{ convertBirthdayToAge(animalInfo.birthday).years }}歲 {{ convertBirthdayToAge(animalInfo.birthday).months > 0 ? convertBirthdayToAge(animalInfo.birthday).months + '個月' : '' }})
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">性別：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">
+            <v-icon :icon="animalInfo.gender === 'male' ? 'mdi-gender-male' : 'mdi-gender-female'" :color="animalInfo.gender === 'male' ? 'blue' : 'pink'" class="mr-1" />
+            {{ animalInfo.gender === 'male' ? '男生' : '女生' }}
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">血型：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">
+            {{ animalInfo.bloodType ? animalInfo.bloodType + ' 型' : '-' }}
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">體重：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">{{ weightValue || '-' }}</v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">品種：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">{{ animalInfo.breed || '-' }}</v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">結紮：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">
+            <v-chip :color="animalInfo.sterilized ? 'success' : 'error'" variant="tonal" size="small">
+              {{ animalInfo.sterilized ? '是' : '否' }}
+            </v-chip>
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item class="px-0 py-1">
+          <v-list-item-title class="info-label">胰島素：</v-list-item-title>
+          <v-list-item-subtitle class="info-value">{{ animalInfo.insulinBrand || '-' }}</v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
@@ -58,8 +78,8 @@ const props = defineProps({
   animalInfo: {
     type: Object,
     required: true,
-    default: () => ({})
-  }
+    default: () => ({}),
+  },
 })
 
 // 計算動物年齡
@@ -85,23 +105,94 @@ const weightValue = computed(() => {
   return ''
 })
 
-// 獲取圖示類別
-const getIconClass = (type) => {
+// 獲取 Vuetify 圖示
+const getVuetifyIcon = type => {
   if (type === 'dog') {
-    return 'fa-solid fa-dog fa-fw'
+    return 'mdi-dog'
   } else if (type === 'cat') {
-    return 'fa-solid fa-cat fa-fw'
+    return 'mdi-cat'
   } else {
-    return 'fa-solid fa-question'
+    return 'mdi-help-circle'
   }
 }
 
-// 獲取性別圖示
-const getGenderIcon = (gender) => {
-  if (gender === 'male') {
-    return 'text-primary-600 fa-solid fa-mars fa-fw'
-  } else if (gender === 'female') {
-    return 'text-pink-600 fa-solid fa-venus fa-fw'
+// 獲取類型文字
+const getTypeText = type => {
+  if (type === 'dog') {
+    return '狗狗'
+  } else if (type === 'cat') {
+    return '貓咪'
+  } else {
+    return '其他'
   }
 }
 </script>
+
+<style scoped>
+.animal-basic-info-card {
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+@media (min-width: 1024px) {
+  .animal-basic-info-card {
+    height: 420px;
+    background-color: rgb(var(--v-theme-surface)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+}
+
+.animal-basic-info-card .v-card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  margin-left: 8px;
+  word-break: break-word;
+}
+
+.v-list-item {
+  min-height: 24px !important;
+  align-items: flex-start !important;
+}
+
+.v-list-item .v-list-item-title,
+.v-list-item .v-list-item-subtitle {
+  line-height: 1.2 !important;
+  white-space: normal !important;
+}
+
+.v-list {
+  overflow-y: auto;
+  max-height: 100%;
+  background-color: transparent !important;
+}
+
+/* 強制基本資料卡片使用主題變數 */
+.animal-basic-info-card.v-card {
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition: background-color 0.1s ease, color 0.1s ease !important;
+}
+
+.animal-basic-info-card .v-list-item-title,
+.animal-basic-info-card .v-list-item-subtitle {
+  color: rgb(var(--v-theme-on-surface)) !important;
+}
+</style>

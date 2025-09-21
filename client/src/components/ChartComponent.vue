@@ -36,3 +36,9 @@ const chartComponent = computed(() => {
   }[props.type]
 })
 </script>
+
+<style scoped>
+:deep(canvas) {
+  transition: opacity 0.15s ease;
+}
+</style>

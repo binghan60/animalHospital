@@ -1,17 +1,28 @@
 <template>
-  <div class="rounded-lg shadow-md bg-white p-4 lg:p-6 h-full min-h-[300px] lg:max-h-[400px] max-h-[480px] dark:bg-darkPrimary-700">
-    <div class="flex items-center justify-between mb-4">
-      <h4 class="text-lg font-semibold text-primary-900 dark:text-darkPrimary-50">體重走勢圖</h4>
-      <button type="button" class="px-3 py-1 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700" @click="$emit('openWeightManagement')"><i class="fa-solid fa-list fa-fw"></i> 管理記錄</button>
-    </div>
-    <div class="h-[250px]">
-      <ChartComponent type="line" :chartData="chartConfig.data" :chartOptions="chartConfig.options" />
-    </div>
-  </div>
+  <v-card class="weight-chart-card">
+    <v-card-title class="d-flex justify-space-between align-center pb-2 flex-wrap">
+      <div class="d-flex align-center">
+        <v-icon icon="mdi-chart-line" class="mr-2" color="primary" />
+        體重走勢圖
+      </div>
+      <div class="d-flex ga-2 mt-2 mt-sm-0">
+        <v-btn v-if="weightData.length > 7" size="small" variant="tonal" @click="showAll = !showAll">
+          {{ toggleButtonText }}
+        </v-btn>
+        <v-btn v-if="showManagementButton" size="small" color="primary" prepend-icon="mdi-format-list-bulleted" @click="$emit('openWeightManagement')"> 管理記錄 </v-btn>
+      </div>
+    </v-card-title>
+
+    <v-card-text class="pt-2">
+      <div class="chart-container">
+        <ChartComponent :key="chartConfig.uniqueKey || (isDark?.value ? 'dark' : 'light') + '-' + chartConfig.data?.labels?.length" type="line" :chartData="chartConfig.data" :chartOptions="chartConfig.options" />
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { ref, computed, inject } from 'vue'
 import ChartComponent from '@/components/ChartComponent.vue'
 import { useChartConfig } from '../composables/useChartConfig'
 
@@ -21,9 +32,30 @@ const props = defineProps({
     required: true,
     default: () => [],
   },
+  showManagementButton: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const emit = defineEmits(['openWeightManagement'])
+
+// 控制顯示全部或部分資料
+const showAll = ref(false)
+
+// 切換按鈕的文字
+const toggleButtonText = computed(() => {
+  return showAll.value ? '顯示最近 10 筆' : '顯示全部'
+})
+
+// 根據 showAll 的狀態決定要顯示的資料
+const displayedWeightData = computed(() => {
+  if (showAll.value || props.weightData.length <= 10) {
+    return props.weightData
+  }
+  // 回傳最新的 7 筆資料
+  return props.weightData.slice(-10)
+})
 
 // 注入深色模式狀態
 const isDark = inject('isDark', { value: false })
@@ -33,7 +65,12 @@ const { getWeightChartConfig } = useChartConfig(isDark)
 
 // 計算圖表配置
 const chartConfig = computed(() => {
-  if (!props.weightData || props.weightData.length === 0) {
+  // 讓主題切換觸發重算
+  const themeKey = isDark.value ? 'dark' : 'light'
+  const timestamp = Date.now()
+  const dataToDisplay = displayedWeightData.value
+
+  if (!dataToDisplay || dataToDisplay.length === 0) {
     return {
       data: {
         labels: [],
@@ -41,26 +78,56 @@ const chartConfig = computed(() => {
           {
             label: '體重',
             data: [],
-            borderColor: isDark.value ? 'rgb(212 212 212)' : 'rgb(147 197 253)',
-            backgroundColor: isDark.value ? 'rgb(115 115 115)' : 'rgb(219 234 254)',
-            pointRadius: 6,
-            pointHoverRadius: 10,
           },
         ],
       },
       options: {
-        fill: true,
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false,
-          },
+          legend: { display: false },
+          tooltip: { enabled: false },
+          datalabels: { display: false },
+        },
+        scales: {
+          x: { ticks: { display: false }, grid: { display: false } },
+          y: { ticks: { display: false }, grid: { display: false } },
         },
       },
     }
   }
 
-  return getWeightChartConfig(props.weightData)
+  const config = getWeightChartConfig(dataToDisplay)
+  return {
+    ...config,
+    uniqueKey: `${themeKey}-${timestamp}`,
+  }
 })
 </script>
+
+<style scoped>
+.weight-chart-card {
+  height: 380px;
+  background-color: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
+}
+
+@media (min-width: 1024px) {
+  .weight-chart-card {
+    height: 420px;
+  }
+}
+
+.chart-container {
+  height: 300px;
+}
+
+@media (min-width: 1024px) {
+  .chart-container {
+    height: 340px;
+  }
+}
+</style>

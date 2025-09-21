@@ -1,9 +1,9 @@
 import { ref, computed } from 'vue'
-import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useAppToast } from '@/utils/appToast'
+import { getAnimalDetail } from '@/api'
 
 export function useAnimalData(animalId) {
-  const toast = useToast()
+  const toast = useAppToast()
   const animal = ref({
     Id: animalId,
     Info: {},
@@ -14,11 +14,12 @@ export function useAnimalData(animalId) {
   // 獲取動物基本資訊
   const getAnimalInfo = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_PATH}/animal/detail/${animal.value.Id}`)
+      if (sessionStorage.getItem('manualLogout')) throw new Error('manual-logout')
+      const data = await getAnimalDetail(animal.value.Id)
       animal.value.Info = data
       return data
     } catch (error) {
-      toast.error(error.response?.data?.message || '獲取動物資訊失敗')
+      toast.error(error, '獲取動物資訊失敗')
       throw error
     }
   }

@@ -174,18 +174,30 @@ router.put('/edit', upload.single('avatar'), async (req, res) => {
 });
 router.post('/createWeight', async (req, res) => {
     try {
-        const { animalId, date, value } = req.body;
-        if (!animalId || !date || !value) {
+        let { animalId, date, value } = req.body;
+
+        // 基本參數檢查（注意 0 是合法數值，不能用簡單的 !value 判斷）
+        if (!animalId || !date || value === undefined || value === null) {
             return res.status(400).json({ message: '缺少參數：animalId, date, value' });
         }
-        if (typeof value !== 'number' || value <= 0) {
+
+        // 轉型與驗證
+        const numericValue = Number(value);
+        if (Number.isNaN(numericValue) || numericValue <= 0) {
             return res.status(400).json({ message: '體重值無效，請輸入大於 0 的數字' });
         }
+
         const animal = await Animal.findById(animalId);
         if (!animal) {
             return res.status(404).json({ message: '找不到對應的動物' });
         }
-        animal.weight.push({ date: new Date(date), value });
+
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+            return res.status(400).json({ message: '日期格式無效' });
+        }
+
+        animal.weight.push({ date: parsedDate, value: numericValue });
         animal.weight.sort((a, b) => new Date(a.date) - new Date(b.date));
         const updatedAnimal = await animal.save();
         res.send({ message: '新增成功', weight: updatedAnimal.weight });
@@ -208,8 +220,12 @@ router.put('/updateWeight/:animalId/:weightId', async (req, res) => {
             return res.status(400).json({ message: '無效的體重記錄ID' });
         }
         
-        if (value !== undefined && (typeof value !== 'number' || value <= 0)) {
-            return res.status(400).json({ message: '體重值無效，請輸入大於 0 的數字' });
+        // 若有傳入 value，需轉成數字並驗證
+        if (value !== undefined && value !== null) {
+            const numericValue = Number(value);
+            if (Number.isNaN(numericValue) || numericValue <= 0) {
+                return res.status(400).json({ message: '體重值無效，請輸入大於 0 的數字' });
+            }
         }
         
         const animal = await Animal.findById(animalId);
@@ -224,10 +240,15 @@ router.put('/updateWeight/:animalId/:weightId', async (req, res) => {
         
         // 更新體重記錄
         if (date) {
-            weightRecord.date = new Date(date);
+            const parsedDate = new Date(date);
+            if (isNaN(parsedDate.getTime())) {
+                return res.status(400).json({ message: '日期格式無效' });
+            }
+            weightRecord.date = parsedDate;
         }
-        if (value !== undefined) {
-            weightRecord.value = value;
+        if (value !== undefined && value !== null) {
+            const numericValue = Number(value);
+            weightRecord.value = numericValue;
         }
         
         // 重新排序

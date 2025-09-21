@@ -1,66 +1,72 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
-import { Field, Form, ErrorMessage } from 'vee-validate'
-import { useToast } from 'vue-toastification'
-const toast = useToast()
-const VField = Field
-const VForm = Form
+import { Form as VForm } from 'vee-validate'
+import { useAppToast } from '@/utils/appToast'
+import { forgetPassword as apiForgetPassword } from '@/api'
+import VuTextField from '@/components/form/VuTextField.vue'
+import VuSelect from '@/components/form/VuSelect.vue'
+
+const toast = useAppToast()
 const form = ref({
   role: 'hospital',
   account: '',
 })
 const isLoading = ref(false)
-// 方法
+
 const forgetPassword = async () => {
   try {
     isLoading.value = true
     const { role, account } = form.value
     const payload = { role, account }
-    const { data } = await axios.post(`${import.meta.env.VITE_API_PATH}/${role}/forgetPassword`, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const data = await apiForgetPassword(role, payload)
     toast.success(data.message)
     isLoading.value = false
   } catch (error) {
     isLoading.value = false
-    toast.warning(error.response.data.message)
+    toast.error(error, '忘記密碼失敗')
   }
 }
 </script>
 <template>
-  <div class="flex items-center justify-center p-6" style="height: calc(100vh - 58px - 4rem)">
-    <div class="w-full max-w-sm min-w-[350px] max-h-[800px] p-6 lg:bg-white lg:rounded-lg lg:shadow-lg lg:p-8 dark:lg:bg-darkPrimary-700 rounded-lg dark:bg-darkPrimary-800">
-      <h2 class="mb-6 text-2xl font-bold text-center text-primary-900 dark:text-darkPrimary-50">忘記密碼</h2>
-      <VForm @submit="forgetPassword">
-        <div class="mb-4">
-          <label for="role" class="text-primary-900 dark:text-darkPrimary-50">請選擇帳號身份</label>
-          <VField id="role" v-model="form.role" name="role" as="select" rules="required" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:text-darkPrimary-50 dark:bg-darkPrimary-500 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none">
-            <option value="hospital">醫院</option>
-            <option value="user">飼主</option>
-          </VField>
-          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="role" />
-        </div>
-        <div class="mb-4">
-          <label for="account" class="text-primary-900 dark:text-darkPrimary-50">帳號</label>
-          <VField id="account" v-model="form.account" type="text" name="account" rules="required|length:4,20" class="w-full h-8 pl-3 mt-2 rounded-md shadow-sm dark:bg-darkPrimary-500 dark:text-darkPrimary-50 text-primary-900 outline-1 outline-primary-100 focus:outline-2 focus:outline-primary-400 dark:placeholder-darkPrimary-400 dark:focus:outline-darkPrimary-400 focus:outline-none" placeholder="請輸入帳號" autocomplete="off" />
-          <ErrorMessage class="mt-1 text-sm text-red-600 dark:text-rose-400" name="account" />
-        </div>
+  <v-container class="fill-height" fluid>
+    <v-row align="center" justify="center">
+      <v-col cols="12" sm="8" md="4">
+        <v-card elevation="6">
+          <v-card-title class="text-h5 text-center">忘記密碼</v-card-title>
+          <v-card-text>
+            <VForm @submit="forgetPassword">
+              <!-- 角色選擇 -->
+              <VuSelect
+                v-model="form.role"
+                name="role"
+                label="請選擇帳號身份"
+                rules="required"
+                :items="[
+                  { title: '醫院', value: 'hospital' },
+                  { title: '飼主', value: 'user' },
+                ]"
+                class="mb-3"
+              />
 
-        <button v-if="isLoading" class="inline-flex items-center justify-center w-full px-4 py-2 mt-4 rounded-md bg-primary-600 dark:bg-indigo-600 text-darkPrimary-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-auto" disabled="">
-          <div class="w-4 h-4 border-2 border-white border-solid rounded-full animate-spin border-t-transparent"></div>
-          <span class="ml-2">送出中... </span>
-        </button>
+              <!-- 帳號 -->
+              <VuTextField
+                v-model="form.account"
+                name="account"
+                label="帳號"
+                rules="required|length:4,20"
+                autocomplete="off"
+                class="mb-3"
+              />
 
-        <button v-else type="submit" class="w-full px-4 py-2 mt-4 text-white rounded-md bg-primary-600 dark:bg-indigo-600 hover:dark:bg-indigo-700 hover:bg-primary-700 outline-1 focus:outline-2 focus:outline-primary-500 focus:outline-offset-2 focus:outline-none">送出</button>
+              <v-btn type="submit" color="primary" block :loading="isLoading">送出</v-btn>
+            </VForm>
 
-        <p class="mt-4 text-sm text-center text-primary-900 dark:text-darkPrimary-400">
-          想起密碼了？
-          <RouterLink to="/login" class="text-primary-600 hover:underline dark:text-darkPrimary-50">登入</RouterLink>
-        </p>
-      </VForm>
-    </div>
-  </div>
+            <div class="d-flex justify-center mt-4">
+              <RouterLink to="/login">想起密碼了？前往登入</RouterLink>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>

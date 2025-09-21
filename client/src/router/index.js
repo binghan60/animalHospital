@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authStore from '@/stores/auth.js'
-import { useToast } from 'vue-toastification'
+import { useAppToast } from '@/utils/appToast'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -13,7 +13,7 @@ const router = createRouter({
           path: 'animal/:id',
           name: 'animal-detail',
           meta: { title: '動物詳細資訊' },
-          component: () => import('@/views/hospital/AnimalDetailView_New.vue'),
+          component: () => import('@/views/hospital/AnimalDetailView.vue'),
           props: true,
         },
         {
@@ -46,7 +46,7 @@ const router = createRouter({
           path: 'animal/:id',
           name: 'user-animal-detail',
           meta: { title: '動物詳細資訊' },
-          component: () => import('@/views/hospital/AnimalDetailView_New.vue'),
+          component: () => import('@/views/hospital/AnimalDetailView.vue'),
           props: true, //將ID透過props傳入，而不是this.$route.params
         },
       ],
@@ -87,7 +87,7 @@ const router = createRouter({
       meta: { requiresAuth: true, title: '會員中心' },
       component: () => import('@/views/MemberCenter.vue'),
     },
-    { path: '/:pathMatch(.*)*', name: 'notFound', meta: { title: '找不到該頁面' }, component: () => import('@/views/NotFountView.vue') },
+    { path: '/:pathMatch(.*)*', name: 'notFound', meta: { title: '找不到該頁面' }, component: () => import('@/views/NotFoundView.vue') },
   ],
 })
 // 進每個路由都會經過 路由守衛
@@ -95,12 +95,10 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title || '動物健康管理系統'
   const store = authStore()
   const user = store.user
-  const toast = useToast()
+  const toast = useAppToast()
   // 檢查是否需要登入
-  if (store.redirectPath == null) {
-    store.setRedirectPath(to.fullPath)
-  }
   if (to.meta.requiresAuth && !user.isLogin) {
+    store.setRedirectPath(to.fullPath)
     return next('/login')
   } else if (to.meta.roles && !to.meta.roles.includes(user.role)) {
     // 檢查權限
