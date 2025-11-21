@@ -40,21 +40,29 @@ router.get('/average', async (req, res) => {
           ],
           morningCounts: [
             {
-              // 統計早上血糖分布
-              // $cond: [{ $and: [{ $lte: ['$morning.bloodSugar', 249] }, { $ne: ['$morning.bloodSugar', null] }] }, 1, 0] 符合條件回傳1  不符合回傳0
               $group: {
                 _id: null,
-                count_1_249: {
+                count_low: {
                   $sum: {
-                    $cond: [{ $and: [{ $lte: ['$morning.bloodSugar', 249] }, { $gt: ['$morning.bloodSugar', 0] }] }, 1, 0],
+                    $cond: [{ $lt: ['$morning.bloodSugar', 70] }, 1, 0],
                   },
                 },
-                count_250_399: {
+                count_normal: {
                   $sum: {
-                    $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 250] }, { $lte: ['$morning.bloodSugar', 399] }] }, 1, 0],
+                    $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 70] }, { $lt: ['$morning.bloodSugar', 180] }] }, 1, 0],
                   },
                 },
-                count_400_plus: {
+                count_caution: {
+                  $sum: {
+                    $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 180] }, { $lt: ['$morning.bloodSugar', 250] }] }, 1, 0],
+                  },
+                },
+                count_warning: {
+                  $sum: {
+                    $cond: [{ $and: [{ $gte: ['$morning.bloodSugar', 250] }, { $lt: ['$morning.bloodSugar', 400] }] }, 1, 0],
+                  },
+                },
+                count_danger: {
                   $sum: {
                     $cond: [{ $gte: ['$morning.bloodSugar', 400] }, 1, 0],
                   },
@@ -66,17 +74,27 @@ router.get('/average', async (req, res) => {
             {
               $group: {
                 _id: null,
-                count_1_249: {
+                count_low: {
                   $sum: {
-                    $cond: [{ $and: [{ $lte: ['$evening.bloodSugar', 249] }, { $gt: ['$evening.bloodSugar', 0] }] }, 1, 0],
+                    $cond: [{ $lt: ['$evening.bloodSugar', 70] }, 1, 0],
                   },
                 },
-                count_250_399: {
+                count_normal: {
                   $sum: {
-                    $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 250] }, { $lte: ['$evening.bloodSugar', 399] }] }, 1, 0],
+                    $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 70] }, { $lt: ['$evening.bloodSugar', 180] }] }, 1, 0],
                   },
                 },
-                count_400_plus: {
+                count_caution: {
+                  $sum: {
+                    $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 180] }, { $lt: ['$evening.bloodSugar', 250] }] }, 1, 0],
+                  },
+                },
+                count_warning: {
+                  $sum: {
+                    $cond: [{ $and: [{ $gte: ['$evening.bloodSugar', 250] }, { $lt: ['$evening.bloodSugar', 400] }] }, 1, 0],
+                  },
+                },
+                count_danger: {
                   $sum: {
                     $cond: [{ $gte: ['$evening.bloodSugar', 400] }, 1, 0],
                   },
@@ -140,18 +158,18 @@ router.get('/average', async (req, res) => {
             },
           },
           morningCounts: {
-            $ifNull: [{ $arrayElemAt: ['$morningCounts', 0] }, { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 }],
+            $ifNull: [{ $arrayElemAt: ['$morningCounts', 0] }, { _id: null, count_low: 0, count_normal: 0, count_caution: 0, count_warning: 0, count_danger: 0 }],
           },
           eveningCounts: {
-            $ifNull: [{ $arrayElemAt: ['$eveningCounts', 0] }, { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 }],
+            $ifNull: [{ $arrayElemAt: ['$eveningCounts', 0] }, { _id: null, count_low: 0, count_normal: 0, count_caution: 0, count_warning: 0, count_danger: 0 }],
           },
         },
       },
     ])
     const defaultData = {
       averages: [{ morningAverage: 0, eveningAverage: 0, combinedAverage: 0 }],
-      morningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
-      eveningCounts: { _id: null, count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+      morningCounts: { _id: null, count_low: 0, count_normal: 0, count_caution: 0, count_warning: 0, count_danger: 0 },
+      eveningCounts: { _id: null, count_low: 0, count_normal: 0, count_caution: 0, count_warning: 0, count_danger: 0 },
     }
     const isEmptyArray = (arr) => Array.isArray(arr) && arr.length === 0
     const data = results[0] && !isEmptyArray(results[0].averages) ? results[0] : defaultData
@@ -177,6 +195,24 @@ router.get('/diary', async (req, res) => {
     }).sort({ date: 1 })
     return res.status(200).json(data)
   } catch (error) {
+    return res.status(500).send({ message: 'Server error' })
+  }
+})
+
+// 獲取所有標記的日記資料 (不受日期限制)
+router.get('/marked', async (req, res) => {
+  const { animalId } = req.query
+  if (!mongoose.Types.ObjectId.isValid(animalId)) {
+    return res.status(400).send({ message: 'Invalid animal ID' })
+  }
+  try {
+    const data = await BloodSugar.find({
+      animalId,
+      is_marked: true
+    }).sort({ date: -1 }) // 按日期降序排列，最新的在前
+    return res.status(200).json(data)
+  } catch (error) {
+    console.error('Error fetching marked diary entries:', error)
     return res.status(500).send({ message: 'Server error' })
   }
 })
@@ -275,6 +311,35 @@ router.put('/update/:id', async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: 'Validation Error', errors: error.errors })
     }
+    res.status(500).json({ message: 'Server Error' })
+  }
+})
+
+// Update is_marked field for diary entry
+router.put('/mark/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { animalId, is_marked } = req.body
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid ID' })
+    }
+    
+    const existingRecord = await BloodSugar.findById(id)
+    if (!existingRecord) {
+      return res.status(404).json({ message: 'Record not found' })
+    }
+    
+    if (animalId != existingRecord.animalId) {
+      return res.status(403).json({ message: 'This account is not authorized' })
+    }
+    
+    existingRecord.is_marked = is_marked
+    const updatedRecord = await existingRecord.save()
+    
+    return res.status(200).json({ message: '標記更新成功', is_marked: updatedRecord.is_marked })
+  } catch (error) {
+    console.error('Error updating is_marked:', error)
     res.status(500).json({ message: 'Server Error' })
   }
 })

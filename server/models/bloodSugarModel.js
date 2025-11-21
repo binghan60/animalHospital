@@ -17,6 +17,7 @@ const bloodSugarSchema = new mongoose.Schema(
             },
         ],
         notes: { type: String, default: '' },
+        is_marked: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

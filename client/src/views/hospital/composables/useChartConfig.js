@@ -11,9 +11,11 @@ export function useChartConfig(isDark) {
       labelColor: isDark.value ? 'rgba(255, 255, 255, 0.92)' : 'rgba(30, 41, 59, 0.92)'},
     
     pie: {
-      success: isDark.value ? 'rgba(76, 175, 80, 0.5)' : 'rgba(76, 175, 80, 0.2)',
-      warning: isDark.value ? 'rgba(255, 152, 0, 0.5)' : 'rgba(255, 152, 0, 0.2)',
-      error: isDark.value ? 'rgba(244, 67, 54, 0.5)' : 'rgba(244, 67, 54, 0.2)',
+      low: isDark.value ? 'rgba(92, 141, 237, 0.5)' : 'rgba(92, 141, 237, 0.2)',
+      normal: isDark.value ? 'rgba(95, 173, 86, 0.5)' : 'rgba(95, 173, 86, 0.2)',
+      caution: isDark.value ? 'rgba(242, 192, 55, 0.5)' : 'rgba(242, 192, 55, 0.2)',
+      warning: isDark.value ? 'rgba(229, 140, 69, 0.5)' : 'rgba(229, 140, 69, 0.2)',
+      danger: isDark.value ? 'rgba(217, 83, 79, 0.5)' : 'rgba(217, 83, 79, 0.2)',
       border: isDark.value ? 'rgba(45, 51, 73, 1)' : 'rgba(255, 255, 255, 1)'
     },
     grid: isDark.value ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -64,18 +66,22 @@ export function useChartConfig(isDark) {
   // 血糖平均圖表配置
   const getAverageChartConfig = (averageData, title) => {
     const data = {
-      labels: ['正常 (70-179)', '偏高 (180-399)', '高危 (400+)'],
+      labels: ['過低 (<70)', '正常 (70-179)', '注意 (180-249)', '偏高 (250-399)', '高危 (400+)'],
       datasets: [
         {
           data: [
-            averageData.morningCounts.count_1_249 + averageData.eveningCounts.count_1_249,
-            averageData.morningCounts.count_250_399 + averageData.eveningCounts.count_250_399,
-            averageData.morningCounts.count_400_plus + averageData.eveningCounts.count_400_plus
+            averageData.morningCounts.count_low + averageData.eveningCounts.count_low,
+            averageData.morningCounts.count_normal + averageData.eveningCounts.count_normal,
+            averageData.morningCounts.count_caution + averageData.eveningCounts.count_caution,
+            averageData.morningCounts.count_warning + averageData.eveningCounts.count_warning,
+            averageData.morningCounts.count_danger + averageData.eveningCounts.count_danger
           ],
           backgroundColor: [
-            colors.value.pie.success,
+            colors.value.pie.low,
+            colors.value.pie.normal,
+            colors.value.pie.caution,
             colors.value.pie.warning,
-            colors.value.pie.error
+            colors.value.pie.danger
           ],
           borderColor: colors.value.pie.border,
           borderWidth: 2
@@ -161,20 +167,9 @@ export function useChartConfig(isDark) {
     })
   }
 
-  // 血糖顏色判斷 (此函數未使用於圖表，保留給其他可能的 UI 元件)
-  const bloodSugarColor = (value) => {
-    if (value === null || value === undefined || value === 0) return 'bg-gray-200 dark:bg-darkPrimary-600'
-    if (value > 0 && value < 70) return 'bg-blue-100'
-    if (value >= 70 && value < 180) return 'bg-green-100'
-    if (value >= 180 && value < 400) return 'bg-yellow-100'
-    if (value >= 400) return 'bg-red-100'
-    return 'bg-white'
-  }
-
   return {
     getWeightChartConfig,
     getAverageChartConfig,
-    getBloodSugarCurveChartConfig,
-    bloodSugarColor
+    getBloodSugarCurveChartConfig
   }
 }

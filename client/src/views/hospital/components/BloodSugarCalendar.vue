@@ -2,13 +2,13 @@
   <v-card class="mt-4 blood-sugar-calendar-card">
     <v-card-text class="pa-4">
       <!-- 日曆控制器 -->
-      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="prevMonth" @nextMonth="nextMonth" />
+      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="prevMonth" @nextMonth="nextMonth" @goToMarkedDiary="goToMarkedDiary" />
 
       <!-- 月視圖 -->
-      <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :bloodSugarColor="bloodSugarColor" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" />
+      <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" @toggleMark="toggleMark" />
 
       <!-- 週視圖 -->
-      <WeekView v-show="calendarDisplay === 'week'" :weekData="weekData" :weekRange="weekRange" :user="user" @openTaskModal="openTaskModal" @openEditTaskModal="openEditTaskModal" />
+      <WeekView v-show="calendarDisplay === 'week'" :weekData="weekData" :weekRange="weekRange" :user="user" @openTaskModal="openTaskModal" @openEditTaskModal="openEditTaskModal" @toggleMark="toggleMark" />
     </v-card-text>
 
     <!-- 新增事項 v-dialog -->
@@ -194,12 +194,15 @@
 
 <script setup>
 import { watch, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
 import { useBloodSugarCalendar } from '../composables/useBloodSugarCalendar'
 import CalendarControls from './CalendarControls.vue'
 import MonthView from './MonthView.vue'
 import WeekView from './WeekView.vue'
 import VuTextField from '@/components/form/VuTextField.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   animalId: {
@@ -209,6 +212,14 @@ const props = defineProps({
   user: {
     type: Object,
     required: true,
+  },
+  targetDate: {
+    type: String,
+    default: null,
+  },
+  targetView: {
+    type: String,
+    default: null,
   },
 })
 
@@ -237,6 +248,7 @@ const {
   createTask,
   editTask,
   deleteTask,
+  toggleMark,
   bloodSugarColor,
   showTips,
   openTaskModal,
@@ -327,6 +339,12 @@ const deleteTaskAndEmit = async (recordId, taskId) => {
   emitCurrentDateRange()
 }
 
+// 跳轉到標記記錄頁面
+const goToMarkedDiary = () => {
+  const currentRoute = useRoute()
+  router.push(`/hospital/animal/${props.animalId}/marked-diary`)
+}
+
 // 監聽日曆顯示模式變化
 watch(
   () => calendarDisplay.value,
@@ -340,8 +358,45 @@ watch(
   },
 )
 
+// 輔助函數：獲取週的開始日期（週一）
+function getStartOfWeek(date) {
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+  return new Date(date.setDate(diff))
+}
+
 // 初始化
 onMounted(async () => {
+  // 如果有目標日期，跳轉到該日期的週曆
+  if (props.targetDate) {
+    const targetDateObj = new Date(props.targetDate)
+    if (!isNaN(targetDateObj.getTime())) {
+      // 設定為週曆模式
+      if (props.targetView === 'week') {
+        calendarDisplay.value = 'week'
+      }
+      
+      // 設定目標日期相關的時間
+      newtoday.date = targetDateObj
+      selectedYear.value = targetDateObj.getFullYear()
+      selectedMonth.value = targetDateObj.getMonth()
+      
+      // 更新到目標日期所在的週
+      const startOfWeek = getStartOfWeek(new Date(targetDateObj))
+      updateWeekData(startOfWeek)
+      
+      // 載入該週的資料
+      await getWeekBloodSugarData()
+      
+      // 清除 URL 參數，避免重複跳轉
+      router.replace({ query: {} })
+      
+      emitCurrentDateRange()
+      return
+    }
+  }
+  
+  // 正常初始化流程
   newtoday.date = new Date()
   updateWeekData()
   selectedYear.value = newtoday.date.getFullYear()

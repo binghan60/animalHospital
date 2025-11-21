@@ -23,7 +23,21 @@
 
           <v-card-text class="pa-2">
             <!-- 新增事項按鈕 -->
-            <v-btn color="primary" variant="elevated" block size="small" prepend-icon="mdi-plus" class="mb-3" @click="$emit('openTaskModal', day.date)"> 新增事項 </v-btn>
+            <v-btn color="primary" variant="elevated" block size="small" prepend-icon="mdi-plus" class="mb-2" @click="$emit('openTaskModal', day.date)"> 新增事項 </v-btn>
+            
+            <!-- 標記按鈕 -->
+            <v-btn 
+              v-if="day._id"
+              :color="day.is_marked ? 'success' : 'grey'"
+              :variant="day.is_marked ? 'elevated' : 'outlined'"
+              block 
+              size="small" 
+              :prepend-icon="day.is_marked ? 'mdi-bookmark' : 'mdi-bookmark-outline'"
+              class="mb-3" 
+              @click="$emit('toggleMark', day._id, day.is_marked)"
+            > 
+              {{ day.is_marked ? '已標記' : '標記' }} 
+            </v-btn>
 
             <!-- 事項清單 -->
             <div class="records-container">
@@ -116,7 +130,7 @@ const getBloodSugarSeverity = value => {
   return 'severity-low'
 }
 
-const emit = defineEmits(['openTaskModal', 'openEditTaskModal'])
+const emit = defineEmits(['openTaskModal', 'openEditTaskModal', 'toggleMark'])
 </script>
 
 <style scoped>
@@ -231,34 +245,43 @@ const emit = defineEmits(['openTaskModal', 'openEditTaskModal'])
   scrollbar-color: rgba(var(--v-theme-on-surface), 0.2) transparent;
 }
 
-/* 新的柔和配色 */
+/* 填滿背景的配色方案 */
 .severity-none {
-  color: rgba(var(--v-theme-on-surface), 0.5) !important;
-  border-color: rgba(var(--v-theme-on-surface), 0.2) !important;
+  /* 使用不透明的表面文字色作為文字色 */
+  color: #555555 !important;
+  /* 實色淺灰色作為背景色，模擬 "無" 狀態 */
+  background-color: #f0f0f0 !important;
+  /* 實色邊框 */
+  border-color: #cccccc !important;
 }
 
 .severity-low {
-  color: #5c9ded !important; /* 柔和藍 */
-  border-color: #a0c4ff !important; /* 淡藍邊框 */
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #5c9ded !important; /* 柔和藍背景 */
+  border-color: #a0c4ff !important; /* 淡藍邊框 (保留原邊框色) */
 }
 
 .severity-normal {
-  color: #5fad56 !important; /* 柔和綠 */
-  border-color: #a3d2a0 !important; /* 淡綠邊框 */
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #5fad56 !important; /* 柔和綠背景 */
+  border-color: #a3d2a0 !important; /* 淡綠邊框 (保留原邊框色) */
 }
 
 .severity-caution {
-  color: #f2c037 !important; /* 柔和黃 */
-  border-color: #fde28d !important; /* 淡黃邊框 */
+  color: #333333 !important; /* 深色文字 (與柔和黃對比度高) */
+  background-color: #f2c037 !important; /* 柔和黃背景 */
+  border-color: #fde28d !important; /* 淡黃邊框 (保留原邊框色) */
 }
 
 .severity-warning {
-  color: #e58c45 !important; /* 柔和橙 */
-  border-color: #f7c59f !important; /* 淡橙邊框 */
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #e58c45 !important; /* 柔和橙背景 */
+  border-color: #f7c59f !important; /* 淡橙邊框 (保留原邊框色) */
 }
 
 .severity-danger {
-  color: #d9534f !important; /* 柔和紅 */
-  border-color: #f2a09d !important; /* 淡紅邊框 */
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #d9534f !important; /* 柔和紅背景 */
+  border-color: #f2a09d !important; /* 淡紅邊框 (保留原邊框色) */
 }
 </style>

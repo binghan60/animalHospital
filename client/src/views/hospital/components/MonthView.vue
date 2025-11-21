@@ -17,9 +17,23 @@
       <template v-for="(day, index) in calendar" :key="day.isoDate || index">
         <v-card v-if="day.day" :class="['day-card', { 'today-card': day.isToday, clickable: day.records?.length }]" variant="outlined" @click="day.records?.length ? $emit('showTips', $event, day?.records) : null">
           <v-card-title class="day-title">
-            <div class="text-body-1 font-weight-bold">
-              {{ day.month }}/{{ day.day }}
-              <v-chip v-if="day.records?.length > 2" size="x-small" color="warning" variant="tonal">多筆</v-chip>
+            <div class="text-body-1 font-weight-bold d-flex align-center justify-space-between">
+              <span>
+                {{ day.month }}/{{ day.day }}
+                <v-chip v-if="day.records?.length > 2" size="x-small" color="warning" variant="tonal" class="ml-1">多筆</v-chip>
+              </span>
+              <!-- 標記圖示 -->
+              <v-btn
+                v-if="day._id"
+                :prepend-icon="day.is_marked ? 'mdi-bookmark' : 'mdi-bookmark-outline'"
+                :color="day.is_marked ? 'success' : 'grey'"
+                size="small"
+                variant="tonal"
+                class="bookmark-btn"
+                @click.stop="$emit('toggleMark', day._id, day.is_marked)"
+              >
+                {{ day.is_marked ? '已標記' : '標記' }}
+              </v-btn>
             </div>
           </v-card-title>
 
@@ -31,7 +45,7 @@
                 <span class="text-body-2 font-weight-medium text-medium-emphasis">{{ calendar[index].morning.time || '---' }}</span>
               </div>
               <div class="chips-group">
-                <v-chip :color="getBloodSugarColor(calendar[index].morning.bloodSugar)" size="small" variant="tonal" class="data-chip">
+                <v-chip :class="getBloodSugarColor(calendar[index].morning.bloodSugar)" size="small" variant="flat" class="data-chip">
                   <v-icon icon="mdi-water-outline" start />
                   {{ calendar[index].morning.bloodSugar || '---' }}
                 </v-chip>
@@ -49,7 +63,7 @@
                 <span class="text-body-2 font-weight-medium text-medium-emphasis">{{ calendar[index].evening.time || '---' }}</span>
               </div>
               <div class="chips-group">
-                <v-chip :color="getBloodSugarColor(calendar[index].evening.bloodSugar)" size="small" variant="tonal" class="data-chip">
+                <v-chip :class="getBloodSugarColor(calendar[index].evening.bloodSugar)" size="small" variant="flat" class="data-chip">
                   <v-icon icon="mdi-water-outline" start />
                   {{ calendar[index].evening.bloodSugar || '---' }}
                 </v-chip>
@@ -75,6 +89,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   calendar: Array,
   newtoday: Object,
@@ -85,14 +101,15 @@ const props = defineProps({
 
 // 使用 Vuetify 的顏色名稱，搭配 v-chip 的 tonal variant
 const getBloodSugarColor = value => {
-  if (!value || value === '---') return 'grey'
-  if (value >= 400) return 'error'
-  if (value >= 180) return 'warning'
-  if (value >= 70) return 'success'
-  return 'info'
+  if (!value || value === '---') return 'severity-none'
+  if (value >= 400) return 'severity-danger'
+  if (value >= 250) return 'severity-warning'
+  if (value >= 180) return 'severity-caution'
+  if (value >= 70) return 'severity-normal'
+  return 'severity-low'
 }
 
-const emit = defineEmits(['showTips', 'hideTooltip'])
+const emit = defineEmits(['showTips', 'hideTooltip', 'toggleMark'])
 </script>
 
 <style scoped>
@@ -129,6 +146,26 @@ const emit = defineEmits(['showTips', 'hideTooltip'])
 @media (min-width: 1024px) {
   .calendar-grid {
     grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+.filtered-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .filtered-calendar-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .filtered-calendar-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -196,5 +233,50 @@ const emit = defineEmits(['showTips', 'hideTooltip'])
 .empty-day {
   border: 1px dashed rgba(0, 0, 0, 0.12);
   border-radius: 4px;
+}
+
+.bookmark-btn {
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* 填滿背景的配色方案 */
+.severity-none {
+  /* 使用不透明的表面文字色作為文字色 */
+  color: #555555 !important;
+  /* 實色淺灰色作為背景色，模擬 "無" 狀態 */
+  background-color: #f0f0f0 !important;
+  /* 實色邊框 */
+  border-color: #cccccc !important;
+}
+
+.severity-low {
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #5c9ded !important; /* 柔和藍背景 */
+  border-color: #a0c4ff !important; /* 淡藍邊框 (保留原邊框色) */
+}
+
+.severity-normal {
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #5fad56 !important; /* 柔和綠背景 */
+  border-color: #a3d2a0 !important; /* 淡綠邊框 (保留原邊框色) */
+}
+
+.severity-caution {
+  color: #333333 !important; /* 深色文字 (與柔和黃對比度高) */
+  background-color: #f2c037 !important; /* 柔和黃背景 */
+  border-color: #fde28d !important; /* 淡黃邊框 (保留原邊框色) */
+}
+
+.severity-warning {
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #e58c45 !important; /* 柔和橙背景 */
+  border-color: #f7c59f !important; /* 淡橙邊框 (保留原邊框色) */
+}
+
+.severity-danger {
+  color: #ffffff !important; /* 白色文字 */
+  background-color: #d9534f !important; /* 柔和紅背景 */
+  border-color: #f2a09d !important; /* 淡紅邊框 (保留原邊框色) */
 }
 </style>

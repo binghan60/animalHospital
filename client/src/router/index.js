@@ -17,6 +17,13 @@ const router = createRouter({
           props: true,
         },
         {
+          path: 'animal/:animalId/marked-diary',
+          name: 'marked-diary',
+          meta: { title: '醒目標記記錄' },
+          component: () => import('@/views/hospital/MarkedDiaryView.vue'),
+          props: true,
+        },
+        {
           path: 'dashboard',
           name: 'dashboard',
           meta: { title: '管理面板' },

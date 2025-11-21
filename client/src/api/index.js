@@ -121,6 +121,13 @@ export async function getDiary(params) {
   return data
 }
 
+export async function getMarkedDiary(animalId) {
+  const { data } = await http.get('/bloodSugar/marked', { 
+    params: { animalId }
+  })
+  return data
+}
+
 export async function createBloodSugar(payload) {
   const { data } = await http.post('/bloodSugar/create', payload, {
     headers: { 'Content-Type': 'application/json' },
@@ -137,6 +144,13 @@ export async function deleteBloodSugarTask(dataId, payload) {
   const { data } = await http.delete(`/bloodSugar/task/${dataId}`, {
     data: payload,
     headers: { 'content-Type': 'application/json' },
+  })
+  return data
+}
+
+export async function updateBloodSugarMark(recordId, payload) {
+  const { data } = await http.put(`/bloodSugar/mark/${recordId}`, payload, {
+    headers: { 'Content-Type': 'application/json' },
   })
   return data
 }

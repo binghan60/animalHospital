@@ -31,6 +31,10 @@ const route = useRoute()
 const animalId = route.params.id
 const toast = useAppToast()
 
+// 處理從標記頁面傳來的日期參數
+const targetDate = route.query.date
+const targetView = route.query.view
+
 // 注入依賴
 const loadingConfig = inject('loadingConfig')
 
@@ -482,7 +486,9 @@ onMounted(async () => {
     <!-- 血糖日曆 -->
     <BloodSugarCalendar 
       :animalId="animalId" 
-      :user="user" 
+      :user="user"
+      :targetDate="targetDate"
+      :targetView="targetView"
       @dateRangeChanged="onDateRangeChanged" 
       @bloodSugarChanged="onBloodSugarChanged" 
     />

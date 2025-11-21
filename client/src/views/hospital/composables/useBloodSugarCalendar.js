@@ -1,6 +1,6 @@
 import { ref, reactive, onUnmounted } from 'vue'
 import { useAppToast } from '@/utils/appToast'
-import { getDiary, createBloodSugar, updateBloodSugar, deleteBloodSugarTask } from '@/api'
+import { getDiary, getMarkedDiary, createBloodSugar, updateBloodSugar, deleteBloodSugarTask, updateBloodSugarMark } from '@/api'
 
 export function useBloodSugarCalendar(animalId, user) {
   const toast = useAppToast()
@@ -24,6 +24,7 @@ export function useBloodSugarCalendar(animalId, user) {
   const weekData = ref([])
   const weekRange = ref('')
   const calendarDisplay = ref('week')
+  
   // 年份月份選擇
   const years = ref([
     { value: 2023, label: '2023年' },
@@ -129,9 +130,10 @@ export function useBloodSugarCalendar(animalId, user) {
             ...day,
             _id: diaryEntry._id,
             records: filteredRecords,
+            is_marked: diaryEntry.is_marked || false, // 確保 is_marked 有預設值
           }
         }
-        return { ...day, records: [] }
+        return { ...day, records: [], is_marked: false }
       })
 
       // 一次性更新整個週資料
@@ -222,24 +224,27 @@ export function useBloodSugarCalendar(animalId, user) {
     }
   }
 
-  // 血糖顏色判斷
-  const bloodSugarColor = value => {
-    if (value === '') {
-      return 'bg-white dark:bg-darkPrimary-600'
-    }
-    if (value === null || value === undefined || value == 0) {
-      return 'bg-gray-200 dark:bg-darkPrimary-600'
-    }
-    if (value > 0 && value <= 249) {
-      return 'bg-green-100 dark:bg-lime-300/40'
-    }
-    if (value >= 250 && value <= 399) {
-      return 'bg-yellow-100 dark:bg-yellow-300/40'
-    }
-    if (value >= 400) {
-      return 'bg-red-100 dark:bg-rose-300/40'
+  // 更新標記狀態
+  const toggleMark = async (recordId, currentMarkStatus) => {
+    try {
+      const payload = {
+        animalId,
+        is_marked: !currentMarkStatus
+      }
+
+      if (!isAuthActive() || destroyed) return
+      const data = await updateBloodSugarMark(recordId, payload)
+
+      await getWeekBloodSugarData()
+      updateCalendar()
+      toast.success(data.message)
+    } catch (error) {
+      toast.error(error, '更新標記失敗')
     }
   }
+
+
+
 
   // 顯示提示
   const showTips = (event, record) => {
@@ -325,6 +330,7 @@ export function useBloodSugarCalendar(animalId, user) {
         evening: { time: '', bloodSugar: '', insulin: '', notes: '' },
         record: [{ time: '', bloodSugar: '', insulin: '', notes: '' }],
         isToday: date === now.toISOString() ? true : false,
+        is_marked: false,
       }
     })
 
@@ -332,9 +338,11 @@ export function useBloodSugarCalendar(animalId, user) {
     const mergedData = container.map(day => {
       const diaryEntry = diaryData.find(diary => diary.date === day.date)
       if (diaryEntry) {
-        return Object.assign(day, diaryEntry)
+        return Object.assign(day, diaryEntry, {
+          is_marked: diaryEntry.is_marked || false // 確保 is_marked 有預設值
+        })
       }
-      return day
+      return { ...day, is_marked: false }
     })
 
     const firstDay = new Date(year, month, 1).getDay()
@@ -383,6 +391,7 @@ export function useBloodSugarCalendar(animalId, user) {
         records: [],
         isToday: date.toISOString() === now.toISOString(),
         notes: '',
+        is_marked: false,
       })
     }
     return weekData
@@ -476,7 +485,7 @@ export function useBloodSugarCalendar(animalId, user) {
     createTask,
     editTask,
     deleteTask,
-    bloodSugarColor,
+    toggleMark,
     showTips,
     openTaskModal,
     closeTaskModal,
