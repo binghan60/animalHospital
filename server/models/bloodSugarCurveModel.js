@@ -4,7 +4,11 @@ const bloodSugarCurveSchema = new mongoose.Schema(
     {
         animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal', required: true, index: true },
         date: { type: Date, required: true },
-        records: [{ time: { type: String, required: true }, value: { type: Number, required: true } }],
+        records: [{ 
+            time: { type: String, required: true }, 
+            value: { type: Number, required: true },
+            insulin: { type: Number, default: 0 } // 胰島素劑量，預設為0
+        }],
     },
     { timestamps: true }
 );

@@ -126,12 +126,23 @@ export function useChartConfig(isDark) {
         labels: x.records.map(y => y.time),
         datasets: [
           {
+            type: 'line',
             label: '血糖',
             data: x.records.map(y => y.value),
             borderColor: colors.value.line.borderColor,
             backgroundColor: 'transparent',
             pointRadius: 6,
-            pointHoverRadius: 10
+            pointHoverRadius: 10,
+            yAxisID: 'y'
+          },
+          {
+            type: 'bar',
+            label: '胰島素',
+            data: x.records.map(y => y.insulin),
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1,
+            yAxisID: 'y1'
           }
         ]
       }
@@ -141,18 +152,49 @@ export function useChartConfig(isDark) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: { display: true },
           datalabels: {
             display: true,
             color: colors.value.line.labelColor,
             font: { weight: 'bold', size: 14 },
             anchor: 'center',
             align: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                let label = context.dataset.label || ''
+                if (label) {
+                  label += ': '
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y + (context.dataset.type === 'line' ? ' mg/dL' : ' U')
+                }
+                return label
+              }
+            }
           }
         },
         scales: {
           x: { ticks: { color: colors.value.ticks }, grid: { color: colors.value.grid } },
-          y: { ticks: { color: colors.value.ticks }, grid: { color: colors.value.grid } }
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            ticks: { color: colors.value.ticks },
+            grid: { color: colors.value.grid }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: {
+              drawOnChartArea: false
+            },
+            ticks: {
+              color: 'rgba(255, 99, 132, 1)'
+            }
+          }
         }
       }
 

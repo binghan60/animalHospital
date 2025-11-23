@@ -70,7 +70,7 @@ const editWeightForm = reactive({
 
 const bloodSugarCurveForm = reactive({
   date: new Date().toISOString().slice(0, 10),
-  fields: [{ time: '', value: '' }],
+  fields: [{ time: '', value: '', insulin: '' }],
 })
 
 const editBloodSugarCurveForm = reactive({
@@ -152,11 +152,11 @@ function resetWeightForm() {
 
 function resetBloodSugarCurveForm() {
   bloodSugarCurveForm.date = new Date().toISOString().slice(0, 10)
-  bloodSugarCurveForm.fields = [{ time: '', value: '' }]
+  bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
 }
 
 function addBloodSugarField() {
-  bloodSugarCurveForm.fields.push({ time: '', value: '' })
+  bloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
 }
 
 function removeBloodSugarField(index) {
@@ -166,7 +166,7 @@ function removeBloodSugarField(index) {
 }
 
 function addEditBloodSugarField() {
-  editBloodSugarCurveForm.fields.push({ time: '', value: '' })
+  editBloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
 }
 
 function removeEditBloodSugarField(index) {
@@ -325,7 +325,8 @@ async function createBloodSugarCurve() {
       date: bloodSugarCurveForm.date,
       fields: validFields.map(field => ({
         time: field.time,
-        value: parseFloat(field.value)
+        value: parseFloat(field.value),
+        insulin: field.insulin ? parseFloat(field.insulin) : 0
       }))
     })
     bloodSugarCurveDialog.value = false
@@ -344,7 +345,8 @@ function openEditBloodSugarCurveDialog(curveData) {
   editBloodSugarCurveForm.date = new Date(curveData.date).toISOString().split('T')[0]
   editBloodSugarCurveForm.fields = (curveData.records || curveData.fields || []).map(field => ({
     time: field.time,
-    value: field.value
+    value: field.value,
+    insulin: field.insulin
   }))
   editBloodSugarCurveDialog.value = true
 }
@@ -368,7 +370,8 @@ async function updateBloodSugarCurve() {
       date: editBloodSugarCurveForm.date,
       fields: validFields.map(field => ({
         time: field.time,
-        value: parseFloat(field.value)
+        value: parseFloat(field.value),
+        insulin: field.insulin ? parseFloat(field.insulin) : 0
       }))
     })
     editBloodSugarCurveDialog.value = false
@@ -444,7 +447,8 @@ onMounted(async () => {
         <WeightChart 
           :weightData="animal.Info.weight || []" 
           :showManagementButton="user.role === 'hospital'"
-          @openWeightManagement="weightListDialog = true" 
+          @openWeightManagement="weightListDialog = true"
+          @openAddWeight="weightDialog = true"
         />
       </v-col>
       
@@ -466,40 +470,6 @@ onMounted(async () => {
         />
       </v-col>
     </v-row>
-    <!-- 操作按鈕區塊 - 僅醫院模式可見 -->
-    <v-card v-if="user.role === 'hospital'" class="mb-6">
-      <v-card-text class="pa-4">
-        <v-row align="center" justify="space-between">
-          <v-col cols="12" md="auto">
-            <h3 class="text-h6 font-weight-semibold">快速操作</h3>
-            <div class="text-body-2 text-medium-emphasis">新增體重記錄或血糖曲線</div>
-          </v-col>
-          
-          <v-col cols="12" md="auto" class="d-flex flex-wrap ga-3">
-            <v-btn
-              color="amber"
-              variant="elevated"
-              prepend-icon="mdi-scale"
-              :theme="isDark ? 'dark' : 'light'"
-              @click="weightDialog = true"
-            >
-              新增體重記錄
-            </v-btn>
-            
-            <v-btn
-              color="pink"
-              variant="elevated"
-              prepend-icon="mdi-chart-line"
-              :theme="isDark ? 'dark' : 'light'"
-              @click="bloodSugarCurveDialog = true"
-            >
-              建立血糖曲線
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
     <!-- 血糖日曆 -->
     <BloodSugarCalendar 
       :animalId="animalId" 
@@ -514,10 +484,12 @@ onMounted(async () => {
     <BloodSugarCurvePanel 
       :yearMonthStats="bloodSugarCurveChart.yearMonthStats" 
       :filteredCount="bloodSugarCurveChart.filteredData.length" 
-      :totalCount="bloodSugarCurveChart.allData.length" 
+      :totalCount="bloodSugarCurveChart.allData.length"
+      :showAddButton="user.role === 'hospital'"
       @selectYear="selectYear" 
       @selectMonth="selectMonth" 
-      @clearYearMonthSelection="clearYearMonthSelection" 
+      @clearYearMonthSelection="clearYearMonthSelection"
+      @openAddCurve="bloodSugarCurveDialog = true"
     />
 
     <!-- 血糖曲線圖表 -->
@@ -832,7 +804,7 @@ onMounted(async () => {
             :key="index"
             class="mb-2"
           >
-            <v-col cols="12" md="5">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="field.time"
                 label="時間"
@@ -843,7 +815,7 @@ onMounted(async () => {
               />
             </v-col>
             
-            <v-col cols="12" md="5">
+            <v-col cols="12" md="4">
               <v-text-field
                 v-model="field.value"
                 label="血糖值"
@@ -854,15 +826,15 @@ onMounted(async () => {
                 suffix="mg/dL"
               />
             </v-col>
-            
-            <v-col cols="12" md="2" class="d-flex align-center">
-              <v-btn
-                icon="mdi-close"
-                size="small"
-                color="error"
-                variant="text"
-                :disabled="bloodSugarCurveForm.fields.length === 1"
-                @click="removeBloodSugarField(index)"
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="field.insulin"
+                label="胰島素"
+                type="number"
+                variant="outlined"
+                density="compact"
+                prepend-inner-icon="mdi-needle"
+                suffix="U"
               />
             </v-col>
           </v-row>
@@ -907,13 +879,6 @@ onMounted(async () => {
       <v-card-title class="text-h5 pa-6">
         <v-icon icon="mdi-pencil" class="mr-2" color="primary" />
         編輯血糖曲線
-        <v-spacer />
-        <v-btn
-          icon="mdi-delete"
-          color="error"
-          variant="text"
-          @click="openDeleteBloodSugarCurveDialog({ _id: editBloodSugarCurveForm.id, date: editBloodSugarCurveForm.date })"
-        />
       </v-card-title>
       
       <v-divider />
@@ -940,9 +905,9 @@ onMounted(async () => {
           <v-row 
             v-for="(field, index) in editBloodSugarCurveForm.fields" 
             :key="index"
-            class="mb-2"
+            class="mb-2 align-center"
           >
-            <v-col cols="12" md="5">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="field.time"
                 label="時間"
@@ -950,10 +915,11 @@ onMounted(async () => {
                 variant="outlined"
                 density="compact"
                 prepend-inner-icon="mdi-clock"
+                hide-details
               />
             </v-col>
             
-            <v-col cols="12" md="5">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model="field.value"
                 label="血糖值"
@@ -962,10 +928,23 @@ onMounted(async () => {
                 density="compact"
                 prepend-inner-icon="mdi-water"
                 suffix="mg/dL"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="field.insulin"
+                label="胰島素"
+                type="number"
+                variant="outlined"
+                density="compact"
+                prepend-inner-icon="mdi-needle"
+                suffix="U"
+                hide-details
               />
             </v-col>
             
-            <v-col cols="12" md="2" class="d-flex align-center">
+            <v-col cols="12" md="3" class="text-center">
               <v-btn
                 icon="mdi-close"
                 size="small"
@@ -992,6 +971,14 @@ onMounted(async () => {
       <v-divider />
       
       <v-card-actions class="pa-6">
+        <v-btn
+          color="error"
+          variant="outlined"
+          :disabled="isUpdatingCurve"
+          @click="openDeleteBloodSugarCurveDialog({ _id: editBloodSugarCurveForm.id, date: editBloodSugarCurveForm.date })"
+        >
+          刪除此曲線
+        </v-btn>
         <v-spacer />
         <v-btn 
           variant="outlined" 

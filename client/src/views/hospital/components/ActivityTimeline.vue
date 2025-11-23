@@ -55,12 +55,10 @@
                   </div>
 
                   <div v-if="activity.value" class="mb-1 d-flex align-center">
-                    <v-icon icon="mdi-numeric" size="small" class="mr-1" />
                     <span class="text-body-2">{{ activity.value }}</span>
                   </div>
 
-                  <div v-if="activity.notes" class="text-body-2">
-                    <v-icon icon="mdi-note-text" size="small" class="mr-1" />
+                  <div v-if="activity.notes" class="text-body-2" style="white-space: pre-wrap;">
                     {{ activity.notes }}
                   </div>
                 </v-card-text>
