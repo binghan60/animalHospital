@@ -9,6 +9,7 @@
         <v-btn v-if="weightData.length > 7" size="small" variant="tonal" @click="showAll = !showAll">
           {{ toggleButtonText }}
         </v-btn>
+        <v-btn v-if="showManagementButton" size="small" color="amber" prepend-icon="mdi-plus" @click="$emit('openAddWeight')"> 新增體重 </v-btn>
         <v-btn v-if="showManagementButton" size="small" color="primary" prepend-icon="mdi-format-list-bulleted" @click="$emit('openWeightManagement')"> 管理記錄 </v-btn>
       </div>
     </v-card-title>
@@ -38,7 +39,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['openWeightManagement'])
+const emit = defineEmits(['openWeightManagement', 'openAddWeight'])
 
 // 控制顯示全部或部分資料
 const showAll = ref(false)

@@ -11,11 +11,11 @@ export function useChartConfig(isDark) {
       labelColor: isDark.value ? 'rgba(255, 255, 255, 0.92)' : 'rgba(30, 41, 59, 0.92)'},
     
     pie: {
-      low: isDark.value ? 'rgba(92, 141, 237, 0.5)' : 'rgba(92, 141, 237, 0.2)',
-      normal: isDark.value ? 'rgba(95, 173, 86, 0.5)' : 'rgba(95, 173, 86, 0.2)',
-      caution: isDark.value ? 'rgba(242, 192, 55, 0.5)' : 'rgba(242, 192, 55, 0.2)',
-      warning: isDark.value ? 'rgba(229, 140, 69, 0.5)' : 'rgba(229, 140, 69, 0.2)',
-      danger: isDark.value ? 'rgba(217, 83, 79, 0.5)' : 'rgba(217, 83, 79, 0.2)',
+      low: isDark.value ? 'rgba(92, 141, 237, 0.5)' : 'rgba(92, 141, 237, 0.7)',
+      normal: isDark.value ? 'rgba(95, 173, 86, 0.5)' : 'rgba(95, 173, 86, 0.7)',
+      caution: isDark.value ? 'rgba(242, 192, 55, 0.5)' : 'rgba(242, 192, 55, 0.7)',
+      warning: isDark.value ? 'rgba(229, 140, 69, 0.5)' : 'rgba(229, 140, 69, 0.7)',
+      danger: isDark.value ? 'rgba(217, 83, 79, 0.5)' : 'rgba(217, 83, 79, 0.7)',
       border: isDark.value ? 'rgba(45, 51, 73, 1)' : 'rgba(255, 255, 255, 1)'
     },
     grid: isDark.value ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
@@ -141,13 +141,6 @@ export function useChartConfig(isDark) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: {
-            font: { size: 20, weight: 'bold' },
-            color: colors.value.labels,
-            display: true,
-            text: `${new Date(x.date).toISOString().split('T')[0]} 血糖曲線`,
-            padding: { bottom: 30 }
-          },
           legend: { display: false },
           datalabels: {
             display: true,

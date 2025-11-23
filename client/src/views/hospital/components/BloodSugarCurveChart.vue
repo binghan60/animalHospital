@@ -4,7 +4,7 @@
     <v-card-title class="curve-card-title d-flex justify-space-between align-center">
       <div class="d-flex align-center">
         <v-icon icon="mdi-chart-line" class="mr-2" color="primary" />
-        <span class="text-h6 font-weight-semibold"> {{ new Date(chart.data?.labels?.[0] ? `2024-01-01T${chart.data.labels[0]}` : Date.now()).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) }} 血糖曲線 </span>
+        <span class="text-h6 font-weight-semibold"> {{ formatDate(curveData[index]?.date) }} 血糖曲線 </span>
       </div>
 
       <!-- 編輯按鈕區 - 僅醫院模式可見 -->
@@ -73,6 +73,13 @@ const isDark = inject('isDark', { value: false })
 
 // 使用圖表配置
 const { getBloodSugarCurveChartConfig } = useChartConfig(isDark)
+
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+}
 
 // 計算圖表配置 - 明確依賴 isDark 以觸發重算
 const chartConfigs = computed(() => {

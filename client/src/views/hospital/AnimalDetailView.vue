@@ -18,6 +18,7 @@ import BloodSugarAverageChart from './components/BloodSugarAverageChart.vue'
 import BloodSugarCurvePanel from './components/BloodSugarCurvePanel.vue'
 import BloodSugarCurveChart from './components/BloodSugarCurveChart.vue'
 import BloodSugarCalendar from './components/BloodSugarCalendar.vue'
+import ActivityTimeline from './components/ActivityTimeline.vue'
 
 // 表單組件
 import VuTextField from '@/components/form/VuTextField.vue'
@@ -413,6 +414,11 @@ const onBloodSugarChanged = async () => {
   await updateAverageChart(currentRange)
 }
 
+const onActivityChanged = () => {
+  // 當活動記錄變更時，可以觸發其他更新（如重新載入圖表等）
+  console.log('Activity timeline updated')
+}
+
 // 初始化
 onMounted(async () => {
   await getAnimalInfo()
@@ -446,6 +452,17 @@ onMounted(async () => {
         <BloodSugarAverageChart 
           :averageData="averageChart.rawData" 
           :title="averageChart.title" 
+        />
+      </v-col>
+    </v-row>
+
+    <!-- 作息時間軸區塊 -->
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <ActivityTimeline 
+          :animalId="animalId" 
+          :showAddButton="user.role === 'hospital'"
+          @activityChanged="onActivityChanged"
         />
       </v-col>
     </v-row>

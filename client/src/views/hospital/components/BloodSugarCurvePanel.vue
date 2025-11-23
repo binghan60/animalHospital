@@ -8,6 +8,11 @@
           <div class="text-body-2 text-medium-emphasis">顯示 {{ filteredCount }} / {{ totalCount }} 筆記錄</div>
         </v-col>
 
+        <!-- 新增按鈕 -->
+        <v-col v-if="showAddButton" cols="12" md="auto">
+          <v-btn color="pink" prepend-icon="mdi-plus" @click="$emit('openAddCurve')"> 新增血糖曲線 </v-btn>
+        </v-col>
+
         <!-- 篩選器 -->
         <v-col v-if="yearMonthStats.years.length > 0" cols="12" md="auto" class="d-flex flex-wrap ga-2">
           <!-- 年份篩選 -->
@@ -51,7 +56,11 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  showAddButton: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['selectYear', 'selectMonth', 'clearYearMonthSelection'])
+const emit = defineEmits(['selectYear', 'selectMonth', 'clearYearMonthSelection', 'openAddCurve'])
 </script>

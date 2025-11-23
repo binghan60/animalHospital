@@ -193,3 +193,35 @@ export async function getDashboard(params) {
   const { data } = await http.get('/dashboard', { params })
   return data
 }
+
+// Activity Timeline
+export async function getActivityTimeline(animalId) {
+  const { data } = await http.get(`/activity/${animalId}`)
+  return data
+}
+
+export async function updateActivityTimeline(animalId, payload) {
+  const { data } = await http.put(`/activity/${animalId}`, payload, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  return data
+}
+
+export async function addActivityItem(animalId, payload) {
+  const { data } = await http.post(`/activity/${animalId}/activity`, payload, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  return data
+}
+
+export async function updateActivityItem(animalId, activityId, payload) {
+  const { data } = await http.put(`/activity/${animalId}/activity/${activityId}`, payload, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  return data
+}
+
+export async function deleteActivityItem(animalId, activityId) {
+  const { data } = await http.delete(`/activity/${animalId}/activity/${activityId}`)
+  return data
+}
