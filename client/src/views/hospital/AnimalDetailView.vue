@@ -168,11 +168,6 @@ function addBloodSugarField() {
   bloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
 }
 
-function removeBloodSugarField(index) {
-  if (bloodSugarCurveForm.fields.length > 1) {
-    bloodSugarCurveForm.fields.splice(index, 1)
-  }
-}
 
 function addEditBloodSugarField() {
   editBloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
@@ -285,7 +280,6 @@ async function updateWeight() {
     })
     editWeightDialog.value = false
     
-    await getAnimalInfo()
   } catch (error) {
     toast.error('更新體重記錄失敗')
   } finally {
@@ -307,7 +301,6 @@ async function deleteWeight() {
     // 呼叫 composable 的 confirmDeleteWeight 以確保 API 被調用
     await originalDeleteWeight(deleteItem.id)
     deleteWeightDialog.value = false
-    await getAnimalInfo()
   } catch (error) {
     toast.error('刪除體重記錄失敗')
   } finally {
@@ -466,7 +459,7 @@ const onDateRangeChanged = ({ type, startDate, endDate }) => {
 }
 
 const onBloodSugarChanged = async () => {
-  await updateAverageChart(currentRange)
+    await updateAverageChart(currentRange)
 }
 
 const onActivityChanged = () => {
