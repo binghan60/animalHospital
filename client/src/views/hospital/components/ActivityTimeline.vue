@@ -216,7 +216,7 @@ const isEditing = ref(false)
 const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const activityFormRef = ref(null)
-const isExpanded = ref(false) // 預設展開
+const isExpanded = ref(true) // 預設展開
 const timelineDirection = ref('horizontal') // 'vertical' 或 'horizontal'
 
 // 表單
@@ -390,6 +390,10 @@ onMounted(() => {
   max-height: 500px;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex; /* Enable flexbox for centering content */
+  justify-content: center; /* Center horizontally */
+  /* Add max-width to the container to ensure the flex item (v-timeline) can be centered */
+  margin: 0 auto; /* Center the container itself */
 }
 
 /* 水平時間軸容器 */
@@ -401,13 +405,23 @@ onMounted(() => {
 
 /* 垂直卡片 */
 .activity-card-vertical {
-  width: 100%;
+  width: 250px; /* Fixed width */
+  height: 150px; /* Fixed height */
+  flex-shrink: 0; /* Prevent shrinking in flex containers */
 }
 
 /* 水平卡片 */
 .activity-card-horizontal {
-  min-width: 220px;
-  max-width: 280px;
+  width: 200px; /* Fixed width */
+  height: 180px; /* Fixed height */
+  flex-shrink: 0; /* Prevent shrinking in flex containers */
+}
+
+/* 讓 v-card-text 在固定高度的卡片中可滾動 */
+.activity-card-vertical .v-card-text,
+.activity-card-horizontal .v-card-text {
+  height: 100%; /* Ensure v-card-text fills the card height */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* 自定義垂直滾動條 */

@@ -1,12 +1,12 @@
 <script setup>
-import { reactive, onMounted, provide, computed, inject, ref } from 'vue'
+import { reactive, onMounted, provide, computed, inject, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 // 禁用自動繼承 attributes，因為有多個根節點
 defineOptions({
   inheritAttrs: false
 })
-import { getAverage as getAverageApi } from '@/api'
+import { getAverage as getAverageApi, getDiary } from '@/api'
 import authStore from '@/stores/auth'
 import { useAppToast } from '@/utils/appToast'
 
@@ -161,7 +161,7 @@ function resetWeightForm() {
 
 function resetBloodSugarCurveForm() {
   bloodSugarCurveForm.date = formatDateToYyyyMmDd(new Date())
-  bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
+  bloodSugarCurveForm.fields = [] // 初始化為空陣列
 }
 
 function addBloodSugarField() {
@@ -313,6 +313,49 @@ async function deleteWeight() {
   } finally {
     isDeletingWeight.value = false
   }
+}
+
+// 自動載入血糖資料以建立曲線
+const loadBloodSugarForCurve = async (date) => {
+  if (!date) {
+    bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
+    return
+  }
+  
+  try {
+    const diaryData = await getDiary({
+      animalId: animalId,
+      startDate: date,
+      endDate: date,
+    })
+
+    if (diaryData && diaryData.length > 0 && diaryData[0].records && diaryData[0].records.length > 0) {
+      const records = diaryData[0].records
+      bloodSugarCurveForm.fields = records.map(rec => ({
+        time: rec.time,
+        value: rec.bloodSugar || '',
+        insulin: rec.insulin || '',
+      }))
+    } else {
+      bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
+    }
+  } catch (error) {
+    console.error('為血糖曲線載入血糖資料失敗:', error)
+    bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
+  }
+}
+
+// 監聽血糖曲線表單的日期變化
+watch(() => bloodSugarCurveForm.date, (newDate, oldDate) => {
+  if (bloodSugarCurveDialog.value && newDate !== oldDate) {
+    loadBloodSugarForCurve(newDate)
+  }
+})
+
+const openAddBloodSugarCurveDialog = async () => {
+  resetBloodSugarCurveForm()
+  await loadBloodSugarForCurve(bloodSugarCurveForm.date)
+  bloodSugarCurveDialog.value = true
 }
 
 // 血糖曲線相關操作
@@ -498,7 +541,7 @@ onMounted(async () => {
       @selectYear="selectYear" 
       @selectMonth="selectMonth" 
       @clearYearMonthSelection="clearYearMonthSelection"
-      @openAddCurve="bloodSugarCurveDialog = true"
+      @openAddCurve="openAddBloodSugarCurveDialog"
     />
 
     <!-- 血糖曲線圖表 -->

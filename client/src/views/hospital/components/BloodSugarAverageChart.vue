@@ -14,7 +14,7 @@
 
       <div class="sugar-values-grid">
         <!-- 總平均 -->
-        <v-card :class="['sugar-card', 'combined', bloodSugarColorClass(Math.ceil(averages.combinedAverage))]" variant="flat">
+        <v-card :color="bloodSugarColor(Math.ceil(averages.combinedAverage))" class="sugar-card combined" variant="flat">
           <v-card-text class="pa-2 text-center">
             <div class="text-h6 font-weight-bold">
               {{ Math.ceil(averages.combinedAverage) }}
@@ -24,7 +24,7 @@
         </v-card>
 
         <!-- 早上平均 -->
-        <v-card :class="['sugar-card', bloodSugarColorClass(Math.ceil(averages.morningAverage))]" variant="flat">
+        <v-card :color="bloodSugarColor(Math.ceil(averages.morningAverage))" class="sugar-card" variant="flat">
           <v-card-text class="pa-2 text-center">
             <div class="text-body-1 font-weight-bold">
               <v-icon icon="mdi-weather-sunny" size="small" class="mr-1" />
@@ -35,7 +35,7 @@
         </v-card>
 
         <!-- 晚上平均 -->
-        <v-card :class="['sugar-card', bloodSugarColorClass(Math.ceil(averages.eveningAverage))]" variant="flat">
+        <v-card :color="bloodSugarColor(Math.ceil(averages.eveningAverage))" class="sugar-card" variant="flat">
           <v-card-text class="pa-2 text-center">
             <div class="text-body-1 font-weight-bold">
               <v-icon icon="mdi-weather-night" size="small" class="mr-1" />
@@ -74,7 +74,7 @@ const props = defineProps({
 const isDark = inject('isDark', { value: false })
 
 // 使用圖表配置
-const { getAverageChartConfig, bloodSugarColor } = useChartConfig(isDark)
+const { getAverageChartConfig } = useChartConfig(isDark)
 
 // 計算平均值
 const averages = computed(() => {
@@ -104,14 +104,14 @@ const chartConfig = computed(() => {
   }
 })
 
-// 血糖顏色類別（適用於 Vuetify）
-const bloodSugarColorClass = value => {
-  if (!value || value === '---') return 'severity-none'
-  if (value >= 400) return 'severity-danger'
-  if (value >= 250) return 'severity-warning'
-  if (value >= 180) return 'severity-caution'
-  if (value >= 70) return 'severity-normal'
-  return 'severity-low'
+// 血糖顏色（適用於 Vuetify）
+const bloodSugarColor = value => {
+  if (!value || value === '---') return undefined
+  if (value >= 400) return 'error'
+  if (value >= 250) return 'warning'
+  if (value >= 180) return 'orange'
+  if (value >= 70) return 'success'
+  return 'info'
 }
 </script>
 
@@ -179,44 +179,5 @@ const bloodSugarColorClass = value => {
   .sugar-card {
     min-height: 60px;
   }
-}
-/* 填滿背景的配色方案 */
-.severity-none {
-  /* 使用不透明的表面文字色作為文字色 */
-  color: #555555 !important;
-  /* 實色淺灰色作為背景色，模擬 "無" 狀態 */
-  background-color: #f0f0f0 !important;
-  /* 實色邊框 */
-  border-color: #cccccc !important;
-}
-
-.severity-low {
-  color: #ffffff !important; /* 白色文字 */
-  background-color: #5c9ded !important; /* 柔和藍背景 */
-  border-color: #a0c4ff !important; /* 淡藍邊框 (保留原邊框色) */
-}
-
-.severity-normal {
-  color: #ffffff !important; /* 白色文字 */
-  background-color: #5fad56 !important; /* 柔和綠背景 */
-  border-color: #a3d2a0 !important; /* 淡綠邊框 (保留原邊框色) */
-}
-
-.severity-caution {
-  color: #333333 !important; /* 深色文字 (與柔和黃對比度高) */
-  background-color: #f2c037 !important; /* 柔和黃背景 */
-  border-color: #fde28d !important; /* 淡黃邊框 (保留原邊框色) */
-}
-
-.severity-warning {
-  color: #ffffff !important; /* 白色文字 */
-  background-color: #e58c45 !important; /* 柔和橙背景 */
-  border-color: #f7c59f !important; /* 淡橙邊框 (保留原邊框色) */
-}
-
-.severity-danger {
-  color: #ffffff !important; /* 白色文字 */
-  background-color: #d9534f !important; /* 柔和紅背景 */
-  border-color: #f2a09d !important; /* 淡紅邊框 (保留原邊框色) */
 }
 </style>

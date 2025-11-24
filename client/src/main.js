@@ -66,7 +66,7 @@ defineRule('atLeastOneFieldRule', (value, [field1, field2]) => {
 })
 const toastOptions = {
   position: 'bottom-center',
-  timeout: 1500,
+  timeout: 1000,
   closeOnClick: true,
   pauseOnFocusLoss: false,
   pauseOnHover: false,
