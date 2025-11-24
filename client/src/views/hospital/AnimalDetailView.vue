@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted, provide, computed, inject, ref, watch } from 'vue'
+import { reactive, onMounted, provide, computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 // 禁用自動繼承 attributes，因為有多個根節點
@@ -9,6 +9,13 @@ defineOptions({
 import { getAverage as getAverageApi, getDiary } from '@/api'
 import authStore from '@/stores/auth'
 import { useAppToast } from '@/utils/appToast'
+import { 
+  formatDateToYyyyMmDd, 
+  formatDateToLocale,
+  getCurrentWeekRange,
+  formatDateRangeTitle,
+  getTodayFormatted
+} from '@/utils/dateFormatter'
 
 // 元件導入
 import AnimalAvatar from './components/AnimalAvatar.vue'
@@ -20,8 +27,10 @@ import BloodSugarCurveChart from './components/BloodSugarCurveChart.vue'
 import BloodSugarCalendar from './components/BloodSugarCalendar.vue'
 import ActivityTimeline from './components/ActivityTimeline.vue'
 
-// 表單組件
-import VuTextField from '@/components/form/VuTextField.vue'
+// 可重用對話框元件
+import WeightDialog from './components/WeightDialog.vue'
+import ConfirmDialog from './components/ConfirmDialog.vue'
+import BloodSugarCurveDialog from './components/BloodSugarCurveDialog.vue'
 
 // Composables 導入
 import { useAnimalData } from './composables/useAnimalData'
@@ -36,9 +45,6 @@ const toast = useAppToast()
 const targetDate = route.query.date
 const targetView = route.query.view
 
-// 注入依賴
-const loadingConfig = inject('loadingConfig')
-
 // 使用 Pinia store
 const store = authStore()
 const user = computed(() => store.user)
@@ -47,27 +53,50 @@ const isDark = computed(() => store.isDark)
 // 提供深色模式狀態給子元件
 provide('isDark', isDark)
 
-// Modal 狀態管理
-const weightDialog = ref(false)
-const weightListDialog = ref(false)
-const editWeightDialog = ref(false)
-const deleteWeightDialog = ref(false)
-const bloodSugarCurveDialog = ref(false)
-const editBloodSugarCurveDialog = ref(false)
-const deleteBloodSugarCurveDialog = ref(false)
+// 整合模態框狀態管理
+const modals = reactive({
+  weight: false,
+  weightList: false,
+  editWeight: false,
+  deleteWeight: false,
+  bloodSugarCurve: false,
+  editBloodSugarCurve: false,
+  deleteBloodSugarCurve: false,
+})
 
-const formatDateToYyyyMmDd = (date) => {
-  if (!date) return '';
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const day = d.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+// 為了保持向後相容，保留舊的 ref（映射到新的 reactive 物件）
+const weightDialog = computed({
+  get: () => modals.weight,
+  set: (val) => { modals.weight = val }
+})
+const weightListDialog = computed({
+  get: () => modals.weightList,
+  set: (val) => { modals.weightList = val }
+})
+const editWeightDialog = computed({
+  get: () => modals.editWeight,
+  set: (val) => { modals.editWeight = val }
+})
+const deleteWeightDialog = computed({
+  get: () => modals.deleteWeight,
+  set: (val) => { modals.deleteWeight = val }
+})
+const bloodSugarCurveDialog = computed({
+  get: () => modals.bloodSugarCurve,
+  set: (val) => { modals.bloodSugarCurve = val }
+})
+const editBloodSugarCurveDialog = computed({
+  get: () => modals.editBloodSugarCurve,
+  set: (val) => { modals.editBloodSugarCurve = val }
+})
+const deleteBloodSugarCurveDialog = computed({
+  get: () => modals.deleteBloodSugarCurve,
+  set: (val) => { modals.deleteBloodSugarCurve = val }
+})
 
 // 表單數據
 const weightForm = reactive({
-  date: formatDateToYyyyMmDd(new Date()),
+  date: getTodayFormatted(),
   value: '',
 })
 
@@ -78,7 +107,7 @@ const editWeightForm = reactive({
 })
 
 const bloodSugarCurveForm = reactive({
-  date: formatDateToYyyyMmDd(new Date()),
+  date: getTodayFormatted(),
   fields: [{ time: '', value: '', insulin: '' }],
 })
 
@@ -107,7 +136,6 @@ const isDeletingCurve = ref(false)
 // 使用 composables
 const { animal, isLoading: animalLoading, getAnimalInfo } = useAnimalData(animalId)
 const { 
-  modals: weightModals, 
   isLoading: weightLoading, 
   createWeight: originalCreateWeight, 
   updateWeight: originalUpdateWeight,
@@ -116,7 +144,6 @@ const {
 
 const { 
   bloodSugarCurveChart, 
-  modals: bloodSugarCurveModals, 
   isLoading: curveLoading, 
   getAllBloodSugarCurveData, 
   selectYear, 
@@ -155,29 +182,23 @@ const currentRange = reactive({ type: 'week', startDate: '', endDate: '' })
 
 // 工具函數
 function resetWeightForm() {
-  weightForm.date = formatDateToYyyyMmDd(new Date())
+  weightForm.date = getTodayFormatted()
   weightForm.value = ''
 }
 
 function resetBloodSugarCurveForm() {
-  bloodSugarCurveForm.date = formatDateToYyyyMmDd(new Date())
-  bloodSugarCurveForm.fields = [] // 初始化為空陣列
+  bloodSugarCurveForm.date = getTodayFormatted()
+  bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }] // 初始化為至少一個空欄位
 }
 
-function addBloodSugarField() {
-  bloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
-}
+// 血糖欄位管理函數已移至 BloodSugarCurveDialog 元件內部處理
 
-
-function addEditBloodSugarField() {
-  editBloodSugarCurveForm.fields.push({ time: '', value: '', insulin: '' })
-}
-
-function removeEditBloodSugarField(index) {
-  if (editBloodSugarCurveForm.fields.length > 1) {
-    editBloodSugarCurveForm.fields.splice(index, 1)
-  }
-}
+// 預設血糖資料結構
+const getDefaultAverageData = () => ({
+  averages: [{ morningAverage: 0, eveningAverage: 0, combinedAverage: 0 }],
+  morningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+  eveningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
+})
 
 // 獲取平均血糖資料
 const getAverageLocal = async (startDate, endDate) => {
@@ -190,12 +211,8 @@ const getAverageLocal = async (startDate, endDate) => {
     return data
   } catch (error) {
     console.error('❌ 獲取平均血糖失敗:', error)
-    toast.error(null, '獲取平均血糖失敗')
-    return {
-      averages: [{ morningAverage: 0, eveningAverage: 0, combinedAverage: 0 }],
-      morningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
-      eveningCounts: { count_1_249: 0, count_250_399: 0, count_400_plus: 0 },
-    }
+    toast.error('獲取平均血糖失敗', error.message || '請稍後再試')
+    return getDefaultAverageData()
   }
 }
 
@@ -203,27 +220,16 @@ const getAverageLocal = async (startDate, endDate) => {
 const updateAverageChart = async (customRange) => {
   try {
     let startDate, endDate, title
+    
     if (customRange?.startDate && customRange?.endDate) {
       startDate = customRange.startDate
       endDate = customRange.endDate
-      title = customRange.type === 'month'
-        ? `${startDate.split('-')[1]}月平均血糖`
-        : `${startDate.split('-')[1]}-${startDate.split('-')[2]} ~ ${endDate.split('-')[1]}-${endDate.split('-')[2]} 平均血糖`
+      title = formatDateRangeTitle(startDate, endDate, customRange.type)
     } else {
-      const today = new Date()
-      const startOfWeek = new Date(today)
-      const day = startOfWeek.getDay()
-      const diff = startOfWeek.getDate() - (day === 0 ? 6 : day - 1)
-      startOfWeek.setDate(diff)
-      startOfWeek.setHours(0, 0, 0, 0)
-
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-      endOfWeek.setHours(23, 59, 59, 999)
-
-      startDate = formatDateToYyyyMmDd(startOfWeek)
-      endDate = formatDateToYyyyMmDd(endOfWeek)
-      title = `${startDate.split('-')[1]}-${startDate.split('-')[2]} ~ ${endDate.split('-')[1]}-${endDate.split('-')[2]} 平均血糖`
+      const weekRange = getCurrentWeekRange()
+      startDate = weekRange.startDate
+      endDate = weekRange.endDate
+      title = formatDateRangeTitle(startDate, endDate, 'week')
     }
 
     averageChart.title = title
@@ -231,28 +237,26 @@ const updateAverageChart = async (customRange) => {
     averageChart.rawData = data
   } catch (error) {
     console.error('❌ 更新平均血糖圖表失敗:', error)
+    toast.error('更新平均血糖圖表失敗', error.message || '請稍後再試')
+    averageChart.rawData = getDefaultAverageData()
   }
 }
 
 // 體重相關操作
-async function createWeight() {
-  if (!weightForm.date || !weightForm.value) {
-    toast.error(null, '請填寫完整的體重資料')
-    return
-  }
-
+async function createWeight(formData) {
   try {
     isCreatingWeight.value = true
     await originalCreateWeight({
-      date: weightForm.date,
-      value: parseFloat(weightForm.value)
+      date: formData.date,
+      value: parseFloat(formData.value)
     })
-    weightDialog.value = false
+    modals.weight = false
     resetWeightForm()
-    
-    await getAnimalInfo()
+    // toast 已由 useWeightManagement 內部呼叫，無需重複顯示
+    // getAnimalInfo 已由 useWeightManagement 內部呼叫，無需重複呼叫
   } catch (error) {
-    toast.error('新增體重記錄失敗')
+    console.error('❌ 新增體重記錄失敗:', error)
+    // 錯誤 toast 已由 useWeightManagement 處理，這裡不需要再次顯示
   } finally {
     isCreatingWeight.value = false
   }
@@ -262,26 +266,22 @@ function openEditWeightDialog(weightRecord) {
   editWeightForm.id = weightRecord._id
   editWeightForm.date = formatDateToYyyyMmDd(weightRecord.date)
   editWeightForm.value = weightRecord.value
-  editWeightDialog.value = true
+  modals.editWeight = true
 }
 
-async function updateWeight() {
-  if (!editWeightForm.date || !editWeightForm.value) {
-    toast.error(null, '請填寫完整的體重資料')
-    return
-  }
-
+async function updateWeight(formData) {
   try {
     isUpdatingWeight.value = true
     await originalUpdateWeight({
       id: editWeightForm.id,
-      date: editWeightForm.date,
-      value: parseFloat(editWeightForm.value)
+      date: formData.date,
+      value: parseFloat(formData.value)
     })
-    editWeightDialog.value = false
-    
+    modals.editWeight = false
+    // toast 已由 useWeightManagement 內部呼叫，無需重複顯示
   } catch (error) {
-    toast.error('更新體重記錄失敗')
+    console.error('❌ 更新體重記錄失敗:', error)
+    // 錯誤 toast 已由 useWeightManagement 處理，這裡不需要再次顯示
   } finally {
     isUpdatingWeight.value = false
   }
@@ -290,19 +290,20 @@ async function updateWeight() {
 function openDeleteWeightDialog(weightRecord) {
   deleteItem.type = 'weight'
   deleteItem.id = weightRecord._id
-  deleteItem.date = new Date(weightRecord.date).toLocaleDateString('zh-TW')
+  deleteItem.date = formatDateToLocale(weightRecord.date)
   deleteItem.value = `${weightRecord.value} 公斤`
-  deleteWeightDialog.value = true
+  modals.deleteWeight = true
 }
 
 async function deleteWeight() {
   try {
     isDeletingWeight.value = true
-    // 呼叫 composable 的 confirmDeleteWeight 以確保 API 被調用
     await originalDeleteWeight(deleteItem.id)
-    deleteWeightDialog.value = false
+    modals.deleteWeight = false
+    // toast 已由 useWeightManagement 內部呼叫，無需重複顯示
   } catch (error) {
-    toast.error('刪除體重記錄失敗')
+    console.error('❌ 刪除體重記錄失敗:', error)
+    // 錯誤 toast 已由 useWeightManagement 處理，這裡不需要再次顯示
   } finally {
     isDeletingWeight.value = false
   }
@@ -333,7 +334,8 @@ const loadBloodSugarForCurve = async (date) => {
       bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
     }
   } catch (error) {
-    console.error('為血糖曲線載入血糖資料失敗:', error)
+    console.error('❌ 為血糖曲線載入血糖資料失敗:', error)
+    toast.error('載入血糖資料失敗', error.message || '請稍後再試')
     bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
   }
 }
@@ -352,34 +354,31 @@ const openAddBloodSugarCurveDialog = async () => {
 }
 
 // 血糖曲線相關操作
-async function createBloodSugarCurve() {
-  if (!bloodSugarCurveForm.date) {
-    toast.error('請選擇日期')
-    return
-  }
-
-  const validFields = bloodSugarCurveForm.fields.filter(field => field.time && field.value)
+async function createBloodSugarCurve(formData) {
+  const validFields = formData.fields.filter(field => field.time && field.value)
   if (validFields.length === 0) {
-    toast.error('請至少填寫一筆血糖數據')
+    toast.error('請至少填寫一筆血糖數據', '需要至少一筆包含時間和血糖值的記錄')
     return
   }
 
   try {
     isCreatingCurve.value = true
     await originalCreateBloodSugarCurve({
-      date: bloodSugarCurveForm.date,
+      date: formData.date,
       fields: validFields.map(field => ({
         time: field.time,
         value: parseFloat(field.value),
         insulin: field.insulin ? parseFloat(field.insulin) : 0
       }))
     })
-    bloodSugarCurveDialog.value = false
+    modals.bloodSugarCurve = false
     resetBloodSugarCurveForm()
     await getAllBloodSugarCurveData()
     await updateAverageChart(currentRange)
+    // toast 已由 useBloodSugarCurve 內部呼叫，無需重複顯示
   } catch (error) {
-    toast.error('新增血糖曲線失敗')
+    console.error('❌ 新增血糖曲線失敗:', error)
+    // 錯誤 toast 已由 useBloodSugarCurve 處理，這裡不需要再次顯示
   } finally {
     isCreatingCurve.value = false
   }
@@ -396,15 +395,10 @@ function openEditBloodSugarCurveDialog(curveData) {
   editBloodSugarCurveDialog.value = true
 }
 
-async function updateBloodSugarCurve() {
-  if (!editBloodSugarCurveForm.date) {
-    toast.error('請選擇日期')
-    return
-  }
-
-  const validFields = editBloodSugarCurveForm.fields.filter(field => field.time && field.value)
+async function updateBloodSugarCurve(formData) {
+  const validFields = formData.fields.filter(field => field.time && field.value)
   if (validFields.length === 0) {
-    toast.error('請至少填寫一筆血糖數據')
+    toast.error('請至少填寫一筆血糖數據', '需要至少一筆包含時間和血糖值的記錄')
     return
   }
 
@@ -412,18 +406,20 @@ async function updateBloodSugarCurve() {
     isUpdatingCurve.value = true
     await originalUpdateBloodSugarCurve({
       id: editBloodSugarCurveForm.id,
-      date: editBloodSugarCurveForm.date,
+      date: formData.date,
       fields: validFields.map(field => ({
         time: field.time,
         value: parseFloat(field.value),
         insulin: field.insulin ? parseFloat(field.insulin) : 0
       }))
     })
-    editBloodSugarCurveDialog.value = false
+    modals.editBloodSugarCurve = false
     await getAllBloodSugarCurveData()
     await updateAverageChart(currentRange)
+    // toast 已由 useBloodSugarCurve 內部呼叫，無需重複顯示
   } catch (error) {
-    toast.error('更新血糖曲線失敗')
+    console.error('❌ 更新血糖曲線失敗:', error)
+    // 錯誤 toast 已由 useBloodSugarCurve 處理，這裡不需要再次顯示
   } finally {
     isUpdatingCurve.value = false
   }
@@ -432,7 +428,7 @@ async function updateBloodSugarCurve() {
 function openDeleteBloodSugarCurveDialog(curveData) {
   deleteItem.type = 'bloodSugarCurve'
   deleteItem.id = curveData._id
-  deleteItem.date = new Date(curveData.date).toLocaleDateString('zh-TW')
+  deleteItem.date = formatDateToLocale(curveData.date)
   deleteBloodSugarCurveDialog.value = true
 }
 
@@ -440,11 +436,13 @@ async function deleteBloodSugarCurve() {
   try {
     isDeletingCurve.value = true
     await originalDeleteBloodSugarCurve(deleteItem.id)
-    deleteBloodSugarCurveDialog.value = false
+    modals.deleteBloodSugarCurve = false
     await getAllBloodSugarCurveData()
     await updateAverageChart(currentRange)
+    // toast 已由 useBloodSugarCurve 內部呼叫，無需重複顯示
   } catch (error) {
-    toast.error('刪除血糖曲線失敗')
+    console.error('❌ 刪除血糖曲線失敗:', error)
+    // 錯誤 toast 已由 useBloodSugarCurve 處理，這裡不需要再次顯示
   } finally {
     isDeletingCurve.value = false
   }
@@ -463,8 +461,7 @@ const onBloodSugarChanged = async () => {
 }
 
 const onActivityChanged = () => {
-  // 當活動記錄變更時，可以觸發其他更新（如重新載入圖表等）
-  console.log('Activity timeline updated')
+  // 當活動記錄變更時的回調函數（預留給未來擴展使用）
 }
 
 // 初始化
@@ -557,65 +554,13 @@ onMounted(async () => {
 
 
   <!-- 新增體重 Modal -->
-  <v-dialog v-model="weightDialog" max-width="500px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6">
-        <v-icon icon="mdi-scale" class="mr-2" color="amber" />
-        新增體重記錄
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6">
-        <v-form @submit.prevent="createWeight">
-          <v-row>
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="weightForm.date"
-                name="weightDate"
-                label="日期"
-                type="date"
-                rules="required"
-                prepend-inner-icon="mdi-calendar"
-              />
-            </v-col>
-            
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="weightForm.value"
-                name="weightValue"
-                label="體重 (公斤)"
-                type="number"
-                step="0.1"
-                rules="required"
-                prepend-inner-icon="mdi-scale"
-              />
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isCreatingWeight"
-          @click="weightDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="amber" 
-          :loading="isCreatingWeight"
-          @click="createWeight"
-        >
-          新增體重
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <WeightDialog
+    v-model="weightDialog"
+    :form="weightForm"
+    :loading="isCreatingWeight"
+    mode="create"
+    @submit="createWeight"
+  />
 
   <!-- 體重管理 Modal -->
   <v-dialog v-model="weightListDialog" max-width="700px" persistent>
@@ -645,7 +590,7 @@ onMounted(async () => {
             </v-list-item-title>
             
             <v-list-item-subtitle>
-              {{ new Date(weightRecord.date).toLocaleDateString('zh-TW') }}
+              {{ formatDateToLocale(weightRecord.date) }}
             </v-list-item-subtitle>
 
             <template v-slot:append>
@@ -699,404 +644,56 @@ onMounted(async () => {
   </v-dialog>
 
   <!-- 編輯體重 Modal -->
-  <v-dialog v-model="editWeightDialog" max-width="500px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6">
-        <v-icon icon="mdi-pencil" class="mr-2" color="primary" />
-        編輯體重記錄
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6">
-        <v-form @submit.prevent="updateWeight">
-          <v-row>
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="editWeightForm.date"
-                name="editWeightDate"
-                label="日期"
-                type="date"
-                rules="required"
-                prepend-inner-icon="mdi-calendar"
-              />
-            </v-col>
-            
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="editWeightForm.value"
-                name="editWeightValue"
-                label="體重 (公斤)"
-                type="number"
-                step="0.1"
-                rules="required"
-                prepend-inner-icon="mdi-scale"
-              />
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isUpdatingWeight"
-          @click="editWeightDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="primary" 
-          :loading="isUpdatingWeight"
-          @click="updateWeight"
-        >
-          更新體重
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <WeightDialog
+    v-model="editWeightDialog"
+    :form="editWeightForm"
+    :loading="isUpdatingWeight"
+    mode="edit"
+    @submit="updateWeight"
+  />
 
   <!-- 刪除體重確認 Modal -->
-  <v-dialog v-model="deleteWeightDialog" max-width="500px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6 text-center">
-        <div class="d-flex flex-column align-center">
-          <v-avatar color="error" size="64" class="mb-4">
-            <v-icon icon="mdi-delete-alert" size="32" color="white" />
-          </v-avatar>
-          <span class="text-h6">確認刪除體重記錄</span>
-        </div>
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6 text-center">
-        <p class="text-h6 mb-4">
-          您確定要刪除以下體重記錄嗎？
-        </p>
-        
-        <v-card variant="tonal" color="error" class="mb-4">
-          <v-card-text>
-            <div class="text-h6 font-weight-bold">{{ deleteItem.value }}</div>
-            <div class="text-body-1">{{ deleteItem.date }}</div>
-          </v-card-text>
-        </v-card>
-        
-        <v-alert type="warning" variant="tonal" class="text-left">
-          <p class="font-weight-bold mb-2">⚠️ 警告：此操作無法復原</p>
-          <p class="text-body-2">刪除後將無法恢復此體重記錄</p>
-        </v-alert>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isDeletingWeight"
-          @click="deleteWeightDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="error" 
-          variant="elevated"
-          :loading="isDeletingWeight"
-          @click="deleteWeight"
-        >
-          <v-icon icon="mdi-delete" start />
-          確認刪除
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <ConfirmDialog
+    v-model="deleteWeightDialog"
+    title="確認刪除體重記錄"
+    message="您確定要刪除以下體重記錄嗎？此操作無法復原。"
+    :details="{ 日期: deleteItem.date, 體重: deleteItem.value }"
+    :loading="isDeletingWeight"
+    type="danger"
+    confirm-text="確認刪除"
+    @confirm="deleteWeight"
+  />
 
   <!-- 新增血糖曲線 Modal -->
-  <v-dialog v-model="bloodSugarCurveDialog" max-width="800px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6">
-        <v-icon icon="mdi-chart-line" class="mr-2" color="pink" />
-        建立血糖曲線
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6">
-        <v-form @submit.prevent="createBloodSugarCurve">
-          <v-row class="mb-4">
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="bloodSugarCurveForm.date"
-                name="bloodSugarCurveDate"
-                label="日期"
-                type="date"
-                rules="required"
-                prepend-inner-icon="mdi-calendar"
-              />
-            </v-col>
-          </v-row>
-
-          <v-divider class="mb-4" />
-          
-          <h3 class="text-h6 mb-4">血糖數據</h3>
-          
-          <v-row 
-            v-for="(field, index) in bloodSugarCurveForm.fields" 
-            :key="index"
-            class="mb-2"
-          >
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="field.time"
-                label="時間"
-                type="time"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-clock"
-              />
-            </v-col>
-            
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="field.value"
-                label="血糖值"
-                type="number"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-water"
-                suffix="mg/dL"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="field.insulin"
-                label="胰島素"
-                type="number"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-needle"
-                suffix="U"
-              />
-            </v-col>
-          </v-row>
-
-          <div class="text-center mb-4">
-            <v-btn
-              color="success"
-              prepend-icon="mdi-plus"
-              @click="addBloodSugarField"
-            >
-              新增血糖數據
-            </v-btn>
-          </div>
-        </v-form>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isCreatingCurve"
-          @click="bloodSugarCurveDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="pink" 
-          :loading="isCreatingCurve"
-          @click="createBloodSugarCurve"
-        >
-          建立血糖曲線
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <BloodSugarCurveDialog
+    v-model="bloodSugarCurveDialog"
+    :form="bloodSugarCurveForm"
+    :loading="isCreatingCurve"
+    mode="create"
+    @submit="createBloodSugarCurve"
+    @date-change="loadBloodSugarForCurve"
+  />
 
   <!-- 編輯血糖曲線 Modal -->
-  <v-dialog v-model="editBloodSugarCurveDialog" max-width="800px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6">
-        <v-icon icon="mdi-pencil" class="mr-2" color="primary" />
-        編輯血糖曲線
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6">
-        <v-form @submit.prevent="updateBloodSugarCurve">
-          <v-row class="mb-4">
-            <v-col cols="12" md="6">
-              <VuTextField
-                v-model="editBloodSugarCurveForm.date"
-                name="editBloodSugarCurveDate"
-                label="日期"
-                type="date"
-                rules="required"
-                prepend-inner-icon="mdi-calendar"
-              />
-            </v-col>
-          </v-row>
-
-          <v-divider class="mb-4" />
-          
-          <h3 class="text-h6 mb-4">血糖數據</h3>
-          
-          <v-row 
-            v-for="(field, index) in editBloodSugarCurveForm.fields" 
-            :key="index"
-            class="mb-2 align-center"
-          >
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="field.time"
-                label="時間"
-                type="time"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-clock"
-                hide-details
-              />
-            </v-col>
-            
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="field.value"
-                label="血糖值"
-                type="number"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-water"
-                suffix="mg/dL"
-                hide-details
-              />
-            </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="field.insulin"
-                label="胰島素"
-                type="number"
-                variant="outlined"
-                density="compact"
-                prepend-inner-icon="mdi-needle"
-                suffix="U"
-                hide-details
-              />
-            </v-col>
-            
-            <v-col cols="12" md="3" class="text-center">
-              <v-btn
-                icon="mdi-close"
-                size="small"
-                color="error"
-                variant="text"
-                :disabled="editBloodSugarCurveForm.fields.length === 1"
-                @click="removeEditBloodSugarField(index)"
-              />
-            </v-col>
-          </v-row>
-
-          <div class="text-center mb-4">
-            <v-btn
-              color="success"
-              prepend-icon="mdi-plus"
-              @click="addEditBloodSugarField"
-            >
-              新增血糖數據
-            </v-btn>
-          </div>
-        </v-form>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-btn
-          color="error"
-          variant="outlined"
-          :disabled="isUpdatingCurve"
-          @click="openDeleteBloodSugarCurveDialog({ _id: editBloodSugarCurveForm.id, date: editBloodSugarCurveForm.date })"
-        >
-          刪除此曲線
-        </v-btn>
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isUpdatingCurve"
-          @click="editBloodSugarCurveDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="primary" 
-          :loading="isUpdatingCurve"
-          @click="updateBloodSugarCurve"
-        >
-          更新血糖曲線
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
+  <BloodSugarCurveDialog
+    v-model="editBloodSugarCurveDialog"
+    :form="editBloodSugarCurveForm"
+    :loading="isUpdatingCurve"
+    mode="edit"
+    @submit="updateBloodSugarCurve"
+  />
+  
   <!-- 刪除血糖曲線確認 Modal -->
-  <v-dialog v-model="deleteBloodSugarCurveDialog" max-width="500px" persistent>
-    <v-card>
-      <v-card-title class="text-h5 pa-6 text-center">
-        <div class="d-flex flex-column align-center">
-          <v-avatar color="error" size="64" class="mb-4">
-            <v-icon icon="mdi-delete-alert" size="32" color="white" />
-          </v-avatar>
-          <span class="text-h6">確認刪除血糖曲線</span>
-        </div>
-      </v-card-title>
-      
-      <v-divider />
-      
-      <v-card-text class="pa-6 text-center">
-        <p class="text-h6 mb-4">
-          您確定要刪除以下血糖曲線嗎？
-        </p>
-        
-        <v-card variant="tonal" color="error" class="mb-4">
-          <v-card-text>
-            <div class="text-h6 font-weight-bold">{{ deleteItem.date }}</div>
-          </v-card-text>
-        </v-card>
-        
-        <v-alert type="warning" variant="tonal" class="text-left">
-          <p class="font-weight-bold mb-2">⚠️ 警告：此操作無法復原</p>
-          <p class="text-body-2">刪除後將無法恢復此血糖曲線及其所有數據</p>
-        </v-alert>
-      </v-card-text>
-
-      <v-divider />
-      
-      <v-card-actions class="pa-6">
-        <v-spacer />
-        <v-btn 
-          variant="outlined" 
-          :disabled="isDeletingCurve"
-          @click="deleteBloodSugarCurveDialog = false"
-        >
-          取消
-        </v-btn>
-        <v-btn 
-          color="error" 
-          variant="elevated"
-          :loading="isDeletingCurve"
-          @click="deleteBloodSugarCurve"
-        >
-          <v-icon icon="mdi-delete" start />
-          確認刪除
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <ConfirmDialog
+    v-model="deleteBloodSugarCurveDialog"
+    title="確認刪除血糖曲線"
+    message="您確定要刪除此血糖曲線嗎？刪除後將無法恢復此血糖曲線及其所有數據。"
+    :details="{ 日期: deleteItem.date }"
+    :loading="isDeletingCurve"
+    type="danger"
+    confirm-text="確認刪除"
+    @confirm="deleteBloodSugarCurve"
+  />
 
   <!-- 載入指示器 -->
   <v-overlay 
