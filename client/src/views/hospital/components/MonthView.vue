@@ -15,7 +15,7 @@
     <!-- 日曆格子容器 -->
     <div class="calendar-grid">
       <template v-for="(day, index) in calendar" :key="day.isoDate || index">
-        <v-card v-if="day.day" :class="['day-card', { 'today-card': day.isToday, clickable: day.records?.length }]" variant="outlined" @click="day.records?.length ? $emit('showTips', $event, day?.records) : null">
+        <v-card v-if="day.day" :class="['day-card', { 'today-card': day.isToday, clickable: day.records?.length }]" variant="outlined" @click="day.records?.length ? $emit('dayClicked', day) : null">
           <v-card-title class="day-title">
             <div class="text-body-1 font-weight-bold d-flex align-center justify-space-between">
               <span>
@@ -109,7 +109,7 @@ const getBloodSugarColor = value => {
   return 'severity-low'
 }
 
-const emit = defineEmits(['showTips', 'hideTooltip', 'toggleMark'])
+const emit = defineEmits(['showTips', 'hideTooltip', 'toggleMark', 'dayClicked'])
 </script>
 
 <style scoped>

@@ -58,7 +58,7 @@
                     <span class="text-body-2">{{ activity.value }}</span>
                   </div>
 
-                  <div v-if="activity.notes" class="text-body-2" style="white-space: pre-wrap;">
+                  <div v-if="activity.notes" class="text-body-2" style="white-space: pre-wrap">
                     {{ activity.notes }}
                   </div>
                 </v-card-text>
@@ -217,12 +217,12 @@ const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const activityFormRef = ref(null)
 const isExpanded = ref(false) // 預設展開
-const timelineDirection = ref('vertical') // 'vertical' 或 'horizontal'
+const timelineDirection = ref('horizontal') // 'vertical' 或 'horizontal'
 
 // 表單
 const activityForm = reactive({
   id: '',
-  time: new Date().toTimeString().slice(0, 5),
+  time: new Date().getHours().toString().padStart(2, '0') + ':' + new Date().getMinutes().toString().padStart(2, '0'),
   activityType: '',
   description: '',
   value: '',
@@ -279,7 +279,8 @@ const toggleExpand = () => {
 const openAddDialog = () => {
   isEditing.value = false
   activityForm.id = ''
-  activityForm.time = new Date().toTimeString().slice(0, 5)
+  const now = new Date()
+  activityForm.time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0')
   activityForm.activityType = ''
   activityForm.description = ''
   activityForm.value = ''

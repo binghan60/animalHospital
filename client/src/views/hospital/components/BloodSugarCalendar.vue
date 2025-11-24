@@ -5,7 +5,7 @@
       <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="prevMonth" @nextMonth="nextMonth" @goToMarkedDiary="goToMarkedDiary" />
 
       <!-- 月視圖 -->
-      <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" @toggleMark="toggleMark" />
+      <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" @toggleMark="toggleMark" @dayClicked="openDayDetailDialog" />
 
       <!-- 週視圖 -->
       <WeekView v-show="calendarDisplay === 'week'" :weekData="weekData" :weekRange="weekRange" :user="user" @openTaskModal="openTaskModal" @openEditTaskModal="openEditTaskModal" @toggleMark="toggleMark" />
@@ -171,6 +171,41 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <!-- Day Detail Dialog -->
+    <v-dialog v-model="dayDetailDialog" max-width="600px">
+      <v-card>
+        <v-card-title class="d-flex justify-space-between align-center">
+          <span>{{ selectedDayForDetail?.date.split('T')[0] }} 血糖記錄</span>
+          <v-btn icon="mdi-close" variant="text" @click="closeDayDetailDialog"></v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-table>
+            <thead>
+              <tr>
+                <th class="text-left">時間</th>
+                <th class="text-left">血糖</th>
+                <th class="text-left">胰島素</th>
+                <th class="text-left">備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(record, index) in selectedDayForDetail?.records" :key="record._id" :class="[index % 2 === 1 ? (isDark ? 'bg-grey-darken-3' : 'bg-grey-lighten-4') : '']">
+                <td>{{ record.time }}</td>
+                <td>{{ record.bloodSugar }}</td>
+                <td>{{ record.insulin }}</td>
+                <td>{{ record.notes }}</td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" variant="text" @click="closeDayDetailDialog"> 關閉 </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -179,7 +214,9 @@
   min-height: 800px;
   background-color: rgb(var(--v-theme-surface)) !important;
   color: rgb(var(--v-theme-on-surface)) !important;
-  transition: background-color 0.1s ease, color 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
 }
 
 @media (min-width: 1024px) {
@@ -187,13 +224,16 @@
     min-height: 1000px;
     background-color: rgb(var(--v-theme-surface)) !important;
     color: rgb(var(--v-theme-on-surface)) !important;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
   }
 }
 </style>
 
 <script setup>
 import { watch, onMounted, computed } from 'vue'
+import authStore from '@/stores/auth'
 import { useRoute, useRouter } from 'vue-router'
 import { Field as VField, Form as VForm, ErrorMessage } from 'vee-validate'
 import { useBloodSugarCalendar } from '../composables/useBloodSugarCalendar'
@@ -203,6 +243,8 @@ import WeekView from './WeekView.vue'
 import VuTextField from '@/components/form/VuTextField.vue'
 
 const router = useRouter()
+const store = authStore()
+const isDark = computed(() => store.isDark)
 
 const props = defineProps({
   animalId: {
@@ -242,6 +284,8 @@ const {
   showTooltip,
   hoverData,
   tooltipStyle,
+  dayDetailDialog,
+  selectedDayForDetail,
 
   // 方法
   getWeekBloodSugarData,
@@ -261,6 +305,8 @@ const {
   prevMonth,
   nextMonth,
   goToFirstWeekOfSelectedMonth,
+  openDayDetailDialog,
+  closeDayDetailDialog,
 } = useBloodSugarCalendar(
   props.animalId,
   computed(() => props.user),
@@ -281,8 +327,8 @@ watch(
 watch(
   () => newtoday.month,
   async () => {
-    await updateCalendar()
     if (calendarDisplay.value === 'month') {
+      await updateCalendar()
       emitCurrentDateRange()
     }
   },
@@ -375,27 +421,27 @@ onMounted(async () => {
       if (props.targetView === 'week') {
         calendarDisplay.value = 'week'
       }
-      
+
       // 設定目標日期相關的時間
       newtoday.date = targetDateObj
       selectedYear.value = targetDateObj.getFullYear()
       selectedMonth.value = targetDateObj.getMonth()
-      
+
       // 更新到目標日期所在的週
       const startOfWeek = getStartOfWeek(new Date(targetDateObj))
       updateWeekData(startOfWeek)
-      
+
       // 載入該週的資料
       await getWeekBloodSugarData()
-      
+
       // 清除 URL 參數，避免重複跳轉
       router.replace({ query: {} })
-      
+
       emitCurrentDateRange()
       return
     }
   }
-  
+
   // 正常初始化流程
   newtoday.date = new Date()
   updateWeekData()

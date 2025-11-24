@@ -32,22 +32,40 @@ export function useChartConfig(isDark) {
           label: '體重',
           data: weightData.map(x => x.value),
           borderColor: colors.value.line.borderColor,
-          backgroundColor: colors.value.line.backgroundColor,
+          backgroundColor: function(context) {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) {
+              // This case happens on initial chart load when chartArea is not yet defined
+              return colors.value.line.borderColor.replace('0.9)', '0.2)'); // fallback color
+            }
+            // Create a gradient for the fill
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            const lineColor = colors.value.line.borderColor.replace('0.9)', '1)'); // Use solid version for gradient start
+            gradient.addColorStop(0, lineColor.replace('1)', '0.05)')); // More transparent at bottom
+            gradient.addColorStop(1, lineColor.replace('1)', '0.3)')); // Less transparent at top
+            return gradient;
+          },
           pointRadius: 6,
           pointHoverRadius: 10
         }
       ]
     }
 
+    const weightValues = weightData.map(d => d.value);
+    const maxValue = weightValues.length > 0 ? Math.max(...weightValues) : 0;
+    const minValue = weightValues.length > 0 ? Math.min(...weightValues) : 0;
+    console.log(Math.max(...weightValues))
+
     const options = {
-      fill: false,
+      fill: true, // Changed from false to true
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         datalabels: {
           display: true,
-          color: colors.value.line.labelColor,
+          color: colors.value.line.labelColor.replace('0.92)', '1)'), // Alpha changed to 1 for solid color
           font: { weight: 'bold', size: 14 },
           anchor: 'center',
           align: 'top',
@@ -56,7 +74,12 @@ export function useChartConfig(isDark) {
       },
       scales: {
         x: { ticks: { color: colors.value.ticks }, grid: { color: colors.value.grid } },
-        y: { ticks: { color: colors.value.ticks }, grid: { color: colors.value.grid } }
+        y: { 
+          ticks: { color: colors.value.ticks }, 
+          grid: { color: colors.value.grid },
+          suggestedMax: maxValue > 0 ? maxValue + 0.15 : 1,
+          suggestedMin: minValue > 1 ? minValue - 0.15 : 0
+        }
       }
     }
 
@@ -130,7 +153,20 @@ export function useChartConfig(isDark) {
             label: '血糖',
             data: x.records.map(y => y.value),
             borderColor: colors.value.line.borderColor,
-            backgroundColor: 'transparent',
+            backgroundColor: function(context) {
+              const chart = context.chart;
+              const { ctx, chartArea } = chart;
+              if (!chartArea) {
+                // This case happens on initial chart load when chartArea is not yet defined
+                return colors.value.line.borderColor.replace('0.9)', '0.2)'); // fallback color
+              }
+              // Create a gradient for the fill
+              const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+              const lineColor = colors.value.line.borderColor.replace('0.9)', '1)'); // Use solid version for gradient start
+              gradient.addColorStop(0, lineColor.replace('1)', '0.05)')); // More transparent at bottom
+              gradient.addColorStop(1, lineColor.replace('1)', '0.3)')); // Less transparent at top
+              return gradient;
+            },
             pointRadius: 6,
             pointHoverRadius: 10,
             yAxisID: 'y'
@@ -148,7 +184,7 @@ export function useChartConfig(isDark) {
       }
 
       const option = {
-        fill: false,
+        fill: true,
         responsive: true,
         maintainAspectRatio: false,
         plugins: {

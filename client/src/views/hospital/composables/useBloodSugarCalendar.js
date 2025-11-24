@@ -398,20 +398,16 @@ export function useBloodSugarCalendar(animalId, user) {
   }
 
   // 週月導航
-  const prevWeek = async () => {
+  const prevWeek = () => {
     newtoday.date.setDate(newtoday.date.getDate() - 7)
     newtoday.date = new Date(newtoday.date)
     updateWeekData()
-    // 觸發資料載入
-    await getWeekBloodSugarData()
   }
 
-  const nextWeek = async () => {
+  const nextWeek = () => {
     newtoday.date.setDate(newtoday.date.getDate() + 7)
     newtoday.date = new Date(newtoday.date)
     updateWeekData()
-    // 觸發資料載入
-    await getWeekBloodSugarData()
   }
 
   const prevMonth = async () => {
@@ -461,6 +457,19 @@ export function useBloodSugarCalendar(animalId, user) {
     }
   }
 
+  const dayDetailDialog = ref(false)
+  const selectedDayForDetail = ref(null)
+
+  const openDayDetailDialog = (day) => {
+    selectedDayForDetail.value = day
+    dayDetailDialog.value = true
+  }
+
+  const closeDayDetailDialog = () => {
+    dayDetailDialog.value = false
+    selectedDayForDetail.value = null
+  }
+
   return {
     // 狀態
     isLoading,
@@ -479,6 +488,8 @@ export function useBloodSugarCalendar(animalId, user) {
     showTooltip,
     hoverData,
     tooltipStyle,
+    dayDetailDialog,
+    selectedDayForDetail,
 
     // 方法
     getWeekBloodSugarData,
@@ -497,5 +508,7 @@ export function useBloodSugarCalendar(animalId, user) {
     prevMonth,
     nextMonth,
     goToFirstWeekOfSelectedMonth,
+    openDayDetailDialog,
+    closeDayDetailDialog,
   }
 }

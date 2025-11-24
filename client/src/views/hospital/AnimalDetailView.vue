@@ -56,9 +56,18 @@ const bloodSugarCurveDialog = ref(false)
 const editBloodSugarCurveDialog = ref(false)
 const deleteBloodSugarCurveDialog = ref(false)
 
+const formatDateToYyyyMmDd = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 表單數據
 const weightForm = reactive({
-  date: new Date().toISOString().slice(0, 10),
+  date: formatDateToYyyyMmDd(new Date()),
   value: '',
 })
 
@@ -69,7 +78,7 @@ const editWeightForm = reactive({
 })
 
 const bloodSugarCurveForm = reactive({
-  date: new Date().toISOString().slice(0, 10),
+  date: formatDateToYyyyMmDd(new Date()),
   fields: [{ time: '', value: '', insulin: '' }],
 })
 
@@ -146,12 +155,12 @@ const currentRange = reactive({ type: 'week', startDate: '', endDate: '' })
 
 // 工具函數
 function resetWeightForm() {
-  weightForm.date = new Date().toISOString().slice(0, 10)
+  weightForm.date = formatDateToYyyyMmDd(new Date())
   weightForm.value = ''
 }
 
 function resetBloodSugarCurveForm() {
-  bloodSugarCurveForm.date = new Date().toISOString().slice(0, 10)
+  bloodSugarCurveForm.date = formatDateToYyyyMmDd(new Date())
   bloodSugarCurveForm.fields = [{ time: '', value: '', insulin: '' }]
 }
 
@@ -217,8 +226,8 @@ const updateAverageChart = async (customRange) => {
       endOfWeek.setDate(startOfWeek.getDate() + 6)
       endOfWeek.setHours(23, 59, 59, 999)
 
-      startDate = startOfWeek.toISOString().split('T')[0]
-      endDate = endOfWeek.toISOString().split('T')[0]
+      startDate = formatDateToYyyyMmDd(startOfWeek)
+      endDate = formatDateToYyyyMmDd(endOfWeek)
       title = `${startDate.split('-')[1]}-${startDate.split('-')[2]} ~ ${endDate.split('-')[1]}-${endDate.split('-')[2]} 平均血糖`
     }
 
@@ -256,7 +265,7 @@ async function createWeight() {
 
 function openEditWeightDialog(weightRecord) {
   editWeightForm.id = weightRecord._id
-  editWeightForm.date = new Date(weightRecord.date).toISOString().split('T')[0]
+  editWeightForm.date = formatDateToYyyyMmDd(weightRecord.date)
   editWeightForm.value = weightRecord.value
   editWeightDialog.value = true
 }
@@ -342,7 +351,7 @@ async function createBloodSugarCurve() {
 
 function openEditBloodSugarCurveDialog(curveData) {
   editBloodSugarCurveForm.id = curveData._id
-  editBloodSugarCurveForm.date = new Date(curveData.date).toISOString().split('T')[0]
+  editBloodSugarCurveForm.date = formatDateToYyyyMmDd(curveData.date)
   editBloodSugarCurveForm.fields = (curveData.records || curveData.fields || []).map(field => ({
     time: field.time,
     value: field.value,
