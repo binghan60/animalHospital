@@ -7,7 +7,7 @@
 
     <v-card-text class="pt-2">
       <div class="chart-container">
-        <ChartComponent :key="chartConfig.uniqueKey || ((isDark.value ? 'dark' : 'light') + '-' + chartConfig.data?.labels?.length)" type="pie" :chartData="chartConfig.data" :chartOptions="chartConfig.options" />
+        <ChartComponent :key="chartConfig.uniqueKey" type="pie" :chartData="chartConfig.data" :chartOptions="chartConfig.options" />
       </div>
 
       <div class="spacer"></div>
@@ -96,11 +96,10 @@ const chartTitle = computed(() => {
 const chartConfig = computed(() => {
   // 讓主題切換觸發重算
   const themeKey = isDark.value ? 'dark' : 'light'
-  const timestamp = Date.now()
   const config = getAverageChartConfig(props.averageData, props.title)
   return {
     ...config,
-    uniqueKey: `${themeKey}-${timestamp}`
+    uniqueKey: `${themeKey}-${JSON.stringify(props.averageData)}`
   }
 })
 

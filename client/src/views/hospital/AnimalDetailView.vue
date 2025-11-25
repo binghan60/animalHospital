@@ -234,11 +234,11 @@ const updateAverageChart = async (customRange) => {
 
     averageChart.title = title
     const data = await getAverageLocal(startDate, endDate)
-    averageChart.rawData = data
+    Object.assign(averageChart.rawData, data) // Update properties in place
   } catch (error) {
     console.error('❌ 更新平均血糖圖表失敗:', error)
     toast.error('更新平均血糖圖表失敗', error.message || '請稍後再試')
-    averageChart.rawData = getDefaultAverageData()
+    Object.assign(averageChart.rawData, getDefaultAverageData()) // Update properties in place
   }
 }
 
@@ -456,9 +456,6 @@ const onDateRangeChanged = ({ type, startDate, endDate }) => {
   updateAverageChart(currentRange)
 }
 
-const onBloodSugarChanged = async () => {
-    await updateAverageChart(currentRange)
-}
 
 const onActivityChanged = () => {
   // 當活動記錄變更時的回調函數（預留給未來擴展使用）
@@ -468,7 +465,6 @@ const onActivityChanged = () => {
 onMounted(async () => {
   await getAnimalInfo()
   await getAllBloodSugarCurveData()
-  await updateAverageChart()
 })
 </script>
 
@@ -519,7 +515,6 @@ onMounted(async () => {
       :targetDate="targetDate"
       :targetView="targetView"
       @dateRangeChanged="onDateRangeChanged" 
-      @bloodSugarChanged="onBloodSugarChanged" 
     />
 
     <!-- 血糖曲線控制面板 -->

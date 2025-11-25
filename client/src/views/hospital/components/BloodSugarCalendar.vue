@@ -1,8 +1,7 @@
 <template>
   <v-card class="mt-4 blood-sugar-calendar-card">
     <v-card-text class="pa-4">
-      <!-- 日曆控制器 -->
-      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="prevMonth" @nextMonth="nextMonth" @goToMarkedDiary="goToMarkedDiary" />
+      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="handlePrevMonth" @nextMonth="handleNextMonth" @goToMarkedDiary="goToMarkedDiary" />
 
       <!-- 月視圖 -->
       <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" @toggleMark="toggleMark" @dayClicked="openDayDetailDialog" />
@@ -324,16 +323,6 @@ watch(
   },
 )
 
-watch(
-  () => newtoday.month,
-  async () => {
-    if (calendarDisplay.value === 'month') {
-      await updateCalendar()
-      emitCurrentDateRange()
-    }
-  },
-)
-
 // 監聽週資料變化，當導航到新週時更新資料
 watch(
   () => weekRange.value,
@@ -385,10 +374,25 @@ const deleteTaskAndEmit = async (recordId, taskId) => {
   emitCurrentDateRange()
 }
 
+// 包裝函式：處理月份導航並發出事件
+const handlePrevMonth = async () => {
+  await prevMonth()
+  emitCurrentDateRange()
+}
+
+const handleNextMonth = async () => {
+  await nextMonth()
+  emitCurrentDateRange()
+}
+
 // 跳轉到標記記錄頁面
 const goToMarkedDiary = () => {
-  const currentRoute = useRoute()
-  router.push(`/hospital/animal/${props.animalId}/marked-diary`)
+  const role = store.user.role
+  if (role === 'hospital') {
+    router.push(`/hospital/animal/${props.animalId}/marked-diary`)
+  } else if (role === 'user') {
+    router.push(`/user/animal/${props.animalId}/marked-diary`)
+  }
 }
 
 // 監聽日曆顯示模式變化
@@ -431,13 +435,9 @@ onMounted(async () => {
       const startOfWeek = getStartOfWeek(new Date(targetDateObj))
       updateWeekData(startOfWeek)
 
-      // 載入該週的資料
-      await getWeekBloodSugarData()
-
       // 清除 URL 參數，避免重複跳轉
       router.replace({ query: {} })
 
-      emitCurrentDateRange()
       return
     }
   }
@@ -447,10 +447,6 @@ onMounted(async () => {
   updateWeekData()
   selectedYear.value = newtoday.date.getFullYear()
   selectedMonth.value = newtoday.date.getMonth()
-  calendarDisplay.value = 'week'
-
-  // 初始載入週資料
-  await getWeekBloodSugarData()
-  emitCurrentDateRange()
+  calendarDisplay.value = 'week' // 這將觸發 watch 來載入資料
 })
 </script>

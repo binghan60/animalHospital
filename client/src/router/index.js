@@ -56,6 +56,13 @@ const router = createRouter({
           component: () => import('@/views/hospital/AnimalDetailView.vue'),
           props: true, //將ID透過props傳入，而不是this.$route.params
         },
+        {
+          path: 'animal/:animalId/marked-diary',
+          name: 'user-marked-diary',
+          meta: { title: '醒目標記記錄' },
+          component: () => import('@/views/hospital/MarkedDiaryView.vue'),
+          props: true,
+        },
       ],
     },
     {
