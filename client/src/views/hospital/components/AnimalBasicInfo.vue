@@ -1,70 +1,129 @@
 <template>
-  <v-card class="animal-basic-info-card" :class="{ 'theme-surface': true }">
-    <v-card-title class="pb-2 flex-shrink-0">
-      <v-icon icon="mdi-information" class="mr-2" color="primary" />
-      基本資料
+  <v-card class="animal-basic-info-card">
+    <v-card-title class="d-flex align-center">
+      <v-icon icon="mdi-paw" class="mr-2" color="primary" />
+      <span class="font-weight-bold">基本資料</span>
     </v-card-title>
-
-    <v-card-text class="pt-2 overflow-y-auto flex-grow-1">
-      <v-list density="compact" class="pa-0">
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">姓名：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">{{ animalInfo.name }}</v-list-item-subtitle>
+    <v-divider />
+    <v-card-text class="pa-4">
+      <v-list density="compact">
+        <!-- 姓名 -->
+        <v-list-item>
+          <template #prepend>
+            <v-icon icon="mdi-card-account-details" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">姓名:</span>
+            <span class="font-weight-medium text-body-1">{{ animalInfo.name }}</span>
+          </div>
+          <template #append>
+            <v-btn icon="mdi-content-copy" size="x-small" variant="text" @click="copyToClipboard(animalInfo.name)" />
+          </template>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">種類：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">
-            <v-icon :icon="getVuetifyIcon(animalInfo.type)" class="mr-1" />
-            {{ getTypeText(animalInfo.type) }}
-          </v-list-item-subtitle>
+        <!-- 院內碼 -->
+        <v-list-item v-if="animalInfo.hospitalCode">
+          <template #prepend>
+            <v-icon icon="mdi-barcode" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">院內碼:</span>
+            <span class="font-weight-medium text-body-1">{{ animalInfo.hospitalCode }}</span>
+          </div>
         </v-list-item>
 
-        <v-list-item v-if="animalInfo.birthday !== null && animalInfo.birthday !== '1970-01-01T00:00:00.000Z'" class="px-0 py-1">
-          <v-list-item-title class="info-label">生日：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">
-            {{ animalInfo.birthday ? new Date(animalInfo.birthday).toISOString().slice(0, 10) : '' }}
-            ({{ convertBirthdayToAge(animalInfo.birthday).years }}歲 {{ convertBirthdayToAge(animalInfo.birthday).months > 0 ? convertBirthdayToAge(animalInfo.birthday).months + '個月' : '' }})
-          </v-list-item-subtitle>
+        <!-- 種類 -->
+        <v-list-item>
+          <template #prepend>
+            <v-icon :icon="getVuetifyIcon(animalInfo.type)" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">種類:</span>
+            <span class="font-weight-medium text-body-1">{{ getTypeText(animalInfo.type) }}</span>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">性別：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">
-            <v-icon :icon="animalInfo.gender === 'male' ? 'mdi-gender-male' : 'mdi-gender-female'" :color="animalInfo.gender === 'male' ? 'blue' : 'pink'" class="mr-1" />
-            {{ animalInfo.gender === 'male' ? '男生' : '女生' }}
-          </v-list-item-subtitle>
+        <!-- 生日 -->
+        <v-list-item v-if="age.years !== null">
+          <template #prepend>
+            <v-icon icon="mdi-cake-variant" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">生日:</span>
+            <span class="font-weight-medium text-body-1">
+              {{ formattedBirthday }} ({{ age.years }} 歲 <span v-if="age.months > 0">{{ age.months }} 個月</span>)
+            </span>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">血型：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">
-            {{ animalInfo.bloodType ? animalInfo.bloodType + ' 型' : '-' }}
-          </v-list-item-subtitle>
+        <!-- 性別 -->
+        <v-list-item>
+          <template #prepend>
+            <v-icon :color="animalInfo.gender === 'male' ? 'blue' : 'pink'" :icon="animalInfo.gender === 'male' ? 'mdi-gender-male' : 'mdi-gender-female'" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">性別:</span>
+            <span class="font-weight-medium text-body-1">
+              {{ animalInfo.gender === 'male' ? '男生' : '女生' }}
+            </span>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">體重：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">{{ weightValue || '-' }}</v-list-item-subtitle>
+        <!-- 血型 -->
+        <v-list-item v-if="animalInfo.bloodType">
+          <template #prepend>
+            <v-icon icon="mdi-water" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">血型:</span>
+            <span class="font-weight-medium text-body-1">{{ animalInfo.bloodType }} 型</span>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">品種：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">{{ animalInfo.breed || '-' }}</v-list-item-subtitle>
+        <!-- 體重 -->
+        <v-list-item v-if="weightValue">
+          <template #prepend>
+            <v-icon icon="mdi-weight" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">體重:</span>
+            <span class="font-weight-medium text-body-1">{{ weightValue }}</span>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">結紮：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">
-            <v-chip :color="animalInfo.sterilized ? 'success' : 'error'" variant="tonal" size="small">
-              {{ animalInfo.sterilized ? '是' : '否' }}
+        <!-- 品種 -->
+        <v-list-item v-if="animalInfo.breed">
+          <template #prepend>
+            <v-icon icon="mdi-star-four-points" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">品種:</span>
+            <span class="font-weight-medium text-body-1">{{ animalInfo.breed }}</span>
+          </div>
+        </v-list-item>
+
+        <!-- 結紮 -->
+        <v-list-item>
+          <template #prepend>
+            <v-icon icon="mdi-medical-bag" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">結紮:</span>
+            <v-chip :color="animalInfo.sterilized ? 'success' : 'grey'" variant="tonal" size="x-small">
+              {{ animalInfo.sterilized ? '已結紮' : '未結紮' }}
             </v-chip>
-          </v-list-item-subtitle>
+          </div>
         </v-list-item>
 
-        <v-list-item class="px-0 py-1">
-          <v-list-item-title class="info-label">胰島素：</v-list-item-title>
-          <v-list-item-subtitle class="info-value">{{ animalInfo.insulinBrand || '-' }}</v-list-item-subtitle>
+        <!-- 胰島素品牌 -->
+        <v-list-item v-if="animalInfo.insulinBrand">
+          <template #prepend>
+            <v-icon icon="mdi-insulin" />
+          </template>
+          <div class="d-flex align-center w-100">
+            <span class="text-caption text-medium-emphasis me-2">胰島素品牌:</span>
+            <span class="font-weight-medium text-body-1">{{ animalInfo.insulinBrand }}</span>
+          </div>
         </v-list-item>
       </v-list>
     </v-card-text>
@@ -73,6 +132,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useAppToast } from '@/utils/appToast'
 
 const props = defineProps({
   animalInfo: {
@@ -82,18 +142,35 @@ const props = defineProps({
   },
 })
 
+const toast = useAppToast()
+
 // 計算動物年齡
 const convertBirthdayToAge = (dateString = new Date()) => {
   const today = new Date()
   const birth = new Date(dateString)
   let years = today.getFullYear() - birth.getFullYear()
   let months = today.getMonth() - birth.getMonth()
-  if (months < 0) {
+  if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
     years--
-    months += 12
+    months = (months + 12) % 12
   }
   return { years, months }
 }
+
+const age = computed(() => {
+  if (!props.animalInfo.birthday || props.animalInfo.birthday === '1970-01-01T00:00:00.000Z') {
+    return { years: null, months: null }
+  }
+  return convertBirthdayToAge(props.animalInfo.birthday)
+})
+
+// 格式化生日
+const formattedBirthday = computed(() => {
+  if (!props.animalInfo.birthday || props.animalInfo.birthday === '1970-01-01T00:00:00.000Z') {
+    return '未提供'
+  }
+  return new Date(props.animalInfo.birthday).toISOString().slice(0, 10)
+})
 
 // 計算體重值顯示
 const weightValue = computed(() => {
@@ -105,7 +182,21 @@ const weightValue = computed(() => {
   return ''
 })
 
-// 獲取 Vuetify 圖示
+// 動物住院狀態 (保留)
+const statusInfo = computed(() => {
+  switch (props.animalInfo.status) {
+    case 'in_hospital':
+      return { text: '住院中', color: 'success' }
+    case 'discharged':
+      return { text: '已出院', color: 'grey' }
+    case 'deceased':
+      return { text: '離世', color: 'blue-grey' }
+    default:
+      return { text: '未知', color: 'secondary' }
+  }
+})
+
+// 獲取 Vuetify 圖示 (恢復原始邏輯)
 const getVuetifyIcon = type => {
   if (type === 'dog') {
     return 'mdi-dog'
@@ -116,7 +207,7 @@ const getVuetifyIcon = type => {
   }
 }
 
-// 獲取類型文字
+// 獲取類型文字 (恢復原始邏輯)
 const getTypeText = type => {
   if (type === 'dog') {
     return '狗狗'
@@ -126,16 +217,30 @@ const getTypeText = type => {
     return '其他'
   }
 }
+
+// 複製到剪貼簿 (保留，並應用到名稱)
+const copyToClipboard = async text => {
+  if (!navigator.clipboard) {
+    toast.error('您的瀏覽器不支援剪貼簿功能')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.success(`「${text}」已成功複製到剪貼簿`)
+  } catch (err) {
+    toast.error('複製失敗', err.message)
+  }
+}
 </script>
 
 <style scoped>
 .animal-basic-info-card {
   height: 380px;
-  display: flex;
-  flex-direction: column;
   background-color: rgb(var(--v-theme-surface)) !important;
   color: rgb(var(--v-theme-on-surface)) !important;
-  transition: background-color 0.1s ease, color 0.1s ease;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
 }
 
 @media (min-width: 1024px) {
@@ -143,56 +248,9 @@ const getTypeText = type => {
     height: 420px;
     background-color: rgb(var(--v-theme-surface)) !important;
     color: rgb(var(--v-theme-on-surface)) !important;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    transition:
+      background-color 0.1s ease,
+      color 0.1s ease;
   }
-}
-
-.animal-basic-info-card .v-card-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.info-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  width: 70px;
-  flex-shrink: 0;
-}
-
-.info-value {
-  font-size: 0.875rem;
-  margin-left: 8px;
-  word-break: break-word;
-}
-
-.v-list-item {
-  min-height: 24px !important;
-  align-items: flex-start !important;
-}
-
-.v-list-item .v-list-item-title,
-.v-list-item .v-list-item-subtitle {
-  line-height: 1.2 !important;
-  white-space: normal !important;
-}
-
-.v-list {
-  overflow-y: auto;
-  max-height: 100%;
-  background-color: transparent !important;
-}
-
-/* 強制基本資料卡片使用主題變數 */
-.animal-basic-info-card.v-card {
-  background-color: rgb(var(--v-theme-surface)) !important;
-  color: rgb(var(--v-theme-on-surface)) !important;
-  transition: background-color 0.1s ease, color 0.1s ease !important;
-}
-
-.animal-basic-info-card .v-list-item-title,
-.animal-basic-info-card .v-list-item-subtitle {
-  color: rgb(var(--v-theme-on-surface)) !important;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <v-card class="mt-4 blood-sugar-calendar-card">
     <v-card-text class="pa-4">
-      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="goToFirstWeekOfSelectedMonth" @prevWeek="prevWeek" @nextWeek="nextWeek" @prevMonth="handlePrevMonth" @nextMonth="handleNextMonth" @goToMarkedDiary="goToMarkedDiary" />
+      <CalendarControls v-model:calendarDisplay="calendarDisplay" v-model:selectedYear="selectedYear" v-model:selectedMonth="selectedMonth" :years="years" :months="months" @goToFirstWeekOfSelectedMonth="handleGoToFirstWeekOfSelectedMonth" @prevWeek="handlePrevWeek" @nextWeek="handleNextWeek" @prevMonth="handlePrevMonth" @nextMonth="handleNextMonth" @goToMarkedDiary="goToMarkedDiary" />
 
       <!-- 月視圖 -->
       <MonthView v-show="calendarDisplay === 'month'" :calendar="calendar" :newtoday="newtoday" :showTooltip="showTooltip" :hoverData="hoverData" :tooltipStyle="tooltipStyle" @showTips="showTips" @hideTooltip="showTooltip = false" @toggleMark="toggleMark" @dayClicked="openDayDetailDialog" />
@@ -323,17 +323,6 @@ watch(
   },
 )
 
-// 監聽週資料變化，當導航到新週時更新資料
-watch(
-  () => weekRange.value,
-  async () => {
-    if (calendarDisplay.value === 'week') {
-      await getWeekBloodSugarData()
-      emitCurrentDateRange()
-    }
-  },
-)
-
 // 移除重複的監聽與初始化，保留下方單一版本
 
 const emit = defineEmits(['bloodSugarChanged', 'dateRangeChanged'])
@@ -385,6 +374,22 @@ const handleNextMonth = async () => {
   emitCurrentDateRange()
 }
 
+const handleGoToFirstWeekOfSelectedMonth = async () => {
+  await goToFirstWeekOfSelectedMonth()
+  emitCurrentDateRange()
+}
+
+// 包裝函式：處理週導航並發出事件
+const handlePrevWeek = async () => {
+  await prevWeek()
+  emitCurrentDateRange()
+}
+
+const handleNextWeek = async () => {
+  await nextWeek()
+  emitCurrentDateRange()
+}
+
 // 跳轉到標記記錄頁面
 const goToMarkedDiary = () => {
   const role = store.user.role
@@ -415,6 +420,14 @@ function getStartOfWeek(date) {
   return new Date(date.setDate(diff))
 }
 
+// 正常初始化流程
+// 將這段邏輯移到 onMounted 外，確保在 immediate watcher 執行前狀態已準備好
+newtoday.date = new Date()
+updateWeekData()
+selectedYear.value = newtoday.date.getFullYear()
+selectedMonth.value = newtoday.date.getMonth()
+calendarDisplay.value = 'week'
+
 // 初始化
 onMounted(async () => {
   // 如果有目標日期，跳轉到該日期的週曆
@@ -435,18 +448,19 @@ onMounted(async () => {
       const startOfWeek = getStartOfWeek(new Date(targetDateObj))
       updateWeekData(startOfWeek)
 
+      // 載入該週的資料並發出事件
+      await getWeekBloodSugarData()
+      emitCurrentDateRange()
+
       // 清除 URL 參數，避免重複跳轉
       router.replace({ query: {} })
-
       return
     }
   }
 
   // 正常初始化流程
-  newtoday.date = new Date()
   updateWeekData()
-  selectedYear.value = newtoday.date.getFullYear()
-  selectedMonth.value = newtoday.date.getMonth()
-  calendarDisplay.value = 'week' // 這將觸發 watch 來載入資料
+  await getWeekBloodSugarData()
+  emitCurrentDateRange()
 })
 </script>

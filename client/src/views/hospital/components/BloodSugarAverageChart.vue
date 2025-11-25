@@ -50,9 +50,10 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import ChartComponent from '@/components/ChartComponent.vue'
 import { useChartConfig } from '../composables/useChartConfig'
+import authStore from '@/stores/auth'
 
 const props = defineProps({
   averageData: {
@@ -70,8 +71,9 @@ const props = defineProps({
   },
 })
 
-// 注入深色模式狀態
-const isDark = inject('isDark', { value: false })
+// 從 Pinia store 獲取深色模式狀態
+const store = authStore()
+const isDark = computed(() => store.isDark)
 
 // 使用圖表配置
 const { getAverageChartConfig } = useChartConfig(isDark)

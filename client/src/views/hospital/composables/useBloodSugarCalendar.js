@@ -398,16 +398,18 @@ export function useBloodSugarCalendar(animalId, user) {
   }
 
   // 週月導航
-  const prevWeek = () => {
+  const prevWeek = async () => {
     newtoday.date.setDate(newtoday.date.getDate() - 7)
     newtoday.date = new Date(newtoday.date)
     updateWeekData()
+    await getWeekBloodSugarData()
   }
 
-  const nextWeek = () => {
+  const nextWeek = async () => {
     newtoday.date.setDate(newtoday.date.getDate() + 7)
     newtoday.date = new Date(newtoday.date)
     updateWeekData()
+    await getWeekBloodSugarData()
   }
 
   const prevMonth = async () => {

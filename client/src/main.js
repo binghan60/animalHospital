@@ -95,7 +95,7 @@ const vuetify = createVuetify({
         dark: false,
         colors: {
           primary: '#2563eb', // blue-600
-          'primary-darken-1': '#1d4ed8', // blue-700  
+          'primary-darken-1': '#1d4ed8', // blue-700
           secondary: '#64748b', // slate-500
           accent: '#06b6d4', // cyan-500
           error: '#dc2626', // red-600
@@ -106,7 +106,7 @@ const vuetify = createVuetify({
           background: '#f8fafc', // slate-50
           'on-surface': '#1e293b', // slate-800
           'on-background': '#1e293b', // slate-800
-        }
+        },
       },
       dark: {
         dark: true,
@@ -123,9 +123,9 @@ const vuetify = createVuetify({
           background: '#171717', // neutral-900
           'on-surface': '#d4d4d4', // neutral-300
           'on-background': '#d4d4d4', // neutral-300
-        }
-      }
-    }
+        },
+      },
+    },
   },
 })
 
@@ -151,7 +151,7 @@ app.provide('loadingConfig', {
 watch(
   () => store.isDark,
   val => {
-    vuetify.theme.global.name.value = val ? 'dark' : 'light'
+    vuetify.theme.change(val ? 'dark' : 'light')
   },
   { immediate: true },
 )

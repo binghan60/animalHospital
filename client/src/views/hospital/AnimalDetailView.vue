@@ -50,9 +50,6 @@ const store = authStore()
 const user = computed(() => store.user)
 const isDark = computed(() => store.isDark)
 
-// 提供深色模式狀態給子元件
-provide('isDark', isDark)
-
 // 整合模態框狀態管理
 const modals = reactive({
   weight: false,
