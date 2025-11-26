@@ -28,9 +28,9 @@
         <!-- 時間軸列表 - 動態方向 -->
         <div v-if="activities.length > 0" :class="timelineDirection === 'horizontal' ? 'timeline-container-horizontal' : 'timeline-container-vertical'">
           <v-timeline :direction="timelineDirection === 'horizontal' ? 'horizontal' : undefined" :side="timelineDirection === 'vertical' ? 'end' : undefined" :align="timelineDirection === 'horizontal' ? 'center' : 'start'" density="compact">
-            <v-timeline-item v-for="activity in activities" :key="activity._id" :dot-color="getActivityColor(activity.activityType)" size="small">
+            <v-timeline-item v-for="activity in activities" :key="activity._id" :dot-color="getActivityColor(activity.activityType)" size="large">
               <template #icon>
-                <v-icon :icon="getActivityIcon(activity.activityType)" size="small" />
+                <v-icon :icon="getActivityIcon(activity.activityType)" size="large" />
               </template>
 
               <v-card :color="getActivityColor(activity.activityType)" variant="tonal" :class="timelineDirection === 'horizontal' ? 'activity-card-horizontal' : 'activity-card-vertical'">
