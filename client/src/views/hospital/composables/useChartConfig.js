@@ -163,7 +163,7 @@ export function useChartConfig(isDark) {
           {
             type: 'bar',
             label: '胰島素',
-            data: x.records.map(y => y.insulin),
+            data: x.records.map(y => (y.insulin === 0 ? null : y.insulin)),
             backgroundColor: 'rgba(255, 99, 132, 0.5)',
             borderColor: 'rgba(255, 99, 132, 1)',
             borderWidth: 1,
