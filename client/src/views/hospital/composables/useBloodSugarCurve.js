@@ -186,8 +186,9 @@ export function useBloodSugarCurve(animalId) {
 
   // 生成血糖曲線介面
   const generateBloodSugarCurveInterface = () => {
-    // 預設顯示全部資料
-    bloodSugarCurveChart.filteredData = bloodSugarCurveChart.allData
+    // 依目前的日期篩選條件決定顯示資料
+    // 若尚未設定篩選，filterBloodSugarCurveByDate 會回退為顯示全部
+    filterBloodSugarCurveByDate()
   }
 
   // 根據日期篩選血糖曲線
