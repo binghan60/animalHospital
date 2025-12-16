@@ -158,6 +158,7 @@ export function useChartConfig(isDark) {
             pointRadius: 6,
             pointHoverRadius: 10,
             yAxisID: 'y',
+            spanGaps: true, 
           },
           {
             type: 'bar',

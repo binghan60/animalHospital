@@ -8,9 +8,27 @@
 
       <v-card-text>
         <v-form ref="formRef">
-          <!-- 日期選擇 -->
-          <v-text-field v-model="localForm.date" label="日期" type="date" variant="outlined" density="compact" :rules="[v => !!v || '日期為必填']" prepend-inner-icon="mdi-calendar" class="mb-4" @update:model-value="$emit('date-change', $event)" />
-
+          <v-row class="align-center mb-4">
+            <v-col cols="8">
+              <v-menu v-model="mainDateMenu" :close-on-content-click="false" location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-text-field v-model="localForm.date" label="日期" type="text" variant="outlined" density="compact" :rules="[v => !!v || '日期為必填']" prepend-inner-icon="mdi-calendar" hide-details readonly v-bind="props" />
+                </template>
+                <v-date-picker v-model="localForm.date" color="primary" @update:model-value="onMainDateSelected"></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col cols="4">
+              <v-menu v-model="dateMenu" :close-on-content-click="false" location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-btn color="primary" variant="outlined" v-bind="props">
+                    <v-icon start icon="mdi-database-search-outline"></v-icon>
+                    載入資料
+                  </v-btn>
+                </template>
+                <v-date-picker v-model="localForm.date" color="primary" @update:model-value="onDateSelectedAndLoad"></v-date-picker>
+              </v-menu>
+            </v-col>
+          </v-row>
           <!-- 動態欄位 -->
           <div class="mb-2 text-subtitle-2 text-medium-emphasis">血糖記錄</div>
 
@@ -20,7 +38,7 @@
             </v-col>
 
             <v-col cols="12" md="3">
-              <v-text-field v-model="field.value" label="血糖值" type="number" variant="outlined" density="compact" prepend-inner-icon="mdi-water" suffix="mg/dL" :rules="[v => !!v || '血糖值為必填']" hide-details />
+              <v-text-field v-model="field.value" label="血糖值" type="number" variant="outlined" density="compact" prepend-inner-icon="mdi-water" suffix="mg/dL" hide-details />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -50,6 +68,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { formatDateToYyyyMmDd } from '@/utils/dateFormatter';
 
 const props = defineProps({
   modelValue: {
@@ -71,7 +90,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'submit', 'date-change'])
+const emit = defineEmits(['update:modelValue', 'submit', 'load-data'])
 
 const formRef = ref(null)
 const localForm = ref({
@@ -79,7 +98,22 @@ const localForm = ref({
   fields: [...props.form.fields],
 })
 
+const dateMenu = ref(false)
+const mainDateMenu = ref(false)
+
 const isEditMode = computed(() => props.mode === 'edit')
+
+const onDateSelectedAndLoad = (selectedDate) => {
+  const formattedDate = formatDateToYyyyMmDd(selectedDate)
+  localForm.value.date = formattedDate
+  emit('load-data', formattedDate)
+  dateMenu.value = false
+}
+
+const onMainDateSelected = (selectedDate) => {
+  localForm.value.date = formatDateToYyyyMmDd(selectedDate)
+  mainDateMenu.value = false
+}
 
 // 當外部 form 變更時同步
 watch(

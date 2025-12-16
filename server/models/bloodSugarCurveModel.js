@@ -6,7 +6,7 @@ const bloodSugarCurveSchema = new mongoose.Schema(
         date: { type: Date, required: true },
         records: [{ 
             time: { type: String, required: true }, 
-            value: { type: Number, required: true },
+            value: { type: Number },
             insulin: { type: Number, default: 0 } // 胰島素劑量，預設為0
         }],
     },
